@@ -33,6 +33,8 @@ from the bundled Zumper snapshot (live-refreshed when the report parses), and ev
 US city resolves through the bundled county-level HUD Fair Market Rents table
 (`src/lib/data/fmr-county.json`, ~3,200 counties). Keys only upgrade freshness.
 
+See [docs/API.md](docs/API.md) for the full endpoint reference (params, responses, examples).
+
 To refresh the bundled FMR table when HUD publishes a new fiscal year:
 
 ```bash
