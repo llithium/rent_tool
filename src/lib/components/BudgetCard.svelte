@@ -20,13 +20,12 @@
       <div class="v">{money(budget.grossMonthly)}</div>
       <div class="l">Gross monthly income</div>
     </div>
-    {#if budget.estTaxRate > 0}
-      <div class="stat">
-        <div class="v">{money(budget.takeHomeMonthly)}</div>
-        <div class="l">Est. take-home · after {(budget.estTaxRate * 100).toFixed(1)}% state tax</div>
-      </div>
-    {/if}
+    <div class="stat">
+      <div class="v">{money(budget.takeHomeMonthly)}</div>
+      <div class="l">Est. take-home · after ~{(budget.effRate * 100).toFixed(0)}% tax (fed + FICA + state)</div>
+    </div>
   </div>
+  <p class="note">Take-home assumes a single filer taking the standard deduction — an estimate, not tax advice.</p>
 </section>
 
 <style>
@@ -65,5 +64,11 @@
     font-size: 0.73rem;
     color: var(--muted);
     margin-top: 3px;
+  }
+  .note {
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-top: 10px;
+    line-height: 1.4;
   }
 </style>

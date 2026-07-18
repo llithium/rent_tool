@@ -8,9 +8,11 @@
     return whole > 0 ? (part / whole) * 100 : 0;
   }
 
-  // Row 1: gross monthly = state tax + take-home
-  let taxAmt = $derived(budget.grossMonthly - budget.takeHomeMonthly);
-  let taxPct = $derived(pct(taxAmt, budget.grossMonthly));
+  // Row 1: gross monthly = federal + FICA + state tax + take-home
+  let taxAmt = $derived(budget.federalMonthly + budget.ficaMonthly + budget.stateMonthly);
+  let fedPct = $derived(pct(budget.federalMonthly, budget.grossMonthly));
+  let ficaPct = $derived(pct(budget.ficaMonthly, budget.grossMonthly));
+  let statePct = $derived(pct(budget.stateMonthly, budget.grossMonthly));
   let takePct = $derived(pct(budget.takeHomeMonthly, budget.grossMonthly));
   // Row 2: take-home = rent (median 1BR) + remaining
   let rent = $derived(city.r1 ?? 0);
@@ -30,14 +32,29 @@
       Gross monthly {money(budget.grossMonthly)}{taxAmt > 0 ? ` · tax ${money(taxAmt)}/mo` : ''}
     </div>
     <div class="bar">
-      {#if taxAmt > 0}
-        <div class="seg tax" style="width:{taxPct}%">
-          {#if taxPct >= 14}<span>Tax {money(taxAmt)}</span>{/if}
+      {#if budget.federalMonthly > 0}
+        <div class="seg federal" style="width:{fedPct}%">
+          {#if fedPct >= 16}<span>Federal {money(budget.federalMonthly)}</span>{/if}
+        </div>
+      {/if}
+      {#if budget.ficaMonthly > 0}
+        <div class="seg fica" style="width:{ficaPct}%">
+          {#if ficaPct >= 12}<span>FICA {money(budget.ficaMonthly)}</span>{/if}
+        </div>
+      {/if}
+      {#if budget.stateMonthly > 0}
+        <div class="seg state" style="width:{statePct}%">
+          {#if statePct >= 12}<span>State {money(budget.stateMonthly)}</span>{/if}
         </div>
       {/if}
       <div class="seg take" style="width:{takePct}%">
         <span>Take-home {money(budget.takeHomeMonthly)}</span>
       </div>
+    </div>
+    <div class="legend">
+      <span><i class="sw federal"></i>Federal {money(budget.federalMonthly)}</span>
+      <span><i class="sw fica"></i>FICA {money(budget.ficaMonthly)}</span>
+      <span><i class="sw state"></i>State {money(budget.stateMonthly)}</span>
     </div>
   </div>
 
@@ -60,8 +77,8 @@
     </p>
   {/if}
 
-  {#if budget.estTaxRate === 0}
-    <p class="foot muted">No state income tax on wages here — take-home equals gross.</p>
+  {#if budget.stateRate === 0}
+    <p class="foot muted">No state income tax on wages here — but federal tax and FICA still apply.</p>
   {/if}
 </section>
 
@@ -108,11 +125,45 @@
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .seg.tax {
+  .seg.federal {
     background: var(--red);
+  }
+  .seg.fica {
+    background: var(--amber);
+  }
+  .seg.state {
+    background: color-mix(in srgb, var(--red) 55%, var(--amber));
   }
   .seg.take {
     background: var(--green);
+  }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+    margin-top: 6px;
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+  .legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .sw {
+    width: 9px;
+    height: 9px;
+    border-radius: 2px;
+    display: inline-block;
+  }
+  .sw.federal {
+    background: var(--red);
+  }
+  .sw.fica {
+    background: var(--amber);
+  }
+  .sw.state {
+    background: color-mix(in srgb, var(--red) 55%, var(--amber));
   }
   .seg.rent {
     background: var(--accent);

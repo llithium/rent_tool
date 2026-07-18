@@ -13,16 +13,69 @@ export const EST_STATE_RATE: Record<string, number> = {
   UT: 0.0455, VA: 0.0525, VT: 0.06, WA: 0, WI: 0.055, WV: 0.048, WY: 0
 };
 
-/** Compute the 30%-rule budget from an annual salary and (optional) state for take-home. */
+// --- Federal, single filer (official 2026 figures, source: Tax Foundation) ---
+// Assumes standard deduction; used only for the take-home estimate, not tax advice.
+const FED_STD_DEDUCTION = 16_100; // 2026 single standard deduction
+/** 2026 single-filer marginal brackets as [upper-bound of taxable income, rate]; last is the top rate. */
+const FED_BRACKETS: [number, number][] = [
+  [12_400, 0.1],
+  [50_400, 0.12],
+  [105_700, 0.22],
+  [201_775, 0.24],
+  [256_225, 0.32],
+  [640_600, 0.35],
+  [Infinity, 0.37]
+];
+
+// FICA (2026)
+const SS_RATE = 0.062;
+const SS_WAGE_BASE = 184_500; // 2026 Social Security wage base
+const MEDICARE_RATE = 0.0145;
+const ADDL_MEDICARE_RATE = 0.009;
+const ADDL_MEDICARE_THRESHOLD = 200_000; // single filer
+
+/** Estimated federal income tax on a salary (single filer, standard deduction). */
+export function federalTax(salary: number): number {
+  const taxable = Math.max(0, salary - FED_STD_DEDUCTION);
+  let tax = 0;
+  let lower = 0;
+  for (const [upper, rate] of FED_BRACKETS) {
+    if (taxable <= lower) break;
+    tax += (Math.min(taxable, upper) - lower) * rate;
+    lower = upper;
+  }
+  return tax;
+}
+
+/** Estimated FICA payroll tax (Social Security + Medicare + additional Medicare surtax). */
+export function ficaTax(wages: number): number {
+  const ss = Math.min(wages, SS_WAGE_BASE) * SS_RATE;
+  const medicare = wages * MEDICARE_RATE;
+  const addl = Math.max(0, wages - ADDL_MEDICARE_THRESHOLD) * ADDL_MEDICARE_RATE;
+  return ss + medicare + addl;
+}
+
+/** Compute the 30%-rule budget plus an estimated take-home breakdown (federal + FICA + state). */
 export function computeBudget(salary: number, state?: string): Budget {
   const grossMonthly = salary / 12;
-  const estTaxRate = (state && EST_STATE_RATE[state.toUpperCase()]) || 0;
+  const stateRate = (state && EST_STATE_RATE[state.toUpperCase()]) || 0;
+
+  const federalMonthly = federalTax(salary) / 12;
+  const ficaMonthly = ficaTax(salary) / 12;
+  const stateMonthly = grossMonthly * stateRate;
+  const totalTaxMonthly = federalMonthly + ficaMonthly + stateMonthly;
+  const takeHomeMonthly = Math.max(0, grossMonthly - totalTaxMonthly);
+
   return {
     grossMonthly,
     maxRent: grossMonthly * 0.3,
     comfyRent: grossMonthly * 0.25,
-    takeHomeMonthly: grossMonthly * (1 - estTaxRate),
-    estTaxRate
+    takeHomeMonthly,
+    federalMonthly,
+    ficaMonthly,
+    stateMonthly,
+    stateRate,
+    effRate: grossMonthly > 0 ? totalTaxMonthly / grossMonthly : 0
   };
 }
 

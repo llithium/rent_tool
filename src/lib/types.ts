@@ -45,11 +45,15 @@ export interface LookupResult {
   lng?: number;
 }
 
-/** Computed rent budget for a salary. */
+/** Computed rent budget for a salary, with an estimated take-home breakdown. */
 export interface Budget {
   grossMonthly: number;
   maxRent: number; // 30% rule
   comfyRent: number; // 25% rule
-  takeHomeMonthly: number; // after estimated state income tax
-  estTaxRate: number; // fraction, e.g. 0.05
+  takeHomeMonthly: number; // after federal + FICA + state tax
+  federalMonthly: number; // federal income tax
+  ficaMonthly: number; // Social Security + Medicare
+  stateMonthly: number; // state income tax
+  stateRate: number; // state fraction — for the "no state tax" note
+  effRate: number; // total tax / gross, for the summary label
 }
