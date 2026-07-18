@@ -116,6 +116,9 @@
       aria-controls="city-listbox"
       aria-autocomplete="list"
       autocomplete="off"
+      autocorrect="off"
+      autocapitalize="off"
+      spellcheck="false"
       placeholder="Start typing a city…"
       value={query}
       oninput={onInput}
