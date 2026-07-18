@@ -1,0 +1,25 @@
+{
+  "name": "rent-tool",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json"
+  },
+  "devDependencies": {
+    "@sveltejs/adapter-vercel": "^5.5.2",
+    "@sveltejs/kit": "^2.15.1",
+    "@sveltejs/vite-plugin-svelte": "^5.0.3",
+    "@types/leaflet": "^1.9.15",
+    "svelte": "^5.16.0",
+    "svelte-check": "^4.1.1",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.5"
+  },
+  "dependencies": {
+    "leaflet": "^1.9.4"
+  }
+}
