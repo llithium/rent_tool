@@ -15,3 +15,8 @@ export const STATE_ABBR: Record<string, string> = {
 
 /** Set of valid USPS abbreviations for quick validation. */
 export const VALID_STATES = new Set(Object.values(STATE_ABBR));
+
+/** USPS abbreviation → full state name (reverse of STATE_ABBR). */
+export const STATE_NAME: Record<string, string> = Object.fromEntries(
+  Object.entries(STATE_ABBR).map(([name, abbr]) => [abbr, name])
+);

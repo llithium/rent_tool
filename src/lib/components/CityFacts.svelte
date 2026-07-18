@@ -1,8 +1,14 @@
 <script lang="ts">
   import type { City, RentSource } from '$lib/types';
   import { money, pctTrend } from '$lib/format';
+  import { STATE_NAME } from '$lib/data/states';
 
   let { city, looking }: { city: City; looking: boolean } = $props();
+
+  let wikiUrl = $derived.by(() => {
+    const query = `${city.city}, ${STATE_NAME[city.state] ?? city.state}`;
+    return `https://en.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(query)}&go=Go`;
+  });
 
   const SOURCE_LABEL: Record<RentSource, string> = {
     'zumper-live': 'Live · Zumper',
@@ -53,6 +59,10 @@
   {#if city.blurb}
     <p class="blurb">{city.blurb}</p>
   {/if}
+
+  <a class="wiki" href={wikiUrl} target="_blank" rel="noopener">
+    Read about {city.city} on Wikipedia ↗
+  </a>
 </section>
 
 <style>
@@ -126,5 +136,16 @@
     border-radius: var(--radius-sm);
     padding: 9px 11px;
     margin-bottom: 10px;
+  }
+  .wiki {
+    display: inline-block;
+    margin-top: 10px;
+    font-size: 0.83rem;
+    font-weight: 600;
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .wiki:hover {
+    text-decoration: underline;
   }
 </style>
