@@ -12,8 +12,10 @@
   let open = $state(false);
   let loading = $state(false);
   let activeIndex = $state(-1);
+  let requestId = 0;
 
   let debounceTimer: ReturnType<typeof setTimeout> | undefined;
+  let blurTimer: ReturnType<typeof setTimeout> | undefined;
   let controller: AbortController | undefined;
 
   /** Local fallback: match against bundled seed cities when the API is unreachable. */
@@ -30,16 +32,18 @@
       }));
   }
 
-  async function runSearch(q: string) {
-    controller?.abort();
+  async function runSearch(q: string, id: number) {
     controller = new AbortController();
     loading = true;
     try {
       const remote = await fetchSuggestions(q, controller.signal);
+      if (id !== requestId) return;
       suggestions = remote.length ? remote : seedMatches(q);
-    } catch {
+    } catch (cause) {
+      if (id !== requestId || (cause instanceof DOMException && cause.name === 'AbortError')) return;
       suggestions = seedMatches(q);
     } finally {
+      if (id !== requestId) return;
       loading = false;
       activeIndex = suggestions.length ? 0 : -1;
     }
@@ -47,19 +51,30 @@
 
   function onInput(e: Event) {
     query = (e.target as HTMLInputElement).value;
+    clearTimeout(blurTimer);
     open = true;
+    requestId += 1;
+    const id = requestId;
+    controller?.abort();
     clearTimeout(debounceTimer);
     if (query.trim().length < 2) {
       suggestions = [];
       loading = false;
+      activeIndex = -1;
       return;
     }
     // Instant local hints, then debounced API refinement.
     suggestions = seedMatches(query);
-    debounceTimer = setTimeout(() => runSearch(query.trim()), 220);
+    activeIndex = suggestions.length ? 0 : -1;
+    debounceTimer = setTimeout(() => runSearch(query.trim(), id), 220);
   }
 
   function choose(sug: CitySuggestion) {
+    clearTimeout(blurTimer);
+    clearTimeout(debounceTimer);
+    requestId += 1;
+    controller?.abort();
+    loading = false;
     query = sug.label;
     open = false;
     suggestions = [];
@@ -70,7 +85,9 @@
     if (!open || !suggestions.length) {
       if (e.key === 'ArrowDown' && query.trim().length >= 2) {
         open = true;
-        runSearch(query.trim());
+        requestId += 1;
+        controller?.abort();
+        runSearch(query.trim(), requestId);
       }
       return;
     }
@@ -90,18 +107,16 @@
     }
   }
 
-  function highlight(label: string): string {
+  function highlight(label: string): { before: string; match: string; after: string } {
     const q = query.trim();
-    if (!q) return label;
+    if (!q) return { before: label, match: '', after: '' };
     const i = label.toLowerCase().indexOf(q.toLowerCase());
-    if (i < 0) return label;
-    return (
-      label.slice(0, i) +
-      '<mark>' +
-      label.slice(i, i + q.length) +
-      '</mark>' +
-      label.slice(i + q.length)
-    );
+    if (i < 0) return { before: label, match: '', after: '' };
+    return {
+      before: label.slice(0, i),
+      match: label.slice(i, i + q.length),
+      after: label.slice(i + q.length)
+    };
   }
 </script>
 
@@ -115,6 +130,8 @@
       aria-expanded={open}
       aria-controls="city-listbox"
       aria-autocomplete="list"
+      aria-activedescendant={open && activeIndex >= 0 ? `city-option-${activeIndex}` : undefined}
+      aria-busy={loading}
       autocomplete="off"
       autocorrect="off"
       autocapitalize="off"
@@ -123,8 +140,13 @@
       value={query}
       oninput={onInput}
       onkeydown={onKeydown}
-      onfocus={() => (open = suggestions.length > 0)}
-      onblur={() => setTimeout(() => (open = false), 150)}
+      onfocus={() => {
+        clearTimeout(blurTimer);
+        open = suggestions.length > 0;
+      }}
+      onblur={() => {
+        blurTimer = setTimeout(() => (open = false), 150);
+      }}
     />
     {#if loading}
       <span class="spinner" aria-hidden="true"></span>
@@ -134,7 +156,9 @@
   {#if open && suggestions.length}
     <ul class="listbox" id="city-listbox" role="listbox">
       {#each suggestions as sug, i (sug.label)}
+        {@const parts = highlight(sug.label)}
         <li
+          id={`city-option-${i}`}
           role="option"
           aria-selected={i === activeIndex}
           class:active={i === activeIndex}
@@ -144,12 +168,14 @@
           }}
           onmouseenter={() => (activeIndex = i)}
         >
-          <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-          <span class="opt-label">{@html highlight(sug.label)}</span>
+          <span class="opt-label">{parts.before}{#if parts.match}<mark>{parts.match}</mark>{/if}{parts.after}</span>
         </li>
       {/each}
     </ul>
   {/if}
+  <span class="sr-only" aria-live="polite">
+    {loading ? 'Searching cities' : open ? `${suggestions.length} city suggestions available` : ''}
+  </span>
 </div>
 
 <style>
@@ -225,7 +251,7 @@
   li.active {
     background: var(--accent-soft);
   }
-  .opt-label :global(mark) {
+  mark {
     background: transparent;
     color: var(--accent);
     font-weight: 700;

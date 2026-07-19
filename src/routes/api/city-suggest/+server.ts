@@ -1,4 +1,4 @@
-import { json } from '@sveltejs/kit';
+import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { STATE_ABBR, VALID_STATES } from '$lib/data/states';
 import type { CitySuggestion } from '$lib/types';
@@ -8,6 +8,7 @@ import type { CitySuggestion } from '$lib/types';
 export const GET: RequestHandler = async ({ url, fetch, setHeaders }) => {
   const q = (url.searchParams.get('q') || '').trim();
   if (q.length < 2) return json({ suggestions: [] });
+  if (q.length > 100) throw error(400, 'q must be 100 characters or fewer');
 
   const photon = new URL('https://photon.komoot.io/api/');
   photon.searchParams.set('q', q);
@@ -16,7 +17,8 @@ export const GET: RequestHandler = async ({ url, fetch, setHeaders }) => {
 
   try {
     const res = await fetch(photon.toString(), {
-      headers: { 'User-Agent': 'rent-tool/1.0 (city autocomplete)' }
+      headers: { 'User-Agent': 'rent-tool/1.0 (city autocomplete)' },
+      signal: AbortSignal.timeout(5_000)
     });
     if (!res.ok) return json({ suggestions: [] });
     const data = await res.json();
@@ -30,9 +32,9 @@ export const GET: RequestHandler = async ({ url, fetch, setHeaders }) => {
       if (p.osm_key !== 'place') continue;
       if (!['city', 'town', 'village'].includes(p.osm_value)) continue;
 
-      const cityName: string = p.name;
+      const cityName = typeof p.name === 'string' ? p.name.trim().slice(0, 80) : '';
       const stateAbbr = STATE_ABBR[p.state] || (VALID_STATES.has(p.state) ? p.state : '');
-      if (!cityName || !stateAbbr) continue;
+      if (!cityName || !stateAbbr || /[<>]/.test(cityName)) continue;
 
       const label = `${cityName}, ${stateAbbr}`;
       if (seen.has(label)) continue;

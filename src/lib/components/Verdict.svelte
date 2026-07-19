@@ -1,23 +1,25 @@
 <script lang="ts">
   import type { Budget, City } from '$lib/types';
-  import { money } from '$lib/format';
+  import { money, rentMetricLabel } from '$lib/format';
   import { salaryForRent } from '$lib/budget';
 
   let { budget, city }: { budget: Budget; city: City } = $props();
 
   let cushion = $derived(city.r1 != null ? budget.maxRent - city.r1 : null);
   let good = $derived(cushion != null && cushion >= 0);
+  let rentLabel = $derived(rentMetricLabel(city.rentMetric, '1BR').toLowerCase());
+  let rentLabel2 = $derived(rentMetricLabel(city.rentMetric, '2BR').toLowerCase());
 </script>
 
 {#if city.r1 != null && cushion != null}
   <div class="verdict" class:bad={!good}>
     {#if good}
-      <strong>✓ Comfortable.</strong> Your {money(budget.maxRent)} budget covers the median 1BR
+      <strong>✓ Comfortable.</strong> Your {money(budget.maxRent)} budget covers the {rentLabel}
       ({money(city.r1)}) with {money(cushion)}/mo to spare.{#if city.r2 != null && budget.maxRent >= city.r2}{' '}It
-        even covers the median 2BR ({money(city.r2)}).{/if}
+        even covers the {rentLabel2} ({money(city.r2)}).{/if}
     {:else}
-      <strong>⚠ Stretch.</strong> The median 1BR here ({money(city.r1)}) runs {money(-cushion)}/mo
-      over your 30% budget. You'd need roughly {money(salaryForRent(city.r1))}/yr for the median —
+      <strong>⚠ Stretch.</strong> The {rentLabel} here ({money(city.r1)}) runs {money(-cushion)}/mo
+      over your 30% budget. You'd need roughly {money(salaryForRent(city.r1))}/yr for that rent —
       consider below-median units, roommates, or nearby suburbs.
     {/if}
   </div>

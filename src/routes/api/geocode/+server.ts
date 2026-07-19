@@ -7,7 +7,7 @@ import type { RequestHandler } from './$types';
 export const GET: RequestHandler = async ({ url, fetch, setHeaders }) => {
   const lat = parseFloat(url.searchParams.get('lat') || '');
   const lng = parseFloat(url.searchParams.get('lng') || '');
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+  if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
     throw error(400, 'lat and lng are required');
   }
 
@@ -17,11 +17,11 @@ export const GET: RequestHandler = async ({ url, fetch, setHeaders }) => {
   fcc.searchParams.set('format', 'json');
 
   try {
-    const res = await fetch(fcc.toString());
+    const res = await fetch(fcc.toString(), { signal: AbortSignal.timeout(5_000) });
     if (!res.ok) return json({ ok: false });
     const data = await res.json();
     const r = data.results?.[0];
-    if (!r?.county_fips) return json({ ok: false });
+    if (!/^\d{5}$/.test(String(r?.county_fips ?? ''))) return json({ ok: false });
 
     const combined: string = String(r.county_fips); // SSCCC
     const stateFips = combined.slice(0, 2);

@@ -45,7 +45,8 @@ export const GET: RequestHandler = async ({ url, fetch, setHeaders }) => {
 
   try {
     const res = await fetch(api, {
-      headers: { Authorization: `Bearer ${env.HUD_TOKEN}` }
+      headers: { Authorization: `Bearer ${env.HUD_TOKEN}` },
+      signal: AbortSignal.timeout(6_000)
     });
     if (!res.ok) return fromBundle();
     const data = await res.json();

@@ -1,4 +1,5 @@
 /** Formatting + parsing helpers, migrated from the original artifact. */
+import type { RentMetric } from '$lib/types';
 
 /** "$1,234" — rounded, no decimals. */
 export function money(n: number | null | undefined): string {
@@ -11,6 +12,13 @@ export function pctTrend(yoy: number | null | undefined): string {
   if (yoy == null) return '—';
   if (yoy === 0) return 'flat';
   return (yoy > 0 ? '+' : '') + yoy + '% YoY';
+}
+
+export function rentMetricLabel(metric: RentMetric, bedrooms: '1BR' | '2BR' = '1BR'): string {
+  if (metric === 'median-asking') return `Median asking ${bedrooms} rent`;
+  if (metric === 'fair-market-rent') return `${bedrooms} Fair Market Rent`;
+  if (metric === 'median-gross') return `Median gross ${bedrooms} rent`;
+  return `${bedrooms} rent`;
 }
 
 export interface CityParts {

@@ -68,6 +68,9 @@ parsed it returns `rows: []` and the client keeps its bundled snapshot.
   ],
   "reportDate": "May 1, 2026",
   "live": true,
+  "status": "live",
+  "rowCount": 100,
+  "lastSuccessfulAt": "2026-06-29T12:00:00.000Z",
   "cached": false
 }
 ```
@@ -78,10 +81,15 @@ parsed it returns `rows: []` and the client keeps its bundled snapshot.
 | `rows[].r1` / `r2` | number | Median 1BR / 2BR rent (USD/mo) |
 | `rows[].yoy` | number | 1BR year-over-year change (%) |
 | `reportDate` | string \| null | Report date parsed from the page |
-| `live` | boolean | `true` if any rows parsed |
+| `live` | boolean | `true` when at least 80 validated current rows parsed |
 | `cached` | boolean | Served from the in-memory cache |
+| `status` | `live` \| `stale` \| `unavailable` | Whether rows are current, last-known-good, or absent |
+| `rowCount` | number | Number of validated rows returned |
+| `lastSuccessfulAt` | string \| null | ISO timestamp of the latest successful refresh |
 
-Cache: `s-maxage=21600` (6h).
+At least 80 validated rows are required for a successful refresh. Successful responses
+cache for 6h with stale-while-revalidate; failures cache for only 5 minutes and never
+replace the last-known-good in-memory result.
 
 ---
 
@@ -97,7 +105,7 @@ Resolves county/state FIPS from coordinates via the [FCC Area API](https://geo.f
 | `lat` | yes | Latitude |
 | `lng` | yes | Longitude |
 
-Missing/invalid `lat`/`lng` → **400**.
+Missing, non-finite, or out-of-range `lat`/`lng` → **400**.
 
 **Response** `200`
 
@@ -165,7 +173,7 @@ curl "http://localhost:5173/api/fmr?state=12&county=057"
 
 ## GET `/api/acs`
 
-Census ACS 5-year (2023) median gross rent by bedroom for a county. Used as a secondary
+Census ACS 5-year (2024) median gross rent by bedroom for a county. Used as a secondary
 fallback. **Requires `CENSUS_KEY`** — the Census API now rejects keyless requests, so without
 a key this short-circuits to `ok: false`.
 
@@ -183,7 +191,7 @@ Malformed FIPS → **400**.
 **Response** `200`
 
 ```json
-{ "ok": true, "r1": 1350, "r2": 1580, "name": "Hillsborough County, Florida", "year": "2023" }
+{ "ok": true, "r1": 1350, "r2": 1580, "name": "Hillsborough County, Florida", "year": "2024" }
 ```
 
 `r1`/`r2` are `null` when the Census returns no value. No key configured:

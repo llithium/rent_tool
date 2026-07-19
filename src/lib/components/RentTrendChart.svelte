@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Budget, City } from '$lib/types';
-  import { money, pctTrend } from '$lib/format';
+  import { money, pctTrend, rentMetricLabel } from '$lib/format';
 
   let { city, budget }: { city: City; budget: Budget } = $props();
 
@@ -12,8 +12,8 @@
 
   let bars = $derived.by<Bar[]>(() => {
     const out: Bar[] = [];
-    if (city.r1 != null) out.push({ label: 'Median 1BR', value: city.r1, kind: 'rent' });
-    if (city.r2 != null) out.push({ label: 'Median 2BR', value: city.r2, kind: 'rent' });
+    if (city.r1 != null) out.push({ label: rentMetricLabel(city.rentMetric, '1BR'), value: city.r1, kind: 'rent' });
+    if (city.r2 != null) out.push({ label: rentMetricLabel(city.rentMetric, '2BR'), value: city.r2, kind: 'rent' });
     out.push({ label: 'Your max', value: budget.maxRent, kind: 'budget' });
     return out;
   });
@@ -21,9 +21,9 @@
   let max = $derived(Math.max(...bars.map((b) => b.value), 1));
 
   // Geometry
-  const W = 340;
+  const W = 420;
   const rowH = 46;
-  const labelW = 96;
+  const labelW = 150;
   const barMax = W - labelW - 70;
 
   function barColor(b: Bar): string {

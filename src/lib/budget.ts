@@ -1,16 +1,32 @@
-import type { Budget } from '$lib/types';
+import type { Budget, City } from '$lib/types';
 
-/** Rough *effective* state (incl. notable local) income-tax rate by state, for a typical
+/** Rough *effective* state income-tax rate by state, for a typical
  * mid-career salary. This is a deliberate estimate to power the take-home visual — not tax
  * advice. States with no wage income tax are 0. */
 export const EST_STATE_RATE: Record<string, number> = {
   AL: 0.045, AK: 0, AR: 0.039, AZ: 0.025, CA: 0.06, CO: 0.044, CT: 0.055,
   DC: 0.075, DE: 0.05, FL: 0, GA: 0.0499, HI: 0.079, ID: 0.053, IL: 0.0495,
-  IN: 0.049, IA: 0.038, KS: 0.052, KY: 0.035, LA: 0.03, MA: 0.05, MD: 0.073,
+  IN: 0.0295, IA: 0.038, KS: 0.052, KY: 0.035, LA: 0.03, MA: 0.05, MD: 0.045,
   ME: 0.065, MI: 0.0425, MN: 0.068, MO: 0.047, MS: 0.044, MT: 0.055, NC: 0.0399,
-  ND: 0.02, NE: 0.045, NV: 0, NH: 0, NJ: 0.05, NM: 0.045, NY: 0.06, OH: 0.045,
-  OK: 0.045, OR: 0.085, PA: 0.065, RI: 0.045, SC: 0.055, SD: 0, TN: 0, TX: 0,
+  ND: 0.02, NE: 0.045, NV: 0, NH: 0, NJ: 0.05, NM: 0.045, NY: 0.06, OH: 0.025,
+  OK: 0.045, OR: 0.085, PA: 0.0307, RI: 0.045, SC: 0.055, SD: 0, TN: 0, TX: 0,
   UT: 0.0455, VA: 0.0525, VT: 0.06, WA: 0, WI: 0.055, WV: 0.048, WY: 0
+};
+
+/** Approximate effective local wage-income-tax rates for jurisdictions in the curated set. */
+export const EST_LOCAL_RATE: Record<string, number> = {
+  'Akron, OH': 0.025,
+  'Baltimore, MD': 0.032,
+  'Birmingham, AL': 0.01,
+  'Cincinnati, OH': 0.018,
+  'Cleveland, OH': 0.025,
+  'Columbus, OH': 0.025,
+  'Indianapolis, IN': 0.02,
+  'New York, NY': 0.035,
+  'Philadelphia, PA': 0.0374,
+  'Pittsburgh, PA': 0.03,
+  'St Louis, MO': 0.01,
+  'Toledo, OH': 0.025
 };
 
 // --- Federal, single filer (official 2026 figures, source: Tax Foundation) ---
@@ -56,14 +72,22 @@ export function ficaTax(wages: number): number {
 }
 
 /** Compute the 30%-rule budget plus an estimated take-home breakdown (federal + FICA + state). */
-export function computeBudget(salary: number, state?: string): Budget {
+export function computeBudget(
+  salary: number,
+  location?: Pick<City, 'name' | 'state'> | string
+): Budget {
   const grossMonthly = salary / 12;
+  const state = typeof location === 'string' ? location : location?.state;
+  const cityName = typeof location === 'string' ? '' : location?.name ?? '';
   const stateRate = (state && EST_STATE_RATE[state.toUpperCase()]) || 0;
+  const localTaxModeled = Object.hasOwn(EST_LOCAL_RATE, cityName);
+  const localRate = localTaxModeled ? EST_LOCAL_RATE[cityName] : 0;
 
   const federalMonthly = federalTax(salary) / 12;
   const ficaMonthly = ficaTax(salary) / 12;
   const stateMonthly = grossMonthly * stateRate;
-  const totalTaxMonthly = federalMonthly + ficaMonthly + stateMonthly;
+  const localMonthly = grossMonthly * localRate;
+  const totalTaxMonthly = federalMonthly + ficaMonthly + stateMonthly + localMonthly;
   const takeHomeMonthly = Math.max(0, grossMonthly - totalTaxMonthly);
 
   return {
@@ -75,6 +99,12 @@ export function computeBudget(salary: number, state?: string): Budget {
     ficaMonthly,
     stateMonthly,
     stateRate,
+    localMonthly,
+    localRate,
+    localTaxModeled,
+    taxAssumptions: localTaxModeled
+      ? 'single filer · standard deduction · estimated state and local rates'
+      : 'single filer · standard deduction · local income tax not modeled',
     effRate: grossMonthly > 0 ? totalTaxMonthly / grossMonthly : 0
   };
 }

@@ -22,10 +22,10 @@
     </div>
     <div class="stat">
       <div class="v">{money(budget.takeHomeMonthly)}</div>
-      <div class="l">Est. take-home · after ~{(budget.effRate * 100).toFixed(0)}% tax (fed + FICA + state)</div>
+      <div class="l">Est. take-home · after ~{(budget.effRate * 100).toFixed(0)}% modeled tax</div>
     </div>
   </div>
-  <p class="note">Take-home assumes a single filer taking the standard deduction — an estimate, not tax advice.</p>
+  <p class="note">Take-home assumes {budget.taxAssumptions} — an estimate, not tax advice.</p>
 </section>
 
 <style>
@@ -54,6 +54,9 @@
   .stat.accent {
     background: var(--accent-soft);
     border-color: transparent;
+  }
+  .stat.accent .l {
+    color: var(--accent-muted);
   }
   .v {
     font-size: 1.5rem;

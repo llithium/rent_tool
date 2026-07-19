@@ -45,18 +45,30 @@
         fillColor: colorFor(c),
         fillOpacity: 0.9
       });
-      marker.bindTooltip(
-        `<strong>${c.name}</strong><br>1BR ${money(c.r1)}${
-          maxRent != null && c.r1 != null
-            ? c.r1 <= maxRent
-              ? ' · fits ✓'
-              : ' · over budget'
-            : ''
-        }`,
-        { direction: 'top' }
-      );
+      const fit = maxRent != null && c.r1 != null
+        ? c.r1 <= maxRent ? 'fits budget' : 'over budget'
+        : 'rent data unavailable';
+      const tooltip = document.createElement('div');
+      const strong = document.createElement('strong');
+      strong.textContent = c.name;
+      tooltip.append(strong, document.createElement('br'));
+      tooltip.append(document.createTextNode(`1BR ${money(c.r1)} · ${fit}`));
+      marker.bindTooltip(tooltip, { direction: 'top' });
       marker.on('click', () => onselect(c.name));
       marker.addTo(group);
+      const element = marker.getElement();
+      if (element) {
+        element.setAttribute('tabindex', '0');
+        element.setAttribute('role', 'button');
+        element.setAttribute('aria-label', `${c.name}, 1 bedroom ${money(c.r1)}, ${fit}`);
+        element.addEventListener('keydown', (event) => {
+          const keyboardEvent = event as KeyboardEvent;
+          if (keyboardEvent.key === 'Enter' || keyboardEvent.key === ' ') {
+            keyboardEvent.preventDefault();
+            onselect(c.name);
+          }
+        });
+      }
       markers.set(c.name, marker);
     }
   }
@@ -109,7 +121,7 @@
     </div>
   </div>
   <div class="map" bind:this={el}></div>
-  <p class="note">Markers colored against your 30% budget. Click a marker to select that city.</p>
+  <p class="note">Markers are colored against your 30% budget. Select one by mouse, Enter, or Space.</p>
 </section>
 
 <style>

@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Budget, City } from '$lib/types';
-  import { money } from '$lib/format';
+  import { money, rentMetricLabel } from '$lib/format';
 
   let { city, budget }: { city: City; budget: Budget } = $props();
 
@@ -9,10 +9,11 @@
   }
 
   // Row 1: gross monthly = federal + FICA + state tax + take-home
-  let taxAmt = $derived(budget.federalMonthly + budget.ficaMonthly + budget.stateMonthly);
+  let taxAmt = $derived(budget.federalMonthly + budget.ficaMonthly + budget.stateMonthly + budget.localMonthly);
   let fedPct = $derived(pct(budget.federalMonthly, budget.grossMonthly));
   let ficaPct = $derived(pct(budget.ficaMonthly, budget.grossMonthly));
   let statePct = $derived(pct(budget.stateMonthly, budget.grossMonthly));
+  let localPct = $derived(pct(budget.localMonthly, budget.grossMonthly));
   let takePct = $derived(pct(budget.takeHomeMonthly, budget.grossMonthly));
   // Row 2: take-home = rent (median 1BR) + remaining
   let rent = $derived(city.r1 ?? 0);
@@ -20,6 +21,7 @@
   let rentShare = $derived(
     budget.takeHomeMonthly > 0 ? (rent / budget.takeHomeMonthly) * 100 : 0
   );
+  let rentLabel = $derived(rentMetricLabel(city.rentMetric, '1BR'));
   let rentPct = $derived(Math.min(100, pct(rent, budget.takeHomeMonthly)));
   let leftPct = $derived(pct(remaining, budget.takeHomeMonthly));
 </script>
@@ -47,6 +49,11 @@
           {#if statePct >= 12}<span>State {money(budget.stateMonthly)}</span>{/if}
         </div>
       {/if}
+      {#if budget.localMonthly > 0}
+        <div class="seg local" style="width:{localPct}%">
+          {#if localPct >= 12}<span>Local {money(budget.localMonthly)}</span>{/if}
+        </div>
+      {/if}
       <div class="seg take" style="width:{takePct}%">
         <span>Take-home {money(budget.takeHomeMonthly)}</span>
       </div>
@@ -55,6 +62,7 @@
       <span><i class="sw federal"></i>Federal {money(budget.federalMonthly)}</span>
       <span><i class="sw fica"></i>FICA {money(budget.ficaMonthly)}</span>
       <span><i class="sw state"></i>State {money(budget.stateMonthly)}</span>
+      {#if budget.localTaxModeled}<span><i class="sw local"></i>Local {money(budget.localMonthly)}</span>{/if}
     </div>
   </div>
 
@@ -73,12 +81,15 @@
       </div>
     </div>
     <p class="foot">
-      Median 1BR rent is <strong>{rentShare.toFixed(0)}%</strong> of your estimated take-home pay.
+      {rentLabel} is <strong>{rentShare.toFixed(0)}%</strong> of your estimated take-home pay.
     </p>
   {/if}
 
   {#if budget.stateRate === 0}
     <p class="foot muted">No state income tax on wages here — but federal tax and FICA still apply.</p>
+  {/if}
+  {#if !budget.localTaxModeled}
+    <p class="foot muted">Local wage taxes, if any, are not included for this city.</p>
   {/if}
 </section>
 
@@ -134,6 +145,9 @@
   .seg.state {
     background: color-mix(in srgb, var(--red) 55%, var(--amber));
   }
+  .seg.local {
+    background: color-mix(in srgb, var(--accent) 70%, var(--red));
+  }
   .seg.take {
     background: var(--green);
   }
@@ -164,6 +178,9 @@
   }
   .sw.state {
     background: color-mix(in srgb, var(--red) 55%, var(--amber));
+  }
+  .sw.local {
+    background: color-mix(in srgb, var(--accent) 70%, var(--red));
   }
   .seg.rent {
     background: var(--accent);

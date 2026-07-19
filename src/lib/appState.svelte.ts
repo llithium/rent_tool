@@ -1,8 +1,50 @@
 import { SEED_CITIES, findSeedCity, STATE_TAX, stateOf, cityOf } from '$lib/data/cities';
-import type { City, CitySuggestion } from '$lib/types';
+import type { City, CitySuggestion, RentMetric } from '$lib/types';
 import { fetchLiveRents, lookupRent } from '$lib/api';
 
-const LAST_KEY = 'rentToolLast.v2';
+const LAST_KEY = 'rentToolLast.v3';
+const LEGACY_KEY = 'rentToolLast.v2';
+
+function metricForSource(source: City['source']): RentMetric {
+  if (source === 'zumper-live' || source === 'zumper-snapshot') return 'median-asking';
+  if (source === 'hud-fmr') return 'fair-market-rent';
+  if (source === 'census-acs') return 'median-gross';
+  return 'unknown';
+}
+
+function restoredCity(value: unknown): City | null {
+  if (!value || typeof value !== 'object') return null;
+  const c = value as Partial<City>;
+  if (
+    typeof c.name !== 'string' || c.name.length > 100 ||
+    typeof c.city !== 'string' || typeof c.state !== 'string' || !/^[A-Z]{2}$/.test(c.state) ||
+    !['zumper-live', 'zumper-snapshot', 'hud-fmr', 'census-acs', 'none'].includes(c.source ?? '')
+  ) return null;
+  const numberOrNull = (n: unknown) => n == null || (typeof n === 'number' && Number.isFinite(n));
+  if (!numberOrNull(c.r1) || !numberOrNull(c.r2) || !numberOrNull(c.yoy)) return null;
+  if (c.lat != null && (typeof c.lat !== 'number' || !Number.isFinite(c.lat) || c.lat < -90 || c.lat > 90)) return null;
+  if (c.lng != null && (typeof c.lng !== 'number' || !Number.isFinite(c.lng) || c.lng < -180 || c.lng > 180)) return null;
+  const source = c.source as City['source'];
+  return {
+    name: c.name,
+    city: c.city,
+    state: c.state,
+    r1: c.r1 ?? null,
+    r2: c.r2 ?? null,
+    yoy: c.yoy ?? null,
+    tax: typeof c.tax === 'string' ? c.tax.slice(0, 200) : STATE_TAX[c.state] || 'varies',
+    pop: typeof c.pop === 'string' ? c.pop.slice(0, 200) : '',
+    blurb: typeof c.blurb === 'string' ? c.blurb.slice(0, 500) : '',
+    lat: c.lat,
+    lng: c.lng,
+    source,
+    rentMetric: ['median-asking', 'fair-market-rent', 'median-gross', 'unknown'].includes(c.rentMetric ?? '')
+      ? c.rentMetric as RentMetric
+      : metricForSource(source),
+    rentArea: typeof c.rentArea === 'string' ? c.rentArea.slice(0, 150) : c.name,
+    rentYear: typeof c.rentYear === 'string' ? c.rentYear.slice(0, 40) : ''
+  };
+}
 
 function cloneSeed(): City[] {
   return SEED_CITIES.map((c) => ({ ...c }));
@@ -15,7 +57,9 @@ class AppState {
   compareNames = $state<string[]>([]);
   liveLabel = $state('Zumper National Rent Report, June 2026 snapshot (100 cities)');
   live = $state(false);
+  refreshStatus = $state<'live' | 'stale' | 'unavailable'>('unavailable');
   looking = $state(false);
+  private lookupController: AbortController | null = null;
 
   get selected(): City | null {
     return this.selectedName ? this.cityByName(this.selectedName) : null;
@@ -51,14 +95,20 @@ class AppState {
   }
 
   /** Merge live Zumper rows over the working set. */
-  private mergeLive(rows: { name: string; r1: number; yoy: number; r2: number }[]) {
+  private mergeLive(
+    rows: { name: string; r1: number; yoy: number; r2: number }[],
+    reportDate: string | null
+  ) {
     const byName = new Map(this.cities.map((c) => [c.name.toLowerCase(), c] as const));
     const next = [...this.cities];
     for (const row of rows) {
       const existing = byName.get(row.name.toLowerCase());
       if (existing) {
         const idx = next.indexOf(existing);
-        next[idx] = { ...existing, r1: row.r1, r2: row.r2, yoy: row.yoy, source: 'zumper-live' };
+        next[idx] = {
+          ...existing, r1: row.r1, r2: row.r2, yoy: row.yoy, source: 'zumper-live',
+          rentMetric: 'median-asking', rentArea: row.name, rentYear: reportDate ?? ''
+        };
       } else {
         const st = stateOf(row.name);
         next.push({
@@ -71,7 +121,10 @@ class AppState {
           tax: STATE_TAX[st] || 'varies',
           pop: '',
           blurb: '',
-          source: 'zumper-live'
+          source: 'zumper-live',
+          rentMetric: 'median-asking',
+          rentArea: row.name,
+          rentYear: reportDate ?? ''
         });
       }
     }
@@ -80,11 +133,16 @@ class AppState {
 
   async refreshLive() {
     const res = await fetchLiveRents();
-    if (res.live && res.rows.length) {
-      this.mergeLive(res.rows);
-      this.live = true;
-      const when = res.reportDate ? ` (${res.reportDate})` : '';
-      this.liveLabel = `Live rents · Zumper National Rent Report${when} · ${res.rows.length} cities refreshed`;
+    if (res.rows.length) this.mergeLive(res.rows, res.reportDate);
+    this.refreshStatus = res.status;
+    this.live = res.status === 'live';
+    const when = res.reportDate ? ` · ${res.reportDate}` : '';
+    if (res.status === 'live') {
+      this.liveLabel = `Live · Zumper National Rent Report${when} · ${res.rowCount} cities`;
+    } else if (res.status === 'stale') {
+      this.liveLabel = `Cached rents${when} · live refresh unavailable`;
+    } else {
+      this.liveLabel = 'June 2026 rent snapshot · live refresh unavailable';
     }
   }
 
@@ -93,6 +151,9 @@ class AppState {
   async resolveSuggestion(sug: CitySuggestion): Promise<string> {
     const seed = findSeedCity(sug.label);
     if (seed) {
+      this.lookupController?.abort();
+      this.lookupController = null;
+      this.looking = false;
       // Ensure the seed city carries coords for the map.
       if (seed.lat == null) this.patchCity(seed.name, { lat: sug.lat, lng: sug.lng });
       this.select(seed.name);
@@ -115,28 +176,41 @@ class AppState {
           blurb: '',
           lat: sug.lat,
           lng: sug.lng,
-          source: 'none'
+          source: 'none',
+          rentMetric: 'unknown',
+          rentArea: sug.label,
+          rentYear: ''
         }
       ];
     }
     this.select(sug.label);
 
     // Fetch gov rent data in the background.
+    this.lookupController?.abort();
+    const controller = new AbortController();
+    this.lookupController = controller;
     this.looking = true;
     try {
-      const r = await lookupRent(sug.lat, sug.lng);
+      const r = await lookupRent(sug.lat, sug.lng, controller.signal);
+      if (controller.signal.aborted) return sug.label;
       if (r.source !== 'none') {
         this.patchCity(sug.label, {
           r1: r.r1,
           r2: r.r2,
           yoy: r.yoy,
           source: r.source,
+          rentMetric: r.rentMetric,
+          rentArea: r.rentArea,
+          rentYear: r.rentYear,
           blurb: r.note ?? ''
         });
         this.persist(); // re-persist now that rents arrived
       }
     } finally {
-      this.looking = false;
+      if (this.lookupController === controller) {
+        this.looking = false;
+        this.lookupController = null;
+      }
     }
     return sug.label;
   }
@@ -170,15 +244,14 @@ class AppState {
 
   restore() {
     try {
-      const raw = localStorage.getItem(LAST_KEY);
+      const raw = localStorage.getItem(LAST_KEY) ?? localStorage.getItem(LEGACY_KEY);
       if (!raw) return;
       const s = JSON.parse(raw);
-      if (typeof s.salary === 'number') this.salary = s.salary;
+      if (typeof s.salary === 'number' && Number.isFinite(s.salary) && s.salary > 0 && s.salary <= 10_000_000) {
+        this.salary = s.salary;
+      }
       if (Array.isArray(s.custom)) {
-        const valid = s.custom.filter(
-          (c: unknown): c is City =>
-            !!c && typeof c === 'object' && typeof (c as City).name === 'string'
-        );
+        const valid = s.custom.map(restoredCity).filter((c: City | null): c is City => c != null);
         if (valid.length) {
           const have = new Set(this.cities.map((c) => c.name.toLowerCase()));
           this.cities = [
@@ -187,8 +260,14 @@ class AppState {
           ];
         }
       }
-      if (typeof s.selected === 'string') this.selectedName = s.selected;
-      if (Array.isArray(s.compare)) this.compareNames = s.compare.filter((n: unknown) => typeof n === 'string');
+      if (typeof s.selected === 'string' && this.cityByName(s.selected)) this.selectedName = s.selected;
+      if (Array.isArray(s.compare)) {
+        const compare = (s.compare as unknown[]).filter(
+          (n: unknown): n is string => typeof n === 'string' && this.cityByName(n) != null
+        );
+        this.compareNames = [...new Set<string>(compare)].slice(0, 5);
+      }
+      if (!localStorage.getItem(LAST_KEY)) this.persist();
     } catch {
       /* ignore */
     }

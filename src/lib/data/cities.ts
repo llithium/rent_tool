@@ -95,7 +95,10 @@ function buildSeed(): Map<string, City> {
       blurb: d.blurb,
       lat: coord?.[0],
       lng: coord?.[1],
-      source: 'zumper-snapshot'
+      source: 'zumper-snapshot',
+      rentMetric: 'median-asking',
+      rentArea: name,
+      rentYear: 'June 2026'
     });
   }
 
@@ -115,7 +118,10 @@ function buildSeed(): Map<string, City> {
       blurb: '',
       lat: coord?.[0],
       lng: coord?.[1],
-      source: 'zumper-snapshot'
+      source: 'zumper-snapshot',
+      rentMetric: 'median-asking',
+      rentArea: name,
+      rentYear: 'June 2026'
     });
   }
 

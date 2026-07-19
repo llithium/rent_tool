@@ -16,7 +16,8 @@ npm run dev        # http://localhost:5173
 ```
 
 Other scripts: `npm run build` (production, adapter-vercel), `npm run preview`,
-`npm run check` (type-check).
+`npm run check` (type-check), `npm test` (unit tests), `npm run test:e2e`
+(browser/accessibility tests), and `npm run smoke:rents` (live Zumper parser check).
 
 ## Data sources
 
@@ -26,14 +27,16 @@ Other scripts: `npm run build` (production, adapter-vercel), `npm run preview`,
 | **Zumper** report | `/api/rents` | none | Live top-100 rents (parsed, cached 6h) |
 | **FCC Area API** | `/api/geocode` | none | Coords → county FIPS |
 | **HUD FMR** | `/api/fmr` | none (bundled FY2026 table) | Fair Market Rents for **every US county**; `HUD_TOKEN` (free) switches to live figures |
-| **Census ACS** | `/api/acs` | `CENSUS_KEY` (free) | Median gross rent fallback |
+| **Census ACS** | `/api/acs` | `CENSUS_KEY` (free) | 2024 five-year median gross rent fallback |
 
 The app **degrades gracefully** and needs **no keys at all**: the 100 curated cities work
 from the bundled Zumper snapshot (live-refreshed when the report parses), and every other
 US city resolves through the bundled county-level HUD Fair Market Rents table
 (`src/lib/data/fmr-county.json`, ~3,200 counties). Keys only upgrade freshness.
 
-See [docs/API.md](docs/API.md) for the full endpoint reference (params, responses, examples).
+The UI identifies the statistic it is showing: Zumper median asking rent, HUD
+40th-percentile Fair Market Rent, or Census median gross rent. See
+[docs/API.md](docs/API.md) for the full endpoint reference (params, responses, examples).
 
 To refresh the bundled FMR table when HUD publishes a new fiscal year:
 
@@ -54,7 +57,7 @@ On Vercel, set these as environment variables in the project settings.
 ## Structure
 
 - `src/lib/data/` — curated cities, coordinates, tax tables (migrated from the original)
-- `src/lib/` — budget math, formatting, search-link + Zumper-table logic, typed API client,
+- `src/lib/` — city-aware estimated tax/budget math, formatting, search-link + Zumper-table logic, typed API client,
   `appState.svelte.ts` (runes-based shared state)
 - `src/lib/components/` — CitySearch (autocomplete combobox), BudgetCard, Verdict,
   CityFacts, SearchLinks, RentTrendChart, TaxBreakdownChart, ComparisonTable, RentMap (Leaflet)
@@ -64,3 +67,6 @@ On Vercel, set these as environment variables in the project settings.
 
 Push to a repo and import into Vercel (adapter-vercel is already configured), or run
 `vercel`. Set `HUD_TOKEN` / `CENSUS_KEY` if you want the off-list rent fallback.
+
+GitHub Actions run type checks, unit tests, the production build, browser tests, and a
+weekly live-parser smoke check. The app targets Node 22 on Vercel.

@@ -33,6 +33,7 @@
           <th>1BR trend</th>
           <th>Fits budget?</th>
           <th>Income tax</th>
+          <th>Rent source</th>
           <th aria-label="Remove"></th>
         </tr>
       </thead>
@@ -58,6 +59,7 @@
               {/if}
             </td>
             <td class="tax">{c.tax}</td>
+            <td class="tax">{c.source === 'hud-fmr' ? 'HUD FMR' : c.source === 'census-acs' ? 'Census ACS' : 'Zumper'}</td>
             <td>
               <button
                 class="rm"

@@ -1,4 +1,4 @@
-import type { CitySuggestion, LookupResult, RentSource } from '$lib/types';
+import type { CitySuggestion, LookupResult, RentRefreshStatus, RentSource } from '$lib/types';
 import type { RentRow } from '$lib/rentTable';
 
 /** Typed client wrappers for the /api endpoints. All degrade gracefully. */
@@ -15,15 +15,28 @@ export interface RentsResponse {
   reportDate: string | null;
   live: boolean;
   cached: boolean;
+  status: RentRefreshStatus;
+  rowCount: number;
+  lastSuccessfulAt: string | null;
 }
+
+const EMPTY_RENTS: RentsResponse = {
+  rows: [], reportDate: null, live: false, cached: false,
+  status: 'unavailable', rowCount: 0, lastSuccessfulAt: null
+};
 
 export async function fetchLiveRents(): Promise<RentsResponse> {
   try {
     const res = await fetch('/api/rents');
-    if (!res.ok) return { rows: [], reportDate: null, live: false, cached: false };
-    return await res.json();
+    if (!res.ok) return EMPTY_RENTS;
+    const data = await res.json();
+    return {
+      ...EMPTY_RENTS,
+      ...data,
+      rows: Array.isArray(data.rows) ? data.rows : []
+    };
   } catch {
-    return { rows: [], reportDate: null, live: false, cached: false };
+    return EMPTY_RENTS;
   }
 }
 
@@ -36,10 +49,17 @@ interface GeoResult {
 }
 
 /** Look up rent for an off-list city via government APIs (HUD FMR → Census ACS). */
-export async function lookupRent(lat: number, lng: number): Promise<LookupResult> {
-  const empty: LookupResult = { r1: null, r2: null, yoy: null, source: 'none' };
+export async function lookupRent(
+  lat: number,
+  lng: number,
+  signal?: AbortSignal
+): Promise<LookupResult> {
+  const empty: LookupResult = {
+    r1: null, r2: null, yoy: null, source: 'none',
+    rentMetric: 'unknown', rentArea: '', rentYear: ''
+  };
   try {
-    const geoRes = await fetch(`/api/geocode?lat=${lat}&lng=${lng}`);
+    const geoRes = await fetch(`/api/geocode?lat=${lat}&lng=${lng}`, { signal });
     const geo: GeoResult = geoRes.ok ? await geoRes.json() : { ok: false };
     if (!geo.ok || !geo.stateFips || !geo.countyFips) return empty;
 
@@ -47,8 +67,8 @@ export async function lookupRent(lat: number, lng: number): Promise<LookupResult
 
     // Prefer HUD FMR; fall back to ACS.
     const [fmr, acs] = await Promise.all([
-      fetch(`/api/fmr?${fipsQ}`).then((r) => (r.ok ? r.json() : { ok: false })),
-      fetch(`/api/acs?${fipsQ}`).then((r) => (r.ok ? r.json() : { ok: false }))
+      fetch(`/api/fmr?${fipsQ}`, { signal }).then((r) => (r.ok ? r.json() : { ok: false })),
+      fetch(`/api/acs?${fipsQ}`, { signal }).then((r) => (r.ok ? r.json() : { ok: false }))
     ]);
 
     if (fmr.ok && (fmr.r1 || fmr.r2)) {
@@ -63,6 +83,9 @@ export async function lookupRent(lat: number, lng: number): Promise<LookupResult
         r2: fmr.r2,
         yoy: null,
         source: 'hud-fmr' as RentSource,
+        rentMetric: 'fair-market-rent',
+        rentArea: county ? `${county} area` : 'resolved county area',
+        rentYear: String(fmr.year ?? ''),
         note: `HUD Fair Market Rent, ${county}${year ? ` (${year})` : ''}`
       };
     }
@@ -72,6 +95,9 @@ export async function lookupRent(lat: number, lng: number): Promise<LookupResult
         r2: acs.r2,
         yoy: null,
         source: 'census-acs' as RentSource,
+        rentMetric: 'median-gross',
+        rentArea: acs.name || (geo.county ? `${geo.county} County` : 'resolved county'),
+        rentYear: String(acs.year ?? ''),
         note: `Census ACS median gross rent, ${geo.county} County (${acs.year})`
       };
     }

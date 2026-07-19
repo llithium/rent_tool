@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { City, RentSource } from '$lib/types';
-  import { money, pctTrend } from '$lib/format';
+  import { money, pctTrend, rentMetricLabel } from '$lib/format';
   import { STATE_NAME } from '$lib/data/states';
 
   let { city, looking }: { city: City; looking: boolean } = $props();
@@ -20,8 +20,8 @@
 
   let facts = $derived(
     [
-      { l: 'Median 1BR rent', v: money(city.r1) },
-      { l: 'Median 2BR rent', v: money(city.r2) },
+      { l: rentMetricLabel(city.rentMetric, '1BR'), v: money(city.r1) },
+      { l: rentMetricLabel(city.rentMetric, '2BR'), v: money(city.r2) },
       {
         l: '1BR rent trend',
         v: pctTrend(city.yoy),
@@ -58,6 +58,12 @@
 
   {#if city.blurb}
     <p class="blurb">{city.blurb}</p>
+  {/if}
+
+  {#if city.rentArea || city.rentYear}
+    <p class="vintage">
+      {city.rentArea}{city.rentYear ? ` · ${city.rentYear}` : ''}
+    </p>
   {/if}
 
   <a class="wiki" href={wikiUrl} target="_blank" rel="noopener">
@@ -144,6 +150,11 @@
     font-weight: 600;
     color: var(--accent);
     text-decoration: none;
+  }
+  .vintage {
+    margin-top: 9px;
+    font-size: 0.72rem;
+    color: var(--muted);
   }
   .wiki:hover {
     text-decoration: underline;

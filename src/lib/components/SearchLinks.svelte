@@ -19,7 +19,7 @@
     {/each}
   </div>
   <p class="note">
-    Apartments.com and Zillow open pre-filtered to your max rent. Figures are estimates; verify
+    Links are pre-filtered where the listing site supports your max rent. Figures are estimates; verify
     before signing anything.
   </p>
 </section>

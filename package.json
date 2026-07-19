@@ -7,19 +7,29 @@
     "dev": "vite dev",
     "build": "vite build",
     "preview": "vite preview",
-    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json"
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "smoke:rents": "LIVE_RENT_SMOKE=1 vitest run src/lib/rentTable.live.test.ts"
   },
   "devDependencies": {
-    "@sveltejs/adapter-vercel": "^5.5.2",
-    "@sveltejs/kit": "^2.15.1",
+    "@axe-core/playwright": "^4.12.1",
+    "@playwright/test": "^1.61.1",
+    "@sveltejs/adapter-vercel": "^6.3.4",
+    "@sveltejs/kit": "^2.70.1",
     "@sveltejs/vite-plugin-svelte": "^5.0.3",
     "@types/leaflet": "^1.9.15",
     "svelte": "^5.16.0",
     "svelte-check": "^4.1.1",
     "typescript": "^5.7.2",
-    "vite": "^6.0.5"
+    "vite": "^6.0.5",
+    "vitest": "^4.1.10"
   },
   "dependencies": {
     "leaflet": "^1.9.4"
+  },
+  "overrides": {
+    "cookie": "0.7.2"
   }
 }

@@ -2,7 +2,8 @@ import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { env } from '$env/dynamic/private';
 
-const ACS_YEAR = '2023'; // ACS 5-year, latest stable
+const ACS_YEAR = '2024'; // ACS 5-year, released January 2026
+const FETCH_TIMEOUT_MS = 6_000;
 
 /** Census ACS median gross rent by bedroom for a county (keyless; key optional).
  * B25031_003E = 1BR median gross rent, B25031_004E = 2BR. Returns null for missing values. */
@@ -30,7 +31,7 @@ export const GET: RequestHandler = async ({ url, fetch, setHeaders }) => {
   };
 
   try {
-    const res = await fetch(api.toString());
+    const res = await fetch(api.toString(), { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
     if (!res.ok) return json({ ok: false });
     const rows = await res.json();
     const row = rows?.[1]; // rows[0] is the header

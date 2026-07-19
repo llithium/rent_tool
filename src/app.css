@@ -5,6 +5,7 @@
   --accent: #b05730;
   --accent-ink: #ffffff;
   --accent-soft: #f4e3d9;
+  --accent-muted: #5c473d;
   --green: #2e7d4f;
   --red: #b3402e;
   --amber: #b8860b;
@@ -35,6 +36,7 @@
     --border-strong: #423d34;
     --accent: #d98a5f;
     --accent-soft: #3a2a20;
+    --accent-muted: #d6c3b7;
     --green: #5cc487;
     --red: #e0725e;
     --amber: #e0b64a;
@@ -49,6 +51,19 @@
 
 html {
   scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 body {

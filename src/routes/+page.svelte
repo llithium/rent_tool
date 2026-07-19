@@ -17,18 +17,24 @@
   let selected = $derived(app.selected);
   let budget = $derived(
     app.salary && app.salary > 0
-      ? computeBudget(app.salary, selected?.state)
+      ? computeBudget(app.salary, selected ?? undefined)
       : null
   );
   let mappableCities = $derived(app.cities.filter((c) => c.lat != null && c.lng != null));
+  let salaryError = $state('');
 
   async function onCitySelect(sug: CitySuggestion) {
     await app.resolveSuggestion(sug);
   }
 
   function onSalaryInput(e: Event) {
-    const v = parseFloat((e.target as HTMLInputElement).value);
-    app.salary = Number.isFinite(v) && v > 0 ? v : null;
+    const raw = (e.target as HTMLInputElement).value;
+    const v = parseFloat(raw);
+    if (!raw) salaryError = '';
+    else if (!Number.isFinite(v) || v <= 0) salaryError = 'Enter an annual salary greater than zero.';
+    else if (v > 10_000_000) salaryError = 'Enter an annual salary of $10,000,000 or less.';
+    else salaryError = '';
+    app.salary = !salaryError && Number.isFinite(v) && v > 0 ? v : null;
     app.persist();
   }
 
@@ -40,6 +46,9 @@
 
 <svelte:head>
   <title>City &amp; Salary Rent Tool</title>
+  <meta name="description" content="Compare a salary with current rent estimates, take-home pay, and apartment searches across U.S. cities." />
+  <meta property="og:title" content="City &amp; Salary Rent Tool" />
+  <meta property="og:description" content="See how an offered salary compares with rent and estimated take-home pay across U.S. cities." />
 </svelte:head>
 
 <main class="wrap">
@@ -49,7 +58,7 @@
       Pick a city, enter an offered salary — get your 30%-rule rent budget, live rent data, city
       facts, an affordability map, and pre-filtered apartment searches.
     </p>
-    <span class="status" class:live={app.live}>{app.liveLabel}</span>
+    <span class="status" class:live={app.live} aria-live="polite">{app.liveLabel}</span>
   </header>
 
   <section class="panel inputs">
@@ -60,16 +69,22 @@
         id="salary"
         type="number"
         min="0"
+        max="10000000"
         step="500"
         placeholder="e.g. 65000"
         value={app.salary ?? ''}
         oninput={onSalaryInput}
+        aria-invalid={salaryError ? 'true' : 'false'}
+        aria-describedby={salaryError ? 'salary-error' : undefined}
       />
+      {#if salaryError}<span class="error" id="salary-error">{salaryError}</span>{/if}
     </div>
     {#if selected}
       <button
         class="cmp"
         class:on={app.isComparing(selected.name)}
+        disabled={!app.isComparing(selected.name) && app.compareNames.length >= 5}
+        title={!app.isComparing(selected.name) && app.compareNames.length >= 5 ? 'Remove a city before adding another' : undefined}
         onclick={() => app.toggleCompare(selected!.name)}
       >
         {app.isComparing(selected.name) ? '✓ In compare' : '+ Compare'}
@@ -191,6 +206,12 @@
     outline: 2px solid var(--accent);
     border-color: transparent;
   }
+  .error {
+    display: block;
+    margin-top: 5px;
+    color: var(--red);
+    font-size: 0.75rem;
+  }
   .cmp {
     padding: 11px 18px;
     font-size: 0.95rem;
@@ -205,6 +226,10 @@
   .cmp.on {
     background: var(--accent);
     color: var(--accent-ink);
+  }
+  .cmp:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
   }
   .empty {
     padding: 28px 18px;
