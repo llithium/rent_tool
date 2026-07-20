@@ -18,52 +18,50 @@
     none: 'No rent data'
   };
 
+  // Metric-aware labels: HUD/Census fallbacks must not be mislabeled as a "median".
   let facts = $derived(
     [
-      { l: rentMetricLabel(city.rentMetric, '1BR'), v: money(city.r1) },
-      { l: rentMetricLabel(city.rentMetric, '2BR'), v: money(city.r2) },
+      { l: rentMetricLabel(city.rentMetric, '1BR'), v: money(city.r1), cls: '' },
+      { l: rentMetricLabel(city.rentMetric, '2BR'), v: money(city.r2), cls: '' },
       {
-        l: '1BR rent trend',
+        l: '1BR trend',
         v: pctTrend(city.yoy),
         cls: city.yoy == null ? '' : city.yoy > 0 ? 'up' : city.yoy < 0 ? 'down' : ''
       },
-      { l: 'Income tax', v: city.tax },
-      { l: 'Population', v: city.pop }
+      { l: 'Population', v: city.pop, cls: '' }
     ].filter((f) => f.v && f.v !== '—')
   );
 </script>
 
-<section class="panel">
+<section class="card">
   <div class="head">
-    <h2>City facts — {city.name}</h2>
+    <h2>{city.name}</h2>
     <span class="src">{SOURCE_LABEL[city.source]}</span>
   </div>
-
-  <div class="grid">
-    {#each facts as f (f.l)}
-      <div class="fact">
-        <div class="fv {f.cls ?? ''}">{f.v}</div>
-        <div class="fl">{f.l}</div>
-      </div>
-    {/each}
-  </div>
-
-  {#if looking}
-    <p class="hint">Looking up live rent data for this city…</p>
-  {:else if city.r1 == null}
-    <p class="hint">
-      No rent figure available for this city — the search links below still work.
-    </p>
-  {/if}
 
   {#if city.blurb}
     <p class="blurb">{city.blurb}</p>
   {/if}
 
+  {#if looking}
+    <p class="hint">Looking up live rent data for this city…</p>
+  {:else if city.r1 == null}
+    <p class="hint">No rent figure available for this city — the search links below still work.</p>
+  {/if}
+
+  {#if facts.length}
+    <div class="grid">
+      {#each facts as f (f.l)}
+        <div class="fact">
+          <div class="fv {f.cls}">{f.v}</div>
+          <div class="fl">{f.l}</div>
+        </div>
+      {/each}
+    </div>
+  {/if}
+
   {#if city.rentArea || city.rentYear}
-    <p class="vintage">
-      {city.rentArea}{city.rentYear ? ` · ${city.rentYear}` : ''}
-    </p>
+    <p class="vintage">{city.rentArea}{city.rentYear ? ` · ${city.rentYear}` : ''}</p>
   {/if}
 
   <a class="wiki" href={wikiUrl} target="_blank" rel="noopener">
@@ -72,49 +70,70 @@
 </section>
 
 <style>
-  .panel {
+  .card {
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 18px;
+    padding: 22px;
     box-shadow: var(--shadow);
   }
   .head {
     display: flex;
-    align-items: center;
+    align-items: baseline;
     justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 12px;
+    gap: 12px;
+    margin-bottom: 6px;
     flex-wrap: wrap;
   }
   h2 {
-    font-size: 1rem;
+    font-size: 1.15rem;
+    font-weight: 600;
   }
   .src {
-    font-size: 0.68rem;
+    font-size: 0.66rem;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.03em;
+    letter-spacing: 0.05em;
     color: var(--muted);
-    background: var(--card-2);
+    background: var(--card2);
     border: 1px solid var(--border);
-    padding: 3px 8px;
-    border-radius: 999px;
+    padding: 4px 9px;
+    border-radius: 99px;
   }
+  .blurb {
+    font-size: 1.02rem;
+    line-height: 1.6;
+    color: var(--ink);
+    max-width: 64ch;
+    margin-bottom: 16px;
+  }
+  .hint {
+    font-size: 0.85rem;
+    color: var(--muted);
+    background: var(--card2);
+    border-radius: var(--radius-sm);
+    padding: 9px 11px;
+    margin-bottom: 16px;
+  }
+  /* Ruled grid: shared 1px borders via right/bottom on each cell, clipped by the wrapper. */
   .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 9px;
-    margin-bottom: 11px;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
   }
   .fact {
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 10px 12px;
+    padding: 13px 15px;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background: var(--card2);
   }
   .fv {
-    font-weight: 700;
-    font-size: 1rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
   }
   .fv.up {
     color: var(--red);
@@ -123,38 +142,23 @@
     color: var(--green);
   }
   .fl {
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     color: var(--muted);
     text-transform: uppercase;
-    letter-spacing: 0.03em;
-    margin-top: 2px;
+    letter-spacing: 0.04em;
+    margin-top: 3px;
   }
-  .blurb {
-    font-size: 0.9rem;
-    line-height: 1.55;
-    color: var(--ink);
-    opacity: 0.9;
-  }
-  .hint {
-    font-size: 0.83rem;
+  .vintage {
+    margin-top: 12px;
+    font-size: 0.72rem;
     color: var(--muted);
-    background: var(--card-2);
-    border-radius: var(--radius-sm);
-    padding: 9px 11px;
-    margin-bottom: 10px;
   }
   .wiki {
     display: inline-block;
-    margin-top: 10px;
-    font-size: 0.83rem;
+    margin-top: 14px;
+    font-size: 0.9rem;
     font-weight: 600;
     color: var(--accent);
-    text-decoration: none;
-  }
-  .vintage {
-    margin-top: 9px;
-    font-size: 0.72rem;
-    color: var(--muted);
   }
   .wiki:hover {
     text-decoration: underline;

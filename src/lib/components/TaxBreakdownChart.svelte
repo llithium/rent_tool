@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Budget, City } from '$lib/types';
-  import { money, rentMetricLabel } from '$lib/format';
+  import { money } from '$lib/format';
 
   let { city, budget }: { city: City; budget: Budget } = $props();
 
@@ -8,7 +8,7 @@
     return whole > 0 ? (part / whole) * 100 : 0;
   }
 
-  // Row 1: gross monthly = federal + FICA + state tax + take-home
+  // Row 1: gross monthly = federal + FICA + state tax + local tax + take-home
   let taxAmt = $derived(budget.federalMonthly + budget.ficaMonthly + budget.stateMonthly + budget.localMonthly);
   let fedPct = $derived(pct(budget.federalMonthly, budget.grossMonthly));
   let ficaPct = $derived(pct(budget.ficaMonthly, budget.grossMonthly));
@@ -18,70 +18,64 @@
   // Row 2: take-home = rent (median 1BR) + remaining
   let rent = $derived(city.r1 ?? 0);
   let remaining = $derived(Math.max(0, budget.takeHomeMonthly - rent));
-  let rentShare = $derived(
-    budget.takeHomeMonthly > 0 ? (rent / budget.takeHomeMonthly) * 100 : 0
-  );
-  let rentLabel = $derived(rentMetricLabel(city.rentMetric, '1BR'));
+  let rentShare = $derived(budget.takeHomeMonthly > 0 ? (rent / budget.takeHomeMonthly) * 100 : 0);
   let rentPct = $derived(Math.min(100, pct(rent, budget.takeHomeMonthly)));
   let leftPct = $derived(pct(remaining, budget.takeHomeMonthly));
 </script>
 
-<section class="panel">
+<section class="card">
   <h3>Where the money goes</h3>
 
-  <div class="row">
-    <div class="rlabel">
-      Gross monthly {money(budget.grossMonthly)}{taxAmt > 0 ? ` · tax ${money(taxAmt)}/mo` : ''}
-    </div>
-    <div class="bar">
-      {#if budget.federalMonthly > 0}
-        <div class="seg federal" style="width:{fedPct}%">
-          {#if fedPct >= 16}<span>Federal {money(budget.federalMonthly)}</span>{/if}
-        </div>
-      {/if}
-      {#if budget.ficaMonthly > 0}
-        <div class="seg fica" style="width:{ficaPct}%">
-          {#if ficaPct >= 12}<span>FICA {money(budget.ficaMonthly)}</span>{/if}
-        </div>
-      {/if}
-      {#if budget.stateMonthly > 0}
-        <div class="seg state" style="width:{statePct}%">
-          {#if statePct >= 12}<span>State {money(budget.stateMonthly)}</span>{/if}
-        </div>
-      {/if}
-      {#if budget.localMonthly > 0}
-        <div class="seg local" style="width:{localPct}%">
-          {#if localPct >= 12}<span>Local {money(budget.localMonthly)}</span>{/if}
-        </div>
-      {/if}
-      <div class="seg take" style="width:{takePct}%">
-        <span>Take-home {money(budget.takeHomeMonthly)}</span>
+  <div class="rlabel">
+    Gross monthly {money(budget.grossMonthly)}{taxAmt > 0 ? ` · tax ${money(taxAmt)}/mo` : ''}
+  </div>
+  <div class="bar">
+    {#if budget.federalMonthly > 0}
+      <div class="seg federal" style="width:{fedPct}%">
+        {#if fedPct >= 13}<span>Federal {money(budget.federalMonthly)}</span>{/if}
       </div>
+    {/if}
+    {#if budget.ficaMonthly > 0}
+      <div class="seg fica" style="width:{ficaPct}%">
+        {#if ficaPct >= 13}<span>FICA {money(budget.ficaMonthly)}</span>{/if}
+      </div>
+    {/if}
+    {#if budget.stateMonthly > 0}
+      <div class="seg state" style="width:{statePct}%">
+        {#if statePct >= 13}<span>State {money(budget.stateMonthly)}</span>{/if}
+      </div>
+    {/if}
+    {#if budget.localMonthly > 0}
+      <div class="seg local" style="width:{localPct}%">
+        {#if localPct >= 13}<span>Local {money(budget.localMonthly)}</span>{/if}
+      </div>
+    {/if}
+    <div class="seg take" style="width:{takePct}%">
+      <span>Take-home {money(budget.takeHomeMonthly)}</span>
     </div>
-    <div class="legend">
-      <span><i class="sw federal"></i>Federal {money(budget.federalMonthly)}</span>
-      <span><i class="sw fica"></i>FICA {money(budget.ficaMonthly)}</span>
-      <span><i class="sw state"></i>State {money(budget.stateMonthly)}</span>
-      {#if budget.localTaxModeled}<span><i class="sw local"></i>Local {money(budget.localMonthly)}</span>{/if}
-    </div>
+  </div>
+  <div class="legend">
+    <span><i class="sw federal"></i>Federal {money(budget.federalMonthly)}</span>
+    <span><i class="sw fica"></i>FICA {money(budget.ficaMonthly)}</span>
+    <span><i class="sw state"></i>State {money(budget.stateMonthly)}</span>
+    {#if budget.localTaxModeled}<span><i class="sw local"></i>Local {money(budget.localMonthly)}</span>{/if}
   </div>
 
   {#if city.r1 != null}
-    <div class="row">
-      <div class="rlabel">Take-home split</div>
-      <div class="bar">
-        <div class="seg rent {rentShare > 100 ? 'over' : ''}" style="width:{rentPct}%">
-          {#if rentPct >= 16}<span>Rent {money(rent)}</span>{/if}
-        </div>
-        {#if remaining > 0}
-          <div class="seg left" style="width:{leftPct}%">
-            {#if leftPct >= 16}<span>Left {money(remaining)}</span>{/if}
-          </div>
-        {/if}
+    <div class="rlabel">Take-home split</div>
+    <div class="bar">
+      <div class="seg rent {rentShare > 100 ? 'over' : ''}" style="width:{rentPct}%">
+        {#if rentPct >= 30}<span>Rent {money(rent)}</span>{:else if rentPct >= 14}<span>{money(rent)}</span>{/if}
       </div>
+      {#if remaining > 0}
+        <div class="seg left" style="width:{leftPct}%">
+          {#if leftPct >= 16}<span>Left {money(remaining)}</span>{/if}
+        </div>
+      {/if}
     </div>
     <p class="foot">
-      {rentLabel} is <strong>{rentShare.toFixed(0)}%</strong> of your estimated take-home pay.
+      Median 1BR is <strong class={rentShare > 30 ? 'over' : 'ok'}>{rentShare.toFixed(0)}%</strong>
+      of your take-home pay.
     </p>
   {/if}
 
@@ -94,32 +88,31 @@
 </section>
 
 <style>
-  .panel {
+  .card {
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 16px 18px;
+    padding: 20px;
     box-shadow: var(--shadow);
   }
   h3 {
-    font-size: 0.9rem;
-    margin-bottom: 12px;
-  }
-  .row {
-    margin-bottom: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 16px;
   }
   .rlabel {
     font-size: 0.72rem;
     color: var(--muted);
-    margin-bottom: 4px;
+    margin-bottom: 5px;
   }
   .bar {
     display: flex;
     width: 100%;
-    height: 30px;
-    border-radius: 7px;
+    height: 32px;
+    border-radius: 8px;
     overflow: hidden;
     border: 1px solid var(--border);
+    margin-bottom: 9px;
   }
   .seg {
     display: flex;
@@ -151,12 +144,22 @@
   .seg.take {
     background: var(--green);
   }
+  .seg.rent {
+    background: var(--accent);
+  }
+  .seg.rent.over {
+    background: var(--red);
+  }
+  .seg.left {
+    background: color-mix(in srgb, var(--green) 45%, var(--card));
+    color: var(--ink);
+  }
   .legend {
     display: flex;
     flex-wrap: wrap;
-    gap: 4px 14px;
-    margin-top: 6px;
-    font-size: 0.7rem;
+    gap: 5px 14px;
+    margin-bottom: 16px;
+    font-size: 0.72rem;
     color: var(--muted);
   }
   .legend span {
@@ -182,25 +185,22 @@
   .sw.local {
     background: color-mix(in srgb, var(--accent) 70%, var(--red));
   }
-  .seg.rent {
-    background: var(--accent);
-  }
-  .seg.rent.over {
-    background: var(--red);
-  }
-  .seg.left {
-    background: color-mix(in srgb, var(--green) 55%, var(--card));
-    color: var(--ink);
-  }
   .foot {
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     color: var(--ink);
     margin-top: 4px;
   }
   .foot.muted {
+    font-size: 0.8rem;
     color: var(--muted);
   }
   strong {
     font-weight: 700;
+  }
+  strong.over {
+    color: var(--red);
+  }
+  strong.ok {
+    color: var(--green);
   }
 </style>

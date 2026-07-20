@@ -20,7 +20,7 @@ test.beforeEach(async ({ page }) => {
     contentType: 'application/json',
     body: JSON.stringify({ suggestions: [] })
   }));
-  await page.route('https://*.tile.openstreetmap.org/**', (route) => route.abort());
+  await page.route('https://*.basemaps.cartocdn.com/**', (route) => route.abort());
   await page.goto('/');
   // Wait for onMount/hydration before exercising client-side event handlers.
   await expect(page.getByText('June 2026 rent snapshot · live refresh unavailable', { exact: true })).toBeVisible();
@@ -33,8 +33,8 @@ test('supports keyboard city selection and salary results', async ({ page }) => 
   await expect(page.getByRole('option', { name: 'New York, NY' })).toBeVisible();
   await expect(city).toHaveAttribute('aria-activedescendant', 'city-option-0');
   await city.press('Enter');
-  await page.getByRole('spinbutton', { name: 'Annual salary ($)' }).fill('100000');
-  await expect(page.getByRole('heading', { name: 'Your rent budget in New York, NY' })).toBeVisible();
+  await page.getByLabel('Annual salary', { exact: true }).fill('100000');
+  await expect(page.getByRole('heading', { name: 'New York, NY' })).toBeVisible();
   await expect(page.locator('.fact').getByText('Median asking 1BR rent', { exact: true })).toBeVisible();
 });
 
@@ -44,8 +44,8 @@ test('has no serious accessibility violations in populated state', async ({ page
   await city.pressSequentially('Tampa', { delay: 20 });
   await expect(page.getByRole('option', { name: 'Tampa, FL' })).toBeVisible();
   await city.press('Enter');
-  await page.getByRole('spinbutton', { name: 'Annual salary ($)' }).fill('80000');
-  await expect(page.getByRole('heading', { name: 'Your rent budget in Tampa, FL' })).toBeVisible();
+  await page.getByLabel('Annual salary', { exact: true }).fill('80000');
+  await expect(page.getByRole('heading', { name: 'Tampa, FL' })).toBeVisible();
   const results = await new AxeBuilder({ page }).exclude('.leaflet-control-container').analyze();
   expect(results.violations.filter((v) => ['serious', 'critical'].includes(v.impact ?? ''))).toEqual([]);
 });
@@ -57,7 +57,7 @@ test('does not overflow a mobile viewport', async ({ page }) => {
   await city.pressSequentially('Tampa', { delay: 20 });
   await expect(page.getByRole('option', { name: 'Tampa, FL' })).toBeVisible();
   await city.press('Enter');
-  await page.getByRole('spinbutton', { name: 'Annual salary ($)' }).fill('80000');
+  await page.getByLabel('Annual salary', { exact: true }).fill('80000');
   const widths = await page.evaluate(() => ({
     client: document.documentElement.clientWidth,
     scroll: document.documentElement.scrollWidth
@@ -66,7 +66,7 @@ test('does not overflow a mobile viewport', async ({ page }) => {
 });
 
 test('enforces the five-city comparison limit', async ({ page }) => {
-  await page.getByRole('spinbutton', { name: 'Annual salary ($)' }).fill('100000');
+  await page.getByLabel('Annual salary', { exact: true }).fill('100000');
   for (const [query, label] of [
     ['Tampa', 'Tampa, FL'],
     ['New York', 'New York, NY'],
@@ -84,13 +84,13 @@ test('enforces the five-city comparison limit', async ({ page }) => {
 
 test('exposes map markers to the keyboard', async ({ page }) => {
   await selectCity(page, 'Tampa', 'Tampa, FL');
-  await page.getByRole('spinbutton', { name: 'Annual salary ($)' }).fill('80000');
+  await page.getByLabel('Annual salary', { exact: true }).fill('80000');
   const marker = page.getByRole('button', {
     name: 'New York, NY, 1 bedroom $4,660, over budget'
   });
   await expect(marker).toBeVisible();
   await marker.press('Enter');
-  await expect(page.getByRole('heading', { name: 'Your rent budget in New York, NY' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'New York, NY' })).toBeVisible();
 });
 
 test('labels HUD data as Fair Market Rent', async ({ page }) => {
@@ -113,15 +113,15 @@ test('labels HUD data as Fair Market Rent', async ({ page }) => {
   }));
 
   await selectCity(page, 'Ithaca', 'Ithaca, NY');
-  await page.getByRole('spinbutton', { name: 'Annual salary ($)' }).fill('80000');
+  await page.getByLabel('Annual salary', { exact: true }).fill('80000');
   await expect(page.locator('.fact').getByText('1BR Fair Market Rent', { exact: true })).toBeVisible();
   await expect(page.getByText('Tompkins County area · FY2026', { exact: true })).toBeVisible();
 });
 
 test('restores selected city and salary after reload', async ({ page }) => {
   await selectCity(page, 'Tampa', 'Tampa, FL');
-  await page.getByRole('spinbutton', { name: 'Annual salary ($)' }).fill('80000');
+  await page.getByLabel('Annual salary', { exact: true }).fill('80000');
   await page.reload();
   await expect(page.getByText('June 2026 rent snapshot · live refresh unavailable', { exact: true })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Your rent budget in Tampa, FL' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Tampa, FL' })).toBeVisible();
 });

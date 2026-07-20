@@ -2,76 +2,82 @@
   import type { Budget } from '$lib/types';
   import { money } from '$lib/format';
 
-  let { budget, cityLabel }: { budget: Budget; cityLabel: string } = $props();
+  let { budget }: { budget: Budget } = $props();
 </script>
 
-<section class="panel">
-  <h2>Your rent budget{cityLabel ? ` in ${cityLabel}` : ''}</h2>
-  <div class="stats">
-    <div class="stat accent">
-      <div class="v">{money(budget.maxRent)}</div>
-      <div class="l">Max monthly rent · 30% rule</div>
+<section class="card">
+  <div class="eyebrow">Your 30% budget</div>
+  <div class="big num">
+    {money(budget.maxRent)}<span class="per">/mo</span>
+  </div>
+  <div class="sub">Max monthly rent · 30% of gross</div>
+
+  <div class="divider"></div>
+
+  <div class="grid">
+    <div>
+      <div class="v num">{money(budget.comfyRent)}</div>
+      <div class="l">Conservative · 25%</div>
     </div>
-    <div class="stat">
-      <div class="v">{money(budget.comfyRent)}</div>
-      <div class="l">Conservative target · 25%</div>
-    </div>
-    <div class="stat">
-      <div class="v">{money(budget.grossMonthly)}</div>
-      <div class="l">Gross monthly income</div>
-    </div>
-    <div class="stat">
-      <div class="v">{money(budget.takeHomeMonthly)}</div>
-      <div class="l">Est. take-home · after ~{(budget.effRate * 100).toFixed(0)}% modeled tax</div>
+    <div>
+      <div class="v num">{money(budget.takeHomeMonthly)}</div>
+      <div class="l nowrap">Take-home /mo · ~{(budget.effRate * 100).toFixed(0)}% tax</div>
     </div>
   </div>
-  <p class="note">Take-home assumes {budget.taxAssumptions} — an estimate, not tax advice.</p>
 </section>
 
 <style>
-  .panel {
+  .card {
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 18px;
     box-shadow: var(--shadow);
+    padding: 18px 20px;
   }
-  h2 {
-    font-size: 1rem;
+  .eyebrow {
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
     margin-bottom: 12px;
   }
-  .stats {
+  .big {
+    font-size: 3.1rem;
+    font-weight: 600;
+    line-height: 0.95;
+    color: var(--accent);
+  }
+  .per {
+    font-size: 1.1rem;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .sub {
+    font-size: 0.9rem;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 15px 0;
+  }
+  .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 10px;
-  }
-  .stat {
-    background: var(--card-2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 12px 14px;
-  }
-  .stat.accent {
-    background: var(--accent-soft);
-    border-color: transparent;
-  }
-  .stat.accent .l {
-    color: var(--accent-muted);
+    grid-template-columns: 1fr 1fr;
+    gap: 13px 12px;
   }
   .v {
-    font-size: 1.5rem;
-    font-weight: 700;
-    letter-spacing: -0.01em;
+    font-size: 1.3rem;
+    font-weight: 600;
   }
   .l {
-    font-size: 0.73rem;
-    color: var(--muted);
-    margin-top: 3px;
-  }
-  .note {
     font-size: 0.72rem;
     color: var(--muted);
-    margin-top: 10px;
-    line-height: 1.4;
+  }
+  .l.nowrap {
+    font-size: 0.7rem;
+    white-space: nowrap;
   }
 </style>
