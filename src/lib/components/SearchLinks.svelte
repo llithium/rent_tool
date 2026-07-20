@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { City } from '$lib/types';
-  import { parseCity } from '$lib/format';
+  import { money, parseCity } from '$lib/format';
   import { buildSearchLinks } from '$lib/searchLinks';
 
   let { city, maxRent }: { city: City; maxRent: number } = $props();
@@ -11,55 +11,59 @@
   });
 </script>
 
-<section class="panel">
-  <h2>Find apartments under your budget</h2>
+<section class="card">
+  <h2>Find apartments under {money(maxRent)}</h2>
   <div class="links">
     {#each links as link (link.label)}
-      <a href={link.url} target="_blank" rel="noopener">{link.label}</a>
+      <a class="lk" href={link.url} target="_blank" rel="noopener">{link.label}</a>
     {/each}
   </div>
   <p class="note">
-    Links are pre-filtered where the listing site supports your max rent. Figures are estimates; verify
-    before signing anything.
+    Pre-filtered to your max rent where the site supports it. Figures are estimates — verify before
+    signing anything.
   </p>
 </section>
 
 <style>
-  .panel {
+  .card {
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 18px;
+    padding: 22px;
     box-shadow: var(--shadow);
   }
   h2 {
-    font-size: 1rem;
-    margin-bottom: 12px;
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-bottom: 14px;
   }
   .links {
     display: flex;
-    gap: 9px;
+    gap: 10px;
     flex-wrap: wrap;
   }
-  a {
+  .lk {
     display: inline-block;
-    padding: 10px 15px;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--border);
-    background: var(--card);
+    padding: 11px 17px;
+    border-radius: 11px;
+    border: 1px solid var(--border2);
+    background: var(--card2);
     color: var(--ink);
     text-decoration: none;
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 0.92rem;
+    transition: all 0.12s;
   }
-  a:hover {
+  .lk:hover {
     border-color: var(--accent);
     color: var(--accent);
+    background: var(--accent-soft);
   }
   .note {
-    font-size: 0.76rem;
+    font-size: 0.8rem;
     color: var(--muted);
-    margin-top: 10px;
-    line-height: 1.45;
+    margin-top: 12px;
+    line-height: 1.5;
+    max-width: 66ch;
   }
 </style>

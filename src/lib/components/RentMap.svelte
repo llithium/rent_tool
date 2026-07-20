@@ -27,7 +27,7 @@
 
   function colorFor(c: City): string {
     if (c.r1 == null || maxRent == null) return '#9a948a';
-    return c.r1 <= maxRent ? '#2e7d4f' : '#b3402e';
+    return c.r1 <= maxRent ? '#37734b' : '#b23f2c';
   }
 
   function draw() {
@@ -39,9 +39,9 @@
       if (c.lat == null || c.lng == null) continue;
       const selected = c.name === selectedName;
       const marker = L.circleMarker([c.lat, c.lng], {
-        radius: selected ? 9 : 6,
+        radius: selected ? 9 : 5.5,
         weight: selected ? 3 : 1.5,
-        color: selected ? '#b05730' : '#ffffff',
+        color: selected ? '#a9542e' : '#fffdf9',
         fillColor: colorFor(c),
         fillOpacity: 0.9
       });
@@ -79,9 +79,15 @@
       [39.5, -96],
       4
     );
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors',
-      maxZoom: 18
+    // Wheel scrolling passes through to the page until the user focuses the map
+    // (click or keyboard), so it never traps the page scroll unintentionally.
+    map.on('focus', () => map?.scrollWheelZoom.enable());
+    map.on('blur', () => map?.scrollWheelZoom.disable());
+    // CARTO Positron: a light, low-detail basemap so the affordability markers stand out.
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors © CARTO',
+      subdomains: 'abcd',
+      maxZoom: 19
     }).addTo(map);
     group = L.layerGroup().addTo(map);
     ready = true;
@@ -111,25 +117,27 @@
   });
 </script>
 
-<section class="panel">
+<section class="card">
   <div class="head">
     <h2>Affordability map</h2>
     <div class="legend">
-      <span><i style="background:#2e7d4f"></i> fits budget</span>
-      <span><i style="background:#b3402e"></i> over budget</span>
-      <span><i style="background:#9a948a"></i> no data</span>
+      <span><i style="background:#37734b"></i> fits budget</span>
+      <span><i style="background:#b23f2c"></i> over budget</span>
     </div>
   </div>
   <div class="map" bind:this={el}></div>
-  <p class="note">Markers are colored against your 30% budget. Select one by mouse, Enter, or Space.</p>
+  <p class="note">
+    Each of the 100 markets is colored against your current 30% budget. Select a marker by mouse,
+    Enter, or Space to load that city. Click the map to zoom with the scroll wheel.
+  </p>
 </section>
 
 <style>
-  .panel {
+  .card {
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 18px;
+    padding: 22px;
     box-shadow: var(--shadow);
   }
   .head {
@@ -138,21 +146,22 @@
     align-items: center;
     flex-wrap: wrap;
     gap: 8px;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
   }
   h2 {
-    font-size: 1rem;
+    font-size: 1.15rem;
+    font-weight: 600;
   }
   .legend {
     display: flex;
-    gap: 12px;
-    font-size: 0.72rem;
+    gap: 14px;
+    font-size: 0.74rem;
     color: var(--muted);
   }
   .legend span {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: 5px;
   }
   .legend i {
     width: 10px;
@@ -161,17 +170,17 @@
     display: inline-block;
   }
   .map {
-    height: 380px;
+    height: 400px;
     width: 100%;
-    border-radius: var(--radius-sm);
+    border-radius: 12px;
     overflow: hidden;
     border: 1px solid var(--border);
-    background: var(--card-2);
+    background: var(--card2);
   }
   .note {
-    font-size: 0.76rem;
+    font-size: 0.8rem;
     color: var(--muted);
-    margin-top: 10px;
+    margin-top: 11px;
   }
   /* Leaflet tooltip theming */
   .map :global(.leaflet-tooltip) {

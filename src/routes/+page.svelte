@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { app } from '$lib/appState.svelte';
   import { computeBudget } from '$lib/budget';
+  import { money } from '$lib/format';
   import type { CitySuggestion } from '$lib/types';
 
   import CitySearch from '$lib/components/CitySearch.svelte';
@@ -14,6 +15,9 @@
   import ComparisonTable from '$lib/components/ComparisonTable.svelte';
   import RentMap from '$lib/components/RentMap.svelte';
 
+  const SLIDER_MIN = 30000;
+  const SLIDER_MAX = 200000;
+
   let selected = $derived(app.selected);
   let budget = $derived(
     app.salary && app.salary > 0
@@ -21,221 +25,433 @@
       : null
   );
   let mappableCities = $derived(app.cities.filter((c) => c.lat != null && c.lng != null));
+
+  // The salary number field mirrors what the user typed (comma-formatted) even while
+  // it's transiently invalid, so an out-of-range keystroke never wipes the field.
+  let salaryText = $state('');
   let salaryError = $state('');
+
+  // Slider is clamped into its own range; it and the number field share app.salary.
+  let sliderValue = $derived(Math.min(SLIDER_MAX, Math.max(SLIDER_MIN, app.salary ?? SLIDER_MIN)));
+  let sliderFill = $derived(
+    Math.round(((sliderValue - SLIDER_MIN) / (SLIDER_MAX - SLIDER_MIN)) * 100)
+  );
+
+  let shareLabel = $state('Copy');
+  let shareTimer: ReturnType<typeof setTimeout> | undefined;
 
   async function onCitySelect(sug: CitySuggestion) {
     await app.resolveSuggestion(sug);
   }
 
+  function validate(v: number): string {
+    if (!Number.isFinite(v) || v <= 0) return 'Enter an annual salary greater than zero.';
+    if (v > 10_000_000) return 'Enter an annual salary of $10,000,000 or less.';
+    return '';
+  }
+
   function onSalaryInput(e: Event) {
-    const raw = (e.target as HTMLInputElement).value;
-    const v = parseFloat(raw);
-    if (!raw) salaryError = '';
-    else if (!Number.isFinite(v) || v <= 0) salaryError = 'Enter an annual salary greater than zero.';
-    else if (v > 10_000_000) salaryError = 'Enter an annual salary of $10,000,000 or less.';
-    else salaryError = '';
-    app.salary = !salaryError && Number.isFinite(v) && v > 0 ? v : null;
+    const digits = (e.target as HTMLInputElement).value.replace(/[^0-9]/g, '');
+    salaryText = digits ? parseInt(digits, 10).toLocaleString() : '';
+    if (!digits) {
+      salaryError = '';
+      app.salary = null;
+    } else {
+      const v = parseInt(digits, 10);
+      salaryError = validate(v);
+      app.salary = salaryError ? null : v;
+    }
     app.persist();
   }
 
+  function onSlider(e: Event) {
+    const v = parseInt((e.target as HTMLInputElement).value, 10);
+    app.salary = v;
+    salaryText = v.toLocaleString();
+    salaryError = '';
+    app.persist();
+  }
+
+  function onShare() {
+    if (!selected || !budget) return;
+    const c = selected;
+    const verdict = c.r1 != null ? (budget.maxRent >= c.r1 ? 'fits comfortably' : 'a stretch') : 'unknown';
+    const txt =
+      `${c.name} on ${money(app.salary)}/yr: 30% budget ${money(budget.maxRent)}/mo · ` +
+      `median 1BR ${money(c.r1)} (${verdict}) · take-home ≈ ${money(budget.takeHomeMonthly)}/mo ` +
+      `after ~${(budget.effRate * 100).toFixed(0)}% tax.`;
+    try {
+      navigator.clipboard?.writeText(txt);
+    } catch {
+      /* clipboard unavailable */
+    }
+    shareLabel = '✓ Copied';
+    clearTimeout(shareTimer);
+    shareTimer = setTimeout(() => (shareLabel = 'Copy'), 1800);
+  }
+
+  let compareFull = $derived(
+    selected != null && !app.isComparing(selected.name) && app.compareNames.length >= 5
+  );
+
   onMount(() => {
     app.restore();
+    salaryText = app.salary != null ? app.salary.toLocaleString() : '';
     app.refreshLive();
   });
 </script>
 
 <svelte:head>
-  <title>City &amp; Salary Rent Tool</title>
+  <title>Rent Tool</title>
   <meta name="description" content="Compare a salary with current rent estimates, take-home pay, and apartment searches across U.S. cities." />
-  <meta property="og:title" content="City &amp; Salary Rent Tool" />
+  <meta property="og:title" content="Rent Tool" />
   <meta property="og:description" content="See how an offered salary compares with rent and estimated take-home pay across U.S. cities." />
 </svelte:head>
 
 <main class="wrap">
-  <header>
-    <h1>City &amp; Salary Rent Tool</h1>
-    <p class="sub">
-      Pick a city, enter an offered salary — get your 30%-rule rent budget, live rent data, city
-      facts, an affordability map, and pre-filtered apartment searches.
-    </p>
-    <span class="status" class:live={app.live} aria-live="polite">{app.liveLabel}</span>
+  <header class="rt-header">
+    <div class="brand">
+      <div class="eyebrow-row">
+        <img src="/favicon.svg" alt="" width="26" height="26" class="mark" />
+        <span class="eyebrow">Rent Tool</span>
+      </div>
+      <p class="sub">
+        Pick a city, enter an offered salary — get your 30%-rule rent budget, live rent data, city
+        facts, an affordability map, and pre-filtered apartment searches.
+      </p>
+    </div>
+    <span class="status" class:live={app.live} aria-live="polite">
+      <span class="dot" aria-hidden="true"></span>{app.liveLabel}
+    </span>
   </header>
 
-  <section class="panel inputs">
-    <CitySearch onselect={onCitySelect} />
-    <div class="field">
-      <label for="salary">Annual salary ($)</label>
-      <input
-        id="salary"
-        type="number"
-        min="0"
-        max="10000000"
-        step="500"
-        placeholder="e.g. 65000"
-        value={app.salary ?? ''}
-        oninput={onSalaryInput}
-        aria-invalid={salaryError ? 'true' : 'false'}
-        aria-describedby={salaryError ? 'salary-error' : undefined}
-      />
-      {#if salaryError}<span class="error" id="salary-error">{salaryError}</span>{/if}
-    </div>
-    {#if selected}
-      <div class="cmp-slot">
-        <span class="cmp-spacer" aria-hidden="true">&nbsp;</span>
-        <button
-          class="cmp"
-          class:on={app.isComparing(selected.name)}
-          disabled={!app.isComparing(selected.name) && app.compareNames.length >= 5}
-          title={!app.isComparing(selected.name) && app.compareNames.length >= 5 ? 'Remove a city before adding another' : undefined}
-          onclick={() => app.toggleCompare(selected!.name)}
-        >
-          {app.isComparing(selected.name) ? '✓ In compare' : '+ Compare'}
-        </button>
-      </div>
-    {/if}
-  </section>
+  <div class="rt-shell">
+    <aside class="rt-side">
+      <section class="card inputs-card">
+        <CitySearch onselect={onCitySelect} selectedName={app.selectedName} />
 
-  {#if !selected || !budget}
-    <section class="panel empty">
-      <p>Enter a city and salary to see your rent budget, facts, charts, and a map.</p>
-    </section>
-  {/if}
+        <div class="salary">
+          <label for="salary" class="field-label">Annual salary</label>
+          <div class="salary-input" class:invalid={salaryError}>
+            <span class="dollar num">$</span>
+            <input
+              id="salary"
+              type="text"
+              inputmode="numeric"
+              placeholder="e.g. 65,000"
+              value={salaryText}
+              oninput={onSalaryInput}
+              aria-invalid={salaryError ? 'true' : 'false'}
+              aria-describedby={salaryError ? 'salary-error' : undefined}
+            />
+          </div>
+          <input
+            class="slider"
+            type="range"
+            min={SLIDER_MIN}
+            max={SLIDER_MAX}
+            step="1000"
+            value={sliderValue}
+            style="--fill:{sliderFill}%"
+            aria-label="Annual salary slider"
+            oninput={onSlider}
+          />
+          <div class="slider-labels tabnum">
+            <span>$30k</span><span>drag to explore</span><span>$200k</span>
+          </div>
+          {#if salaryError}<span class="error" id="salary-error">{salaryError}</span>{/if}
+        </div>
 
-  {#if selected && budget}
-    <div class="grid">
-      <div class="col-main">
-        <BudgetCard {budget} cityLabel={selected.name} />
+        {#if selected}
+          <div class="btn-row">
+            <button
+              class="cmp"
+              class:on={app.isComparing(selected.name)}
+              disabled={compareFull}
+              title={compareFull ? 'Remove a city before adding another' : undefined}
+              onclick={() => app.toggleCompare(selected!.name)}
+            >
+              {app.isComparing(selected.name) ? '✓ In compare' : '+ Compare'}
+            </button>
+            <button
+              class="share"
+              type="button"
+              title="Copy a shareable summary"
+              disabled={!budget}
+              onclick={onShare}
+            >
+              {shareLabel}
+            </button>
+          </div>
+        {/if}
+      </section>
+
+      {#if selected && budget}
+        <BudgetCard {budget} />
+      {/if}
+    </aside>
+
+    <div class="rt-results">
+      {#if selected && budget}
         {#if selected.r1 != null}
           <Verdict {budget} city={selected} />
         {/if}
         <CityFacts city={selected} looking={app.looking} />
+
+        <div class="rt-charts">
+          <RentTrendChart city={selected} {budget} />
+          <TaxBreakdownChart city={selected} {budget} />
+        </div>
+
         <SearchLinks city={selected} maxRent={budget.maxRent} />
-      </div>
-      <div class="col-side">
-        <RentTrendChart city={selected} {budget} />
-        <TaxBreakdownChart city={selected} {budget} />
-      </div>
+
+        {#if app.compareCities.length}
+          <ComparisonTable cities={app.compareCities} maxRent={budget.maxRent} />
+        {/if}
+
+        <RentMap
+          cities={mappableCities}
+          maxRent={budget.maxRent}
+          selectedName={app.selectedName}
+          onselect={(n) => app.select(n)}
+        />
+      {:else}
+        <section class="card empty">
+          <p>Enter a city and salary to see your rent budget, verdict, facts, charts, and a map.</p>
+        </section>
+      {/if}
+
+      <footer>
+        Rent snapshot: Zumper National Rent Report (June 2026 baseline), refreshed live when
+        available. Off-list cities fall back to HUD Fair Market Rents / Census ACS. Tax figures are
+        2026 estimates for a single filer taking the standard deduction — an estimate to power the
+        visual, not tax advice. All numbers are estimates — verify before signing anything.
+      </footer>
     </div>
-
-    {#if app.compareCities.length}
-      <ComparisonTable cities={app.compareCities} maxRent={budget.maxRent} />
-    {/if}
-
-    <RentMap
-      cities={mappableCities}
-      maxRent={budget.maxRent}
-      selectedName={app.selectedName}
-      onselect={(n) => app.select(n)}
-    />
-  {/if}
-
-  <footer>
-    Rent snapshot: Zumper National Rent Report (June 2026 baseline), refreshed live when
-    available. Off-list cities use HUD Fair Market Rents / Census ACS. Tax figures are 2026
-    estimates. All numbers are estimates — verify before signing anything.
-  </footer>
+  </div>
 </main>
 
 <style>
   .wrap {
     max-width: var(--maxw);
     margin: 0 auto;
-    padding: 24px 16px 64px;
+    padding: 34px 22px 70px;
   }
-  header {
-    margin-bottom: 18px;
+
+  /* Header */
+  .rt-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 26px;
   }
-  h1 {
-    font-size: 1.5rem;
-    letter-spacing: -0.01em;
-    margin-bottom: 4px;
+  .eyebrow-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .mark {
+    border-radius: 7px;
+    display: block;
+  }
+  .eyebrow {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--muted);
   }
   .sub {
     color: var(--muted);
-    font-size: 0.92rem;
-    max-width: 60ch;
-    margin-bottom: 10px;
+    font-size: 1.02rem;
+    max-width: 58ch;
+    margin-top: 2px;
   }
   .status {
-    font-size: 0.75rem;
-    padding: 5px 10px;
-    border-radius: 999px;
-    display: inline-block;
-    background: var(--card-2);
+    font-size: 0.74rem;
+    padding: 6px 13px;
+    border-radius: 99px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    max-width: 100%;
+    background: var(--card2);
     border: 1px solid var(--border);
     color: var(--muted);
+    font-weight: 600;
+  }
+  .status .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--faint);
+    display: inline-block;
+    flex: none;
   }
   .status.live {
-    background: color-mix(in srgb, var(--green) 14%, var(--card));
+    background: var(--green-soft);
     border-color: color-mix(in srgb, var(--green) 30%, transparent);
     color: var(--green);
   }
-  .panel {
+  .status.live .dot {
+    background: var(--green);
+  }
+
+  /* Shell */
+  .rt-shell {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 22px;
+    align-items: start;
+  }
+  .rt-side {
+    position: sticky;
+    top: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    /* Let the grid track shrink below the inputs' min-content on narrow screens. */
+    min-width: 0;
+  }
+  .rt-results {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 0;
+  }
+
+  .card {
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
   }
-  .inputs {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    /* Top-aligned so a validation message under one field can't push its input
-       out of line with the others; labels are the same height in every field. */
-    align-items: flex-start;
-    padding: 18px;
-    margin-bottom: 16px;
+  .inputs-card {
+    padding: 20px;
   }
-  .field {
-    flex: 1 1 160px;
+
+  /* Salary field */
+  .salary {
+    margin-top: 16px;
   }
-  label {
+  .field-label {
     display: block;
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     font-weight: 600;
     color: var(--muted);
-    margin-bottom: 5px;
+    margin-bottom: 6px;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.08em;
   }
-  input {
-    width: 100%;
-    padding: 11px 12px;
-    font-size: 1rem;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    background: var(--card);
+  .salary-input {
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+    margin-bottom: 10px;
+    border-bottom: 2px solid var(--border2);
+  }
+  .salary-input.invalid {
+    border-bottom-color: var(--red);
+  }
+  .dollar {
+    font-size: 1.5rem;
+    color: var(--muted);
+  }
+  .salary-input input {
+    flex: 1;
+    min-width: 0;
+    padding: 2px 0;
+    font-size: 1.9rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+    border: none;
+    background: transparent;
     color: var(--ink);
   }
-  input:focus {
-    outline: 2px solid var(--accent);
-    border-color: transparent;
+  .salary-input input:focus {
+    outline: none;
+  }
+  .salary-input:focus-within {
+    border-bottom-color: var(--accent);
+  }
+  .slider-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.72rem;
+    /* --muted (not --faint) so these labels clear AA contrast on the card. */
+    color: var(--muted);
+    margin-top: 5px;
   }
   .error {
     display: block;
-    margin-top: 5px;
+    margin-top: 8px;
     color: var(--red);
-    font-size: 0.75rem;
+    font-size: 0.78rem;
   }
-  .cmp-slot {
-    min-width: 0;
+
+  /* Custom range slider */
+  .slider {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+    width: 100%;
   }
-  .cmp-spacer {
-    display: block;
-    font-size: 0.72rem;
-    font-weight: 600;
-    margin-bottom: 5px;
+  .slider::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--accent) var(--fill, 40%), var(--border2) var(--fill, 40%));
+  }
+  .slider::-moz-range-track {
+    height: 6px;
+    border-radius: 99px;
+    background: var(--border2);
+  }
+  .slider::-moz-range-progress {
+    height: 6px;
+    border-radius: 99px;
+    background: var(--accent);
+  }
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    margin-top: -8px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 3px solid var(--card);
+    box-shadow: 0 1px 4px rgba(60, 40, 20, 0.35);
+  }
+  .slider::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 3px solid var(--card);
+    box-shadow: 0 1px 4px rgba(60, 40, 20, 0.35);
+  }
+
+  /* Buttons */
+  .btn-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
   }
   .cmp {
-    padding: 11px 18px;
-    font-size: 0.95rem;
-    font-weight: 600;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--accent);
-    background: var(--card);
-    color: var(--accent);
+    flex: 1;
+    padding: 11px 14px;
+    border-radius: 10px;
     cursor: pointer;
-    white-space: nowrap;
+    font-weight: 600;
+    font-size: 0.92rem;
+    border: 1px solid var(--accent);
+    background: var(--card2);
+    color: var(--accent);
   }
   .cmp.on {
     background: var(--accent);
@@ -245,43 +461,52 @@
     cursor: not-allowed;
     opacity: 0.55;
   }
+  .share {
+    flex: none;
+    padding: 11px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border2);
+    background: var(--card2);
+    color: var(--ink);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+  .share:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
   .empty {
-    padding: 28px 18px;
+    padding: 40px 24px;
     color: var(--muted);
     text-align: center;
-    margin-bottom: 16px;
   }
-  .grid {
+
+  .rt-charts {
     display: grid;
-    grid-template-columns: 1.55fr 1fr;
-    gap: 16px;
-    margin-bottom: 16px;
-    align-items: start;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
   }
-  .col-main,
-  .col-side {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    min-width: 0;
-  }
-  section.panel:not(.inputs):not(.empty),
-  :global(.wrap > section) {
-    margin-bottom: 0;
-  }
-  /* Space between the top-level comparison table and map */
-  :global(.wrap > section + section) {
-    margin-top: 16px;
-  }
+
   footer {
-    margin-top: 22px;
-    font-size: 0.76rem;
+    font-size: 0.78rem;
     color: var(--muted);
-    line-height: 1.5;
-    max-width: 70ch;
+    line-height: 1.6;
+    max-width: 74ch;
+    padding-top: 6px;
+  }
+
+  @media (max-width: 900px) {
+    .rt-shell {
+      grid-template-columns: 1fr;
+    }
+    .rt-side {
+      position: static;
+    }
   }
   @media (max-width: 760px) {
-    .grid {
+    .rt-charts {
       grid-template-columns: 1fr;
     }
   }

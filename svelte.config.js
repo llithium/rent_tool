@@ -11,7 +11,7 @@ const config = {
         'default-src': ['self'],
         'script-src': ['self'],
         'style-src': ['self', 'unsafe-inline'],
-        'img-src': ['self', 'data:', 'https://*.tile.openstreetmap.org'],
+        'img-src': ['self', 'data:', 'https://*.basemaps.cartocdn.com'],
         'connect-src': ['self', 'ws:', 'wss:'],
         'font-src': ['self'],
         'object-src': ['none'],

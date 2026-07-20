@@ -1,13 +1,29 @@
 <script lang="ts">
   import { fetchSuggestions } from '$lib/api';
   import type { CitySuggestion } from '$lib/types';
-  import { SEED_CITIES } from '$lib/data/cities';
+  import { SEED_CITIES, findSeedCity } from '$lib/data/cities';
+  import { money } from '$lib/format';
+
+  /** Median 1BR rent for a suggestion, when it maps to a known city. */
+  function rentFor(label: string): string {
+    const seed = findSeedCity(label);
+    return seed?.r1 != null ? money(seed.r1) : '';
+  }
 
   let {
-    onselect
-  }: { onselect: (sug: CitySuggestion) => void } = $props();
+    onselect,
+    selectedName = null
+  }: { onselect: (sug: CitySuggestion) => void; selectedName?: string | null } = $props();
 
   let query = $state('');
+
+  // Reflect an externally-driven selection (compare table, map marker, restored
+  // state) in the field. This only re-runs when selectedName actually changes, so
+  // it never clobbers the query while the user is typing (typing leaves the current
+  // selection untouched until they choose a suggestion).
+  $effect(() => {
+    if (selectedName != null) query = selectedName;
+  });
   let suggestions = $state<CitySuggestion[]>([]);
   let open = $state(false);
   let loading = $state(false);
@@ -169,6 +185,7 @@
           onmouseenter={() => (activeIndex = i)}
         >
           <span class="opt-label">{parts.before}{#if parts.match}<mark>{parts.match}</mark>{/if}{parts.after}</span>
+          {#if rentFor(sug.label)}<span class="opt-rent num">{rentFor(sug.label)}</span>{/if}
         </li>
       {/each}
     </ul>
@@ -181,28 +198,28 @@
 <style>
   .combo {
     position: relative;
-    flex: 1 1 240px;
     min-width: 0;
   }
   label {
     display: block;
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     font-weight: 600;
     color: var(--muted);
-    margin-bottom: 5px;
+    margin-bottom: 6px;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.08em;
   }
   .control {
     position: relative;
   }
   input {
     width: 100%;
-    padding: 11px 38px 11px 12px;
-    font-size: 1rem;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    background: var(--card);
+    padding: 12px 38px 12px 14px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    border: 1px solid var(--border2);
+    border-radius: 11px;
+    background: var(--card2);
     color: var(--ink);
   }
   input:focus {
@@ -228,28 +245,37 @@
   }
   .listbox {
     position: absolute;
-    z-index: 30;
-    top: calc(100% + 4px);
+    z-index: 40;
+    top: calc(100% + 5px);
     left: 0;
     right: 0;
     list-style: none;
     margin: 0;
-    padding: 4px;
+    padding: 5px;
     background: var(--card);
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius-sm);
-    box-shadow: var(--shadow);
-    max-height: 300px;
+    border: 1px solid var(--border2);
+    border-radius: 11px;
+    box-shadow: var(--shadow-lg);
+    max-height: 290px;
     overflow-y: auto;
   }
   li {
-    padding: 9px 11px;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: baseline;
+    padding: 10px 12px;
     border-radius: 8px;
     cursor: pointer;
-    font-size: 0.95rem;
+    font-size: 1rem;
   }
   li.active {
     background: var(--accent-soft);
+  }
+  .opt-rent {
+    font-size: 0.85rem;
+    color: var(--muted);
+    white-space: nowrap;
   }
   mark {
     background: transparent;
