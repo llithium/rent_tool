@@ -80,15 +80,18 @@
       {#if salaryError}<span class="error" id="salary-error">{salaryError}</span>{/if}
     </div>
     {#if selected}
-      <button
-        class="cmp"
-        class:on={app.isComparing(selected.name)}
-        disabled={!app.isComparing(selected.name) && app.compareNames.length >= 5}
-        title={!app.isComparing(selected.name) && app.compareNames.length >= 5 ? 'Remove a city before adding another' : undefined}
-        onclick={() => app.toggleCompare(selected!.name)}
-      >
-        {app.isComparing(selected.name) ? '✓ In compare' : '+ Compare'}
-      </button>
+      <div class="cmp-slot">
+        <span class="cmp-spacer" aria-hidden="true">&nbsp;</span>
+        <button
+          class="cmp"
+          class:on={app.isComparing(selected.name)}
+          disabled={!app.isComparing(selected.name) && app.compareNames.length >= 5}
+          title={!app.isComparing(selected.name) && app.compareNames.length >= 5 ? 'Remove a city before adding another' : undefined}
+          onclick={() => app.toggleCompare(selected!.name)}
+        >
+          {app.isComparing(selected.name) ? '✓ In compare' : '+ Compare'}
+        </button>
+      </div>
     {/if}
   </section>
 
@@ -177,7 +180,9 @@
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
-    align-items: flex-end;
+    /* Top-aligned so a validation message under one field can't push its input
+       out of line with the others; labels are the same height in every field. */
+    align-items: flex-start;
     padding: 18px;
     margin-bottom: 16px;
   }
@@ -211,6 +216,15 @@
     margin-top: 5px;
     color: var(--red);
     font-size: 0.75rem;
+  }
+  .cmp-slot {
+    min-width: 0;
+  }
+  .cmp-spacer {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    margin-bottom: 5px;
   }
   .cmp {
     padding: 11px 18px;
