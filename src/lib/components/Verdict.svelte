@@ -70,5 +70,8 @@
     font-size: 1.02rem;
     line-height: 1.5;
     color: var(--ink);
+    /* Reserve 3 lines so the box height stays constant between the short
+       "Comfortable" copy and the longer "A stretch" copy — no layout shift. */
+    min-height: calc(1.5em * 3);
   }
 </style>

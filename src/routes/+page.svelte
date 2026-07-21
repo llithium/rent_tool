@@ -116,14 +116,7 @@
         <img src="/favicon.svg" alt="" width="26" height="26" class="mark" />
         <span class="eyebrow">Rent Tool</span>
       </div>
-      <p class="sub">
-        Pick a city, enter an offered salary — get your 30%-rule rent budget, live rent data, city
-        facts, an affordability map, and pre-filtered apartment searches.
-      </p>
     </div>
-    <span class="status" class:live={app.live} aria-live="polite">
-      <span class="dot" aria-hidden="true"></span>{app.liveLabel}
-    </span>
   </header>
 
   <div class="rt-shell">
@@ -256,7 +249,6 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 8px;
   }
   .mark {
     border-radius: 7px;
@@ -269,42 +261,6 @@
     letter-spacing: 0.16em;
     color: var(--muted);
   }
-  .sub {
-    color: var(--muted);
-    font-size: 1.02rem;
-    max-width: 58ch;
-    margin-top: 2px;
-  }
-  .status {
-    font-size: 0.74rem;
-    padding: 6px 13px;
-    border-radius: 99px;
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    max-width: 100%;
-    background: var(--card2);
-    border: 1px solid var(--border);
-    color: var(--muted);
-    font-weight: 600;
-  }
-  .status .dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--faint);
-    display: inline-block;
-    flex: none;
-  }
-  .status.live {
-    background: var(--green-soft);
-    border-color: color-mix(in srgb, var(--green) 30%, transparent);
-    color: var(--green);
-  }
-  .status.live .dot {
-    background: var(--green);
-  }
-
   /* Shell */
   .rt-shell {
     display: grid;
