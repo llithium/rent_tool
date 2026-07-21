@@ -51,6 +51,7 @@
     line-height: 1;
     flex: none;
     color: var(--green);
+    animation: rt-pop 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
   }
   .verdict.bad .icon {
     color: var(--red);

@@ -328,6 +328,32 @@
     min-width: 0;
   }
 
+  /* Cascade the result blocks in when they first appear. Because Svelte keeps
+     these children mounted across city/salary changes, the animation only plays
+     once — on the empty → results transition. */
+  .rt-results > :global(*),
+  .rt-side > :global(*:not(.inputs-card)) {
+    animation: rt-rise 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .rt-results > :global(*:nth-child(2)) {
+    animation-delay: 0.05s;
+  }
+  .rt-results > :global(*:nth-child(3)) {
+    animation-delay: 0.1s;
+  }
+  .rt-results > :global(*:nth-child(4)) {
+    animation-delay: 0.15s;
+  }
+  .rt-results > :global(*:nth-child(5)) {
+    animation-delay: 0.2s;
+  }
+  .rt-results > :global(*:nth-child(6)) {
+    animation-delay: 0.25s;
+  }
+  .rt-results > :global(*:nth-child(n + 7)) {
+    animation-delay: 0.3s;
+  }
+
   .card {
     background: var(--card);
     border: 1px solid var(--border);
@@ -431,6 +457,12 @@
     background: var(--accent);
     border: 3px solid var(--card);
     box-shadow: 0 1px 4px rgba(60, 40, 20, 0.35);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .slider:hover::-webkit-slider-thumb,
+  .slider:active::-webkit-slider-thumb {
+    transform: scale(1.12);
+    box-shadow: 0 2px 8px rgba(60, 40, 20, 0.4);
   }
   .slider::-moz-range-thumb {
     width: 22px;
@@ -439,6 +471,12 @@
     background: var(--accent);
     border: 3px solid var(--card);
     box-shadow: 0 1px 4px rgba(60, 40, 20, 0.35);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .slider:hover::-moz-range-thumb,
+  .slider:active::-moz-range-thumb {
+    transform: scale(1.12);
+    box-shadow: 0 2px 8px rgba(60, 40, 20, 0.4);
   }
 
   /* Buttons */
@@ -457,6 +495,11 @@
     border: 1px solid var(--accent);
     background: var(--card2);
     color: var(--accent);
+    transition: transform 0.12s ease, background 0.12s ease, color 0.12s ease;
+  }
+  .cmp:not(:disabled):active,
+  .share:not(:disabled):active {
+    transform: scale(0.98);
   }
   .cmp.on {
     background: var(--accent);
@@ -476,6 +519,7 @@
     cursor: pointer;
     font-weight: 600;
     font-size: 0.9rem;
+    transition: transform 0.12s ease;
   }
   .share:disabled {
     cursor: not-allowed;
