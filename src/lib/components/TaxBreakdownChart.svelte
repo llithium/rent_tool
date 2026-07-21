@@ -117,6 +117,8 @@
     overflow: hidden;
     border: 1px solid var(--border);
     margin-bottom: 9px;
+    transform-origin: left;
+    animation: rt-grow-x 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
   .seg {
     display: flex;
@@ -128,6 +130,7 @@
     white-space: nowrap;
     overflow: hidden;
     min-width: 0;
+    transition: width 0.4s ease;
   }
   .seg span {
     overflow: hidden;

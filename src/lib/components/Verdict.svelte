@@ -51,6 +51,7 @@
     line-height: 1;
     flex: none;
     color: var(--green);
+    animation: rt-pop 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
   }
   .verdict.bad .icon {
     color: var(--red);
@@ -69,5 +70,8 @@
     font-size: 1.02rem;
     line-height: 1.5;
     color: var(--ink);
+    /* Reserve 3 lines so the box height stays constant between the short
+       "Comfortable" copy and the longer "A stretch" copy — no layout shift. */
+    min-height: calc(1.5em * 3);
   }
 </style>

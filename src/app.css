@@ -75,6 +75,30 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Motion — subtle, tasteful. All CSS-based so the reduced-motion block below
+   neutralizes it automatically. */
+@keyframes rt-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+@keyframes rt-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+}
+@keyframes rt-grow-x {
+  from {
+    transform: scaleX(0);
+  }
+}
+.rt-reveal {
+  animation: rt-rise 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--rt-delay, 0s);
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -83,8 +107,10 @@ html {
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
   }
 }
 

@@ -112,5 +112,8 @@
   .fill {
     height: 100%;
     border-radius: 99px;
+    transform-origin: left;
+    animation: rt-grow-x 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+    transition: width 0.4s ease;
   }
 </style>

@@ -63,7 +63,7 @@
               <span class="spinner" aria-hidden="true"></span>
             {:else}
               {#if p.pop != null}
-                <span class="meta tabnum">pop {fmtPop(p.pop)}</span>
+                <span class="meta tabnum">{fmtPop(p.pop)} pop</span>
               {/if}
               <span class="meta tabnum">{p.miles} mi</span>
             {/if}
@@ -136,12 +136,18 @@
     cursor: pointer;
     font-weight: 600;
     font-size: 0.92rem;
-    transition: all 0.12s;
+    transition: border-color 0.12s ease, color 0.12s ease, background 0.12s ease,
+      transform 0.12s ease, box-shadow 0.12s ease;
   }
   .chip:hover {
     border-color: var(--accent);
     color: var(--accent);
     background: var(--accent-soft);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
+  }
+  .chip:active {
+    transform: translateY(0);
   }
   .meta {
     font-size: 0.78rem;

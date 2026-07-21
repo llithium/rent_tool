@@ -21,9 +21,11 @@ test.beforeEach(async ({ page }) => {
     body: JSON.stringify({ suggestions: [] })
   }));
   await page.route('https://*.basemaps.cartocdn.com/**', (route) => route.abort());
+  // refreshLive() fires /api/rents from onMount, so awaiting that response
+  // confirms the client has hydrated before we exercise event handlers.
+  const hydrated = page.waitForResponse('**/api/rents');
   await page.goto('/');
-  // Wait for onMount/hydration before exercising client-side event handlers.
-  await expect(page.getByText('June 2026 rent snapshot · live refresh unavailable', { exact: true })).toBeVisible();
+  await hydrated;
 });
 
 test('supports keyboard city selection and salary results', async ({ page }) => {
@@ -46,6 +48,13 @@ test('has no serious accessibility violations in populated state', async ({ page
   await city.press('Enter');
   await page.getByLabel('Annual salary', { exact: true }).fill('80000');
   await expect(page.getByRole('heading', { name: 'Tampa, FL' })).toBeVisible();
+  // Result/side cards fade in via an entrance animation; wait for them to reach
+  // full opacity so axe measures settled colors rather than mid-fade contrast.
+  await page.waitForFunction(() =>
+    [...document.querySelectorAll('.rt-results > *, .rt-side > *')].every(
+      (el) => getComputedStyle(el).opacity === '1'
+    )
+  );
   const results = await new AxeBuilder({ page }).exclude('.leaflet-control-container').analyze();
   expect(results.violations.filter((v) => ['serious', 'critical'].includes(v.impact ?? ''))).toEqual([]);
 });
@@ -128,7 +137,8 @@ test('labels HUD data as Fair Market Rent', async ({ page }) => {
 test('restores selected city and salary after reload', async ({ page }) => {
   await selectCity(page, 'Tampa', 'Tampa, FL');
   await page.getByLabel('Annual salary', { exact: true }).fill('80000');
+  const hydrated = page.waitForResponse('**/api/rents');
   await page.reload();
-  await expect(page.getByText('June 2026 rent snapshot · live refresh unavailable', { exact: true })).toBeVisible();
+  await hydrated;
   await expect(page.getByRole('heading', { name: 'Tampa, FL' })).toBeVisible();
 });

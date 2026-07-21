@@ -52,12 +52,18 @@
     text-decoration: none;
     font-weight: 600;
     font-size: 0.92rem;
-    transition: all 0.12s;
+    transition: border-color 0.12s ease, color 0.12s ease, background 0.12s ease,
+      transform 0.12s ease, box-shadow 0.12s ease;
   }
   .lk:hover {
     border-color: var(--accent);
     color: var(--accent);
     background: var(--accent-soft);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
+  }
+  .lk:active {
+    transform: translateY(0);
   }
   .note {
     font-size: 0.8rem;

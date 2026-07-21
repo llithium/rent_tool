@@ -116,14 +116,7 @@
         <img src="/favicon.svg" alt="" width="26" height="26" class="mark" />
         <span class="eyebrow">Rent Tool</span>
       </div>
-      <p class="sub">
-        Pick a city, enter an offered salary — get your 30%-rule rent budget, live rent data, city
-        facts, an affordability map, and pre-filtered apartment searches.
-      </p>
     </div>
-    <span class="status" class:live={app.live} aria-live="polite">
-      <span class="dot" aria-hidden="true"></span>{app.liveLabel}
-    </span>
   </header>
 
   <div class="rt-shell">
@@ -256,7 +249,6 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 8px;
   }
   .mark {
     border-radius: 7px;
@@ -269,42 +261,6 @@
     letter-spacing: 0.16em;
     color: var(--muted);
   }
-  .sub {
-    color: var(--muted);
-    font-size: 1.02rem;
-    max-width: 58ch;
-    margin-top: 2px;
-  }
-  .status {
-    font-size: 0.74rem;
-    padding: 6px 13px;
-    border-radius: 99px;
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    max-width: 100%;
-    background: var(--card2);
-    border: 1px solid var(--border);
-    color: var(--muted);
-    font-weight: 600;
-  }
-  .status .dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--faint);
-    display: inline-block;
-    flex: none;
-  }
-  .status.live {
-    background: var(--green-soft);
-    border-color: color-mix(in srgb, var(--green) 30%, transparent);
-    color: var(--green);
-  }
-  .status.live .dot {
-    background: var(--green);
-  }
-
   /* Shell */
   .rt-shell {
     display: grid;
@@ -326,6 +282,32 @@
     flex-direction: column;
     gap: 20px;
     min-width: 0;
+  }
+
+  /* Cascade the result blocks in when they first appear. Because Svelte keeps
+     these children mounted across city/salary changes, the animation only plays
+     once — on the empty → results transition. */
+  .rt-results > :global(*),
+  .rt-side > :global(*:not(.inputs-card)) {
+    animation: rt-rise 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .rt-results > :global(*:nth-child(2)) {
+    animation-delay: 0.05s;
+  }
+  .rt-results > :global(*:nth-child(3)) {
+    animation-delay: 0.1s;
+  }
+  .rt-results > :global(*:nth-child(4)) {
+    animation-delay: 0.15s;
+  }
+  .rt-results > :global(*:nth-child(5)) {
+    animation-delay: 0.2s;
+  }
+  .rt-results > :global(*:nth-child(6)) {
+    animation-delay: 0.25s;
+  }
+  .rt-results > :global(*:nth-child(n + 7)) {
+    animation-delay: 0.3s;
   }
 
   .card {
@@ -431,6 +413,12 @@
     background: var(--accent);
     border: 3px solid var(--card);
     box-shadow: 0 1px 4px rgba(60, 40, 20, 0.35);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .slider:hover::-webkit-slider-thumb,
+  .slider:active::-webkit-slider-thumb {
+    transform: scale(1.12);
+    box-shadow: 0 2px 8px rgba(60, 40, 20, 0.4);
   }
   .slider::-moz-range-thumb {
     width: 22px;
@@ -439,6 +427,12 @@
     background: var(--accent);
     border: 3px solid var(--card);
     box-shadow: 0 1px 4px rgba(60, 40, 20, 0.35);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .slider:hover::-moz-range-thumb,
+  .slider:active::-moz-range-thumb {
+    transform: scale(1.12);
+    box-shadow: 0 2px 8px rgba(60, 40, 20, 0.4);
   }
 
   /* Buttons */
@@ -457,6 +451,11 @@
     border: 1px solid var(--accent);
     background: var(--card2);
     color: var(--accent);
+    transition: transform 0.12s ease, background 0.12s ease, color 0.12s ease;
+  }
+  .cmp:not(:disabled):active,
+  .share:not(:disabled):active {
+    transform: scale(0.98);
   }
   .cmp.on {
     background: var(--accent);
@@ -476,6 +475,7 @@
     cursor: pointer;
     font-weight: 600;
     font-size: 0.9rem;
+    transition: transform 0.12s ease;
   }
   .share:disabled {
     cursor: not-allowed;
