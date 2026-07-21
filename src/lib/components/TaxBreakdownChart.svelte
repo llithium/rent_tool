@@ -73,6 +73,10 @@
         </div>
       {/if}
     </div>
+    <div class="legend split">
+      <span><i class="sw rent {rentShare > 100 ? 'over' : ''}"></i>Rent {money(rent)}</span>
+      {#if remaining > 0}<span><i class="sw left"></i>Left {money(remaining)}</span>{/if}
+    </div>
     <p class="foot">
       Median 1BR is <strong class={rentShare > 30 ? 'over' : 'ok'}>{rentShare.toFixed(0)}%</strong>
       of your take-home pay.
@@ -184,6 +188,19 @@
   }
   .sw.local {
     background: color-mix(in srgb, var(--accent) 70%, var(--red));
+  }
+  .sw.rent {
+    background: var(--accent);
+  }
+  .sw.rent.over {
+    background: var(--red);
+  }
+  .sw.left {
+    background: color-mix(in srgb, var(--green) 45%, var(--card));
+    border: 1px solid var(--border);
+  }
+  .legend.split {
+    margin-bottom: 4px;
   }
   .foot {
     font-size: 0.9rem;

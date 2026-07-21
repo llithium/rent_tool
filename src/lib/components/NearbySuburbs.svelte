@@ -17,7 +17,7 @@
 
   // Refetch whenever the selected city (or its coords) changes; abort stale requests.
   $effect(() => {
-    const { lat, lng, state } = city;
+    const { lat, lng, city: cityName, state } = city;
     if (lat == null || lng == null) {
       places = [];
       loading = false;
@@ -26,7 +26,7 @@
     const controller = new AbortController();
     loading = true;
     places = [];
-    fetchNearby(lat, lng, state, controller.signal).then((res) => {
+    fetchNearby(lat, lng, cityName, state, controller.signal).then((res) => {
       if (controller.signal.aborted) return;
       places = res;
       loading = false;
@@ -39,7 +39,7 @@
   <section class="card">
     <div class="head">
       <h2>Nearby suburbs &amp; towns</h2>
-      <span class="src">OpenStreetMap</span>
+      <span class="src">SimpleMaps</span>
     </div>
     <p class="note">
       Within ~25 miles of {city.city}, largest population first. Click a place to load its rent.

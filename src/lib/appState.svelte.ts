@@ -1,6 +1,7 @@
 import { SEED_CITIES, findSeedCity, STATE_TAX, stateOf, cityOf } from '$lib/data/cities';
+import { popText } from '$lib/format';
 import type { City, CitySuggestion, RentMetric } from '$lib/types';
-import { fetchLiveRents, lookupRent } from '$lib/api';
+import { fetchLiveRents, fetchPopulation, lookupRent } from '$lib/api';
 
 const LAST_KEY = 'rentToolLast.v3';
 const LEGACY_KEY = 'rentToolLast.v2';
@@ -79,6 +80,28 @@ class AppState {
   select(name: string) {
     this.selectedName = name;
     this.persist();
+    void this.ensurePopulation(name);
+  }
+
+  private popLookups = new Set<string>();
+
+  /** Fill in a missing population figure for a city (fire-and-forget).
+   * Curated seed blurbs like "2.8M metro" are kept as-is. */
+  private async ensurePopulation(name: string) {
+    const city = this.cityByName(name);
+    if (!city || city.pop || city.lat == null || city.lng == null) return;
+    const key = name.toLowerCase();
+    if (this.popLookups.has(key)) return;
+    this.popLookups.add(key);
+    try {
+      const pop = await fetchPopulation(city.lat, city.lng);
+      if (pop != null) {
+        this.patchCity(name, { pop: popText(pop) });
+        this.persist();
+      }
+    } finally {
+      this.popLookups.delete(key);
+    }
   }
 
   toggleCompare(name: string) {
@@ -147,8 +170,10 @@ class AppState {
   }
 
   /** Resolve a city from an autocomplete suggestion: add it if new, then fill rent
-   * from government APIs if it isn't a seed city. Returns the canonical name. */
-  async resolveSuggestion(sug: CitySuggestion): Promise<string> {
+   * from government APIs if it isn't a seed city. Returns the canonical name.
+   * Nearby-place picks carry an OSM population — used as an instant prefill. */
+  async resolveSuggestion(sug: CitySuggestion & { pop?: number | null }): Promise<string> {
+    const prefillPop = sug.pop != null && sug.pop > 0 ? popText(sug.pop) : '';
     const seed = findSeedCity(sug.label);
     if (seed) {
       this.lookupController?.abort();
@@ -156,6 +181,7 @@ class AppState {
       this.looking = false;
       // Ensure the seed city carries coords for the map.
       if (seed.lat == null) this.patchCity(seed.name, { lat: sug.lat, lng: sug.lng });
+      if (!seed.pop && prefillPop) this.patchCity(seed.name, { pop: prefillPop });
       this.select(seed.name);
       return seed.name;
     }
@@ -172,7 +198,7 @@ class AppState {
           r2: null,
           yoy: null,
           tax: STATE_TAX[sug.state] || 'varies',
-          pop: '',
+          pop: prefillPop,
           blurb: '',
           lat: sug.lat,
           lng: sug.lng,
@@ -182,6 +208,8 @@ class AppState {
           rentYear: ''
         }
       ];
+    } else if (!existing.pop && prefillPop) {
+      this.patchCity(sug.label, { pop: prefillPop });
     }
     this.select(sug.label);
 
@@ -260,7 +288,10 @@ class AppState {
           ];
         }
       }
-      if (typeof s.selected === 'string' && this.cityByName(s.selected)) this.selectedName = s.selected;
+      if (typeof s.selected === 'string' && this.cityByName(s.selected)) {
+        this.selectedName = s.selected;
+        void this.ensurePopulation(s.selected);
+      }
       if (Array.isArray(s.compare)) {
         const compare = (s.compare as unknown[]).filter(
           (n: unknown): n is string => typeof n === 'string' && this.cityByName(n) != null

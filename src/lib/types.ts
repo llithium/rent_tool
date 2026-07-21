@@ -50,9 +50,8 @@ export interface NearbyPlace {
   state: string;
   lat: number;
   lng: number;
-  kind: 'city' | 'town' | 'suburb' | 'village';
   miles: number;
-  /** OSM population tag. null = not tagged. */
+  /** Urban-population estimate from the bundled places dataset. */
   pop: number | null;
 }
 

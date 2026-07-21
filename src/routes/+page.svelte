@@ -228,7 +228,9 @@
         Rent snapshot: Zumper National Rent Report (June 2026 baseline), refreshed live when
         available. Off-list cities fall back to HUD Fair Market Rents / Census ACS. Tax figures are
         2026 estimates for a single filer taking the standard deduction — an estimate to power the
-        visual, not tax advice. All numbers are estimates — verify before signing anything.
+        visual, not tax advice. City locations &amp; populations:
+        <a href="https://simplemaps.com/data/us-cities" target="_blank" rel="noopener">SimpleMaps US
+          Cities</a> (CC BY 4.0). All numbers are estimates — verify before signing anything.
       </footer>
     </div>
   </div>
