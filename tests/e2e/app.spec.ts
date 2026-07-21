@@ -137,8 +137,43 @@ test('labels HUD data as Fair Market Rent', async ({ page }) => {
 test('restores selected city and salary after reload', async ({ page }) => {
   await selectCity(page, 'Tampa', 'Tampa, FL');
   await page.getByLabel('Annual salary', { exact: true }).fill('80000');
+  // State is mirrored into the URL, so the reload restores from the query string.
+  await expect.poll(() => new URL(page.url()).searchParams.get('city')).toBe('Tampa, FL');
+  await expect.poll(() => new URL(page.url()).searchParams.get('salary')).toBe('80000');
   const hydrated = page.waitForResponse('**/api/rents');
   await page.reload();
   await hydrated;
   await expect(page.getByRole('heading', { name: 'Tampa, FL' })).toBeVisible();
+});
+
+test('restores state from a deep link with no stored data', async ({ page, context }) => {
+  // A shared link opened on a fresh device: no localStorage to fall back on.
+  await context.clearCookies();
+  await page.evaluate(() => localStorage.clear());
+  const hydrated = page.waitForResponse('**/api/rents');
+  await page.goto('/?salary=80000&city=Tampa%2C+FL&compare=Austin%2C+TX');
+  await hydrated;
+  await expect(page.getByRole('heading', { name: 'Tampa, FL' })).toBeVisible();
+  await expect(page.getByLabel('Annual salary', { exact: true })).toHaveValue('80,000');
+  await expect(page.getByText('Austin, TX')).toBeVisible();
+});
+
+test('re-resolves an off-list city from deep-linked coordinates', async ({ page }) => {
+  await page.route('**/api/geocode**', (route) => route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({ ok: true, stateFips: '36', countyFips: '109', county: 'Tompkins' })
+  }));
+  await page.route('**/api/fmr**', (route) => route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({ ok: true, r1: 1400, r2: 1700, county: 'Tompkins County', year: 'FY2026', bundled: true })
+  }));
+  await page.route('**/api/acs**', (route) => route.fulfill({
+    contentType: 'application/json', body: JSON.stringify({ ok: false })
+  }));
+
+  const hydrated = page.waitForResponse('**/api/rents');
+  await page.goto('/?salary=80000&city=Ithaca%2C+NY&lat=42.44&lng=-76.5');
+  await hydrated;
+  await expect(page.getByRole('heading', { name: 'Ithaca, NY' })).toBeVisible();
+  await expect(page.locator('.fact').getByText('1BR Fair Market Rent', { exact: true })).toBeVisible();
 });
