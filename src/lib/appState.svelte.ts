@@ -285,6 +285,77 @@ class AppState {
     }
   }
 
+  /** Serialize the shareable state (salary, selected city, compare list) into a
+   * canonical query string. Fixed param order so equal state yields an identical
+   * string — the write-effect relies on that to short-circuit no-op updates.
+   * Coords ride along only for an off-list selected city, so a fresh recipient can
+   * re-resolve its rent (see hydrateFromSearch). */
+  buildSearch(salaryOverride?: number | null): string {
+    const sp = new URLSearchParams();
+    const salary = salaryOverride === undefined ? this.salary : salaryOverride;
+    if (salary != null && Number.isFinite(salary) && salary > 0) {
+      sp.set('salary', String(Math.round(salary)));
+    }
+    const sel = this.selected;
+    if (sel) {
+      sp.set('city', sel.name);
+      const offList = sel.source === 'none' || sel.source === 'hud-fmr' || sel.source === 'census-acs';
+      if (offList && sel.lat != null && sel.lng != null) {
+        sp.set('lat', String(sel.lat));
+        sp.set('lng', String(sel.lng));
+      }
+    }
+    // Only seed/live compare cities survive a fresh load (resolvable by name);
+    // off-list compare cities are intentionally not deep-linked.
+    for (const name of this.compareNames) sp.append('compare', name);
+    return sp.toString();
+  }
+
+  /** Seed state from URL query params. Returns true when a city was selected, so
+   * the caller knows the URL "won" and can skip the localStorage restore.
+   * Mirrors restore()'s validation discipline. */
+  hydrateFromSearch(search: URLSearchParams): boolean {
+    const salaryRaw = search.get('salary');
+    if (salaryRaw != null) {
+      const n = parseInt(salaryRaw, 10);
+      if (Number.isFinite(n) && n > 0 && n <= 10_000_000) this.salary = n;
+    }
+
+    const cityName = search.get('city');
+    let selectedCity = false;
+    if (cityName && cityName.length <= 100) {
+      if (this.cityByName(cityName)) {
+        this.selectedName = cityName;
+        void this.ensurePopulation(cityName);
+        selectedCity = true;
+      } else {
+        // Off-list city from a shared link: re-resolve via the government-API path
+        // (fire-and-forget) using the coords the sharer encoded. Both coords must
+        // be present — a missing param must not coerce to 0 and resolve at (0,0).
+        const latRaw = search.get('lat');
+        const lngRaw = search.get('lng');
+        const lat = Number(latRaw);
+        const lng = Number(lngRaw);
+        const state = stateOf(cityName);
+        if (
+          latRaw && lngRaw &&
+          Number.isFinite(lat) && lat >= -90 && lat <= 90 &&
+          Number.isFinite(lng) && lng >= -180 && lng <= 180 &&
+          /^[A-Z]{2}$/.test(state)
+        ) {
+          void this.resolveSuggestion({ label: cityName, city: cityOf(cityName), state, lat, lng });
+          selectedCity = true;
+        }
+      }
+    }
+
+    const compare = search.getAll('compare')
+      .filter((n) => this.cityByName(n) != null);
+    if (compare.length) this.compareNames = [...new Set(compare)].slice(0, 5);
+
+    return selectedCity;
+  }
+
   restore() {
     try {
       const raw = localStorage.getItem(LAST_KEY) ?? localStorage.getItem(LEGACY_KEY);

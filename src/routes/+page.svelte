@@ -1,8 +1,9 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { page } from '$app/state';
+  import { replaceState } from '$app/navigation';
   import { app } from '$lib/appState.svelte';
   import { computeBudget } from '$lib/budget';
-  import { money } from '$lib/format';
   import type { CitySuggestion } from '$lib/types';
 
   import CitySearch from '$lib/components/CitySearch.svelte';
@@ -38,8 +39,32 @@
     Math.round(((sliderValue - SLIDER_MIN) / (SLIDER_MAX - SLIDER_MIN)) * 100)
   );
 
-  let shareLabel = $state('Copy');
+  let shareLabel = $state('Copy link');
   let shareTimer: ReturnType<typeof setTimeout> | undefined;
+
+  // URL sync. The salary contribution to the URL is debounced (city/compare
+  // changes are discrete and write immediately) so dragging the slider or typing
+  // doesn't thrash the address bar. `lastWritten` guards against the read→write
+  // echo and against redundant replaceState calls.
+  let salaryForUrl = $state<number | null>(null);
+  let salaryUrlTimer: ReturnType<typeof setTimeout> | undefined;
+  let hydrated = $state(false);
+  let lastWritten = '';
+
+  function scheduleSalaryUrl(v: number | null) {
+    clearTimeout(salaryUrlTimer);
+    salaryUrlTimer = setTimeout(() => (salaryForUrl = v), 350);
+  }
+
+  $effect(() => {
+    // Always read the state so deps are tracked, but hold off writing until
+    // onMount has hydrated from the URL and seeded lastWritten — otherwise this
+    // could strip the query string before hydrateFromSearch reads it.
+    const params = app.buildSearch(salaryForUrl);
+    if (!hydrated || params === lastWritten) return;
+    lastWritten = params;
+    replaceState(params ? `?${params}` : location.pathname, history.state ?? {});
+  });
 
   async function onCitySelect(sug: CitySuggestion) {
     await app.resolveSuggestion(sug);
@@ -62,6 +87,7 @@
       salaryError = validate(v);
       app.salary = salaryError ? null : v;
     }
+    scheduleSalaryUrl(app.salary);
     app.persist();
   }
 
@@ -70,25 +96,22 @@
     app.salary = v;
     salaryText = v.toLocaleString();
     salaryError = '';
+    scheduleSalaryUrl(v);
     app.persist();
   }
 
   function onShare() {
     if (!selected || !budget) return;
-    const c = selected;
-    const verdict = c.r1 != null ? (budget.maxRent >= c.r1 ? 'fits comfortably' : 'a stretch') : 'unknown';
-    const txt =
-      `${c.name} on ${money(app.salary)}/yr: 30% budget ${money(budget.maxRent)}/mo · ` +
-      `median 1BR ${money(c.r1)} (${verdict}) · take-home ≈ ${money(budget.takeHomeMonthly)}/mo ` +
-      `after ~${(budget.effRate * 100).toFixed(0)}% tax.`;
+    // The write effect keeps location.href in sync with the current state, so the
+    // live deep link is exactly the shareable URL for the current view.
     try {
-      navigator.clipboard?.writeText(txt);
+      navigator.clipboard?.writeText(location.href);
     } catch {
       /* clipboard unavailable */
     }
     shareLabel = '✓ Copied';
     clearTimeout(shareTimer);
-    shareTimer = setTimeout(() => (shareLabel = 'Copy'), 1800);
+    shareTimer = setTimeout(() => (shareLabel = 'Copy link'), 1800);
   }
 
   let compareFull = $derived(
@@ -96,14 +119,26 @@
   );
 
   onMount(() => {
-    app.restore();
+    // URL wins over localStorage when it names a resolvable city; a bare ?salary=
+    // link still falls back to restore() for the city/compare set but keeps the
+    // URL's salary.
+    const hadUrlState = app.hydrateFromSearch(page.url.searchParams);
+    if (!hadUrlState) {
+      const urlSalary = app.salary;
+      app.restore();
+      if (urlSalary != null) app.salary = urlSalary;
+    }
+    salaryForUrl = app.salary;
+    lastWritten = app.buildSearch(salaryForUrl);
     salaryText = app.salary != null ? app.salary.toLocaleString() : '';
+    hydrated = true;
     app.refreshLive();
+    return () => clearTimeout(salaryUrlTimer);
   });
 </script>
 
 <svelte:head>
-  <title>Rent Tool</title>
+  <title>{selected ? `${selected.name} · Rent Tool` : 'Rent Tool'}</title>
   <meta name="description" content="Compare a salary with current rent estimates, take-home pay, and apartment searches across U.S. cities." />
   <meta property="og:title" content="Rent Tool" />
   <meta property="og:description" content="See how an offered salary compares with rent and estimated take-home pay across U.S. cities." />
@@ -170,7 +205,7 @@
             <button
               class="share"
               type="button"
-              title="Copy a shareable summary"
+              title="Copy a shareable link"
               disabled={!budget}
               onclick={onShare}
             >
