@@ -63,7 +63,7 @@
               <span class="spinner" aria-hidden="true"></span>
             {:else}
               {#if p.pop != null}
-                <span class="meta tabnum">pop {fmtPop(p.pop)}</span>
+                <span class="meta tabnum">{fmtPop(p.pop)} pop</span>
               {/if}
               <span class="meta tabnum">{p.miles} mi</span>
             {/if}

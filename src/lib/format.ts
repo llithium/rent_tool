@@ -21,10 +21,10 @@ export function rentMetricLabel(metric: RentMetric, bedrooms: '1BR' | '2BR' = '1
   return `${bedrooms} rent`;
 }
 
-/** Population fact text: "874,579" for place-level figures, "3.4M urban area" for
+/** Population fact text: "874,579" for place-level figures, "3.4M metro" for
  * the aggregated urban estimates the dataset uses on large anchor cities. */
 export function popText(pop: number): string {
-  if (pop >= 1_000_000) return `${(pop / 1_000_000).toFixed(1)}M urban area`;
+  if (pop >= 1_000_000) return `${(pop / 1_000_000).toFixed(1)}M metro`;
   return pop.toLocaleString('en-US');
 }
 
