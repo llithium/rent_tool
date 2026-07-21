@@ -1,4 +1,4 @@
-# City & Salary Rent Tool
+# Rent Tool
 
 A SvelteKit web app: pick a city, enter an offered salary, and get your 30%-rule rent
 budget, live rent data, city facts, an affordability map, comparison table, take-home
