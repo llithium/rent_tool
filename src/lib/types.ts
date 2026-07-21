@@ -43,6 +43,19 @@ export interface CitySuggestion {
   lng: number;
 }
 
+/** A nearby place returned by /api/nearby (OpenStreetMap via Overpass). */
+export interface NearbyPlace {
+  label: string; // "City, ST"
+  city: string;
+  state: string;
+  lat: number;
+  lng: number;
+  kind: 'city' | 'town' | 'suburb' | 'village';
+  miles: number;
+  /** OSM population tag. null = not tagged. */
+  pop: number | null;
+}
+
 /** Result of resolving rent for an off-list city via government APIs. */
 export interface LookupResult {
   r1: number | null;

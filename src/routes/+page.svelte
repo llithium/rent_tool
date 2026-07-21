@@ -10,6 +10,7 @@
   import Verdict from '$lib/components/Verdict.svelte';
   import CityFacts from '$lib/components/CityFacts.svelte';
   import SearchLinks from '$lib/components/SearchLinks.svelte';
+  import NearbySuburbs from '$lib/components/NearbySuburbs.svelte';
   import RentTrendChart from '$lib/components/RentTrendChart.svelte';
   import TaxBreakdownChart from '$lib/components/TaxBreakdownChart.svelte';
   import ComparisonTable from '$lib/components/ComparisonTable.svelte';
@@ -204,6 +205,8 @@
         </div>
 
         <SearchLinks city={selected} maxRent={budget.maxRent} />
+
+        <NearbySuburbs city={selected} />
 
         {#if app.compareCities.length}
           <ComparisonTable cities={app.compareCities} maxRent={budget.maxRent} />

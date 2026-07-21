@@ -1,4 +1,10 @@
-import type { CitySuggestion, LookupResult, RentRefreshStatus, RentSource } from '$lib/types';
+import type {
+  CitySuggestion,
+  LookupResult,
+  NearbyPlace,
+  RentRefreshStatus,
+  RentSource
+} from '$lib/types';
 import type { RentRow } from '$lib/rentTable';
 
 /** Typed client wrappers for the /api endpoints. All degrade gracefully. */
@@ -8,6 +14,25 @@ export async function fetchSuggestions(q: string, signal?: AbortSignal): Promise
   if (!res.ok) return [];
   const data = await res.json();
   return data.suggestions ?? [];
+}
+
+/** Nearby towns & suburbs around a point, from OpenStreetMap. Returns [] on failure. */
+export async function fetchNearby(
+  lat: number,
+  lng: number,
+  state?: string,
+  signal?: AbortSignal
+): Promise<NearbyPlace[]> {
+  try {
+    const params = new URLSearchParams({ lat: String(lat), lng: String(lng) });
+    if (state) params.set('state', state);
+    const res = await fetch(`/api/nearby?${params}`, { signal });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data.nearby) ? data.nearby : [];
+  } catch {
+    return [];
+  }
 }
 
 export interface RentsResponse {
