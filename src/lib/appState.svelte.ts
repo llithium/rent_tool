@@ -60,6 +60,9 @@ class AppState {
   live = $state(false);
   refreshStatus = $state<'live' | 'stale' | 'unavailable'>('unavailable');
   looking = $state(false);
+  /** City being resolved in the background (rent still loading) — drives the
+   * "loading" affordance on nearby chips while the current view stays put. */
+  pendingName = $state<string | null>(null);
   private lookupController: AbortController | null = null;
 
   get selected(): City | null {
@@ -211,13 +214,23 @@ class AppState {
     } else if (!existing.pop && prefillPop) {
       this.patchCity(sug.label, { pop: prefillPop });
     }
-    this.select(sug.label);
 
-    // Fetch gov rent data in the background.
+    // Load rent BEFORE switching the view. Selecting immediately would flash the
+    // whole results column: every rent-dependent card (verdict, charts) collapses
+    // while r1 is null, then re-expands when rent lands. Keeping the current city
+    // rendered until the new one is ready swaps old-full → new-full with no reflow.
+    // The clicked place shows a loading affordance via pendingName in the meantime.
+    // If the city already has rent (revisited), skip the wait and select now.
+    if (existing?.r1 != null) {
+      this.select(sug.label);
+      return sug.label;
+    }
+
     this.lookupController?.abort();
     const controller = new AbortController();
     this.lookupController = controller;
     this.looking = true;
+    this.pendingName = sug.label;
     try {
       const r = await lookupRent(sug.lat, sug.lng, controller.signal);
       if (controller.signal.aborted) return sug.label;
@@ -232,12 +245,14 @@ class AppState {
           rentYear: r.rentYear,
           blurb: r.note ?? ''
         });
-        this.persist(); // re-persist now that rents arrived
       }
     } finally {
       if (this.lookupController === controller) {
         this.looking = false;
+        this.pendingName = null;
         this.lookupController = null;
+        this.select(sug.label); // atomic swap now that rent is in
+        this.persist();
       }
     }
     return sug.label;

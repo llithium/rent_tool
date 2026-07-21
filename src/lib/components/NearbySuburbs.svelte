@@ -25,7 +25,9 @@
     }
     const controller = new AbortController();
     loading = true;
-    places = [];
+    // Keep the current chips on screen until the replacement arrives — clearing
+    // them here would collapse the card to the loading line and back on every
+    // click, which reads as a flash. The swap below is atomic.
     fetchNearby(lat, lng, cityName, state, controller.signal).then((res) => {
       if (controller.signal.aborted) return;
       places = res;
@@ -45,17 +47,26 @@
       Within ~25 miles of {city.city}, largest population first. Click a place to load its rent.
     </p>
 
-    {#if loading}
+    {#if !places.length}
       <p class="hint">Finding nearby places…</p>
     {:else}
       <div class="chips">
         {#each places as p (p.label)}
-          <button class="chip" onclick={() => app.resolveSuggestion(p)}>
+          <button
+            class="chip"
+            class:loading={app.pendingName === p.label}
+            disabled={app.pendingName === p.label}
+            onclick={() => app.resolveSuggestion(p)}
+          >
             <span class="name">{p.city}, {p.state}</span>
-            {#if p.pop != null}
-              <span class="meta tabnum">pop {fmtPop(p.pop)}</span>
+            {#if app.pendingName === p.label}
+              <span class="spinner" aria-hidden="true"></span>
+            {:else}
+              {#if p.pop != null}
+                <span class="meta tabnum">pop {fmtPop(p.pop)}</span>
+              {/if}
+              <span class="meta tabnum">{p.miles} mi</span>
             {/if}
-            <span class="meta tabnum">{p.miles} mi</span>
           </button>
         {/each}
       </div>
@@ -139,5 +150,23 @@
   }
   .chip:hover .meta {
     color: var(--accent);
+  }
+  .chip.loading {
+    border-color: var(--accent);
+    color: var(--accent);
+    cursor: default;
+  }
+  .spinner {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid color-mix(in srgb, var(--accent) 30%, transparent);
+    border-top-color: var(--accent);
+    animation: spin 0.6s linear infinite;
+  }
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
   }
 </style>
