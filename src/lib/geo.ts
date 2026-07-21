@@ -1,0 +1,11 @@
+/** Great-circle distance between two points in miles (haversine). */
+export function haversineMiles(aLat: number, aLng: number, bLat: number, bLng: number): number {
+  const R = 3958.8; // Earth radius, miles
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(bLat - aLat);
+  const dLng = toRad(bLng - aLng);
+  const s =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(aLat)) * Math.cos(toRad(bLat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(s));
+}

@@ -88,6 +88,13 @@ test('exposes map markers to the keyboard', async ({ page }) => {
   const marker = page.getByRole('button', {
     name: 'New York, NY, 1 bedroom $4,660, over budget'
   });
+  // Selecting a city recenters the map on it, so a far-away marker like New York
+  // starts off-screen (Leaflet culls off-viewport markers). Zoom out until it's
+  // in view before exercising keyboard access.
+  const zoomOut = page.getByRole('button', { name: 'Zoom out' });
+  for (let i = 0; i < 5 && !(await marker.isVisible()); i++) {
+    await zoomOut.click();
+  }
   await expect(marker).toBeVisible();
   await marker.press('Enter');
   await expect(page.getByRole('heading', { name: 'New York, NY' })).toBeVisible();

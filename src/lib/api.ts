@@ -1,4 +1,10 @@
-import type { CitySuggestion, LookupResult, RentRefreshStatus, RentSource } from '$lib/types';
+import type {
+  CitySuggestion,
+  LookupResult,
+  NearbyPlace,
+  RentRefreshStatus,
+  RentSource
+} from '$lib/types';
 import type { RentRow } from '$lib/rentTable';
 
 /** Typed client wrappers for the /api endpoints. All degrade gracefully. */
@@ -8,6 +14,45 @@ export async function fetchSuggestions(q: string, signal?: AbortSignal): Promise
   if (!res.ok) return [];
   const data = await res.json();
   return data.suggestions ?? [];
+}
+
+/** Population of the place at the given coordinates. Returns null on failure. */
+export async function fetchPopulation(
+  lat: number,
+  lng: number,
+  signal?: AbortSignal
+): Promise<number | null> {
+  try {
+    const res = await fetch(`/api/population?lat=${lat}&lng=${lng}`, { signal });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.ok && typeof data.pop === 'number' && data.pop > 0 ? data.pop : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Nearby towns & suburbs around a point, from the bundled US places dataset.
+ * `city`/`state` identify the origin so it's excluded from its own list.
+ * Returns [] on failure. */
+export async function fetchNearby(
+  lat: number,
+  lng: number,
+  city?: string,
+  state?: string,
+  signal?: AbortSignal
+): Promise<NearbyPlace[]> {
+  try {
+    const params = new URLSearchParams({ lat: String(lat), lng: String(lng) });
+    if (city) params.set('city', city);
+    if (state) params.set('state', state);
+    const res = await fetch(`/api/nearby?${params}`, { signal });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data.nearby) ? data.nearby : [];
+  } catch {
+    return [];
+  }
 }
 
 export interface RentsResponse {
