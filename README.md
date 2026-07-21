@@ -4,6 +4,9 @@ A SvelteKit web app: pick a city, enter an offered salary, and get your 30%-rule
 budget, live rent data, city facts, an affordability map, comparison table, take-home
 charts, and pre-filtered apartment searches.
 
+Your city, salary, and comparison list sync to the URL, so any view is a shareable deep
+link (the **Copy link** button copies it) that restores on reload or on another device.
+
 Rebuilt from the original single-file `reference/rent-city-artifact.html` into a real,
 deployable app with serverless API endpoints (so it can actually reach live data past
 browser CORS).
@@ -28,6 +31,8 @@ Other scripts: `npm run build` (production, adapter-vercel), `npm run preview`,
 | **FCC Area API** | `/api/geocode` | none | Coords → county FIPS |
 | **HUD FMR** | `/api/fmr` | none (bundled FY2026 table) | Fair Market Rents for **every US county**; `HUD_TOKEN` (free) switches to live figures |
 | **Census ACS** | `/api/acs` | `CENSUS_KEY` (free) | 2024 five-year median gross rent fallback |
+| **SimpleMaps places** (bundled) | `/api/nearby` | none | Nearby towns/suburbs around a point |
+| **SimpleMaps places** (bundled) | `/api/population` | none | Population for a coordinate |
 
 The app **degrades gracefully** and needs **no keys at all**: the 100 curated cities work
 from the bundled Zumper snapshot (live-refreshed when the report parses), and every other
@@ -60,8 +65,9 @@ On Vercel, set these as environment variables in the project settings.
 - `src/lib/` — city-aware estimated tax/budget math, formatting, search-link + Zumper-table logic, typed API client,
   `appState.svelte.ts` (runes-based shared state)
 - `src/lib/components/` — CitySearch (autocomplete combobox), BudgetCard, Verdict,
-  CityFacts, SearchLinks, RentTrendChart, TaxBreakdownChart, ComparisonTable, RentMap (Leaflet)
-- `src/routes/api/` — the five serverless endpoints above
+  CityFacts, SearchLinks, NearbySuburbs, RentTrendChart, TaxBreakdownChart, ComparisonTable,
+  RentMap (Leaflet)
+- `src/routes/api/` — the seven serverless endpoints above
 
 ## Deploy
 
