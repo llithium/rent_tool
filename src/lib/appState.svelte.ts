@@ -328,24 +328,10 @@ class AppState {
         this.selectedName = cityName;
         void this.ensurePopulation(cityName);
         selectedCity = true;
-      } else {
-        // Off-list city from a shared link: re-resolve via the government-API path
-        // (fire-and-forget) using the coords the sharer encoded. Both coords must
-        // be present — a missing param must not coerce to 0 and resolve at (0,0).
-        const latRaw = search.get('lat');
-        const lngRaw = search.get('lng');
-        const lat = Number(latRaw);
-        const lng = Number(lngRaw);
-        const state = stateOf(cityName);
-        if (
-          latRaw && lngRaw &&
-          Number.isFinite(lat) && lat >= -90 && lat <= 90 &&
-          Number.isFinite(lng) && lng >= -180 && lng <= 180 &&
-          /^[A-Z]{2}$/.test(state)
-        ) {
-          void this.resolveSuggestion({ label: cityName, city: cityOf(cityName), state, lat, lng });
-          selectedCity = true;
-        }
+      } else if (this.resolveOffList(cityName, search)) {
+        // Off-list city from a shared link: re-resolved (fire-and-forget) via the
+        // government-API path using the coords the sharer encoded.
+        selectedCity = true;
       }
     }
 
@@ -354,6 +340,59 @@ class AppState {
     if (compare.length) this.compareNames = [...new Set(compare)].slice(0, 5);
 
     return selectedCity;
+  }
+
+  /** Off-list city from a shared link/history entry: re-resolve rent via the
+   * government-API path using the encoded coords. Returns true when the coords
+   * validate and a resolve was kicked off. Both coords must be present — a
+   * missing param must not coerce to 0 and resolve at (0,0). */
+  private resolveOffList(cityName: string, search: URLSearchParams): boolean {
+    const latRaw = search.get('lat');
+    const lngRaw = search.get('lng');
+    const lat = Number(latRaw);
+    const lng = Number(lngRaw);
+    const state = stateOf(cityName);
+    if (
+      latRaw && lngRaw &&
+      Number.isFinite(lat) && lat >= -90 && lat <= 90 &&
+      Number.isFinite(lng) && lng >= -180 && lng <= 180 &&
+      /^[A-Z]{2}$/.test(state)
+    ) {
+      void this.resolveSuggestion({ label: cityName, city: cityOf(cityName), state, lat, lng });
+      return true;
+    }
+    return false;
+  }
+
+  /** Apply URL params on browser back/forward navigation. Unlike
+   * hydrateFromSearch (initial load, which never clears so a bare ?salary= link
+   * can fall back to localStorage), here the URL is the sole source of truth:
+   * an absent param clears the corresponding state. */
+  applyUrlNavigation(search: URLSearchParams) {
+    const salaryRaw = search.get('salary');
+    if (salaryRaw != null) {
+      const n = parseInt(salaryRaw, 10);
+      this.salary = Number.isFinite(n) && n > 0 && n <= 10_000_000 ? n : null;
+    } else {
+      this.salary = null;
+    }
+
+    const cityName = search.get('city');
+    if (cityName && cityName.length <= 100) {
+      if (this.cityByName(cityName)) {
+        this.selectedName = cityName;
+        void this.ensurePopulation(cityName);
+      } else if (!this.resolveOffList(cityName, search)) {
+        this.selectedName = null;
+      }
+    } else {
+      this.selectedName = null;
+    }
+
+    const compare = search.getAll('compare').filter((n) => this.cityByName(n) != null);
+    this.compareNames = [...new Set(compare)].slice(0, 5);
+
+    this.persist();
   }
 
   restore() {

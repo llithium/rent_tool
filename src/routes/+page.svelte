@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { page } from '$app/state';
-  import { replaceState } from '$app/navigation';
+  import { pushState, replaceState } from '$app/navigation';
   import { app } from '$lib/appState.svelte';
   import { computeBudget } from '$lib/budget';
   import type { CitySuggestion } from '$lib/types';
@@ -50,6 +50,10 @@
   let salaryUrlTimer: ReturnType<typeof setTimeout> | undefined;
   let hydrated = $state(false);
   let lastWritten = '';
+  // Tracks the city in the last-written URL so the write effect can tell a city
+  // change (→ pushState, a real history entry) from an incidental salary/compare
+  // change (→ replaceState). Browser back/forward then steps through cities only.
+  let lastCity: string | null = null;
 
   function scheduleSalaryUrl(v: number | null) {
     clearTimeout(salaryUrlTimer);
@@ -62,9 +66,30 @@
     // could strip the query string before hydrateFromSearch reads it.
     const params = app.buildSearch(salaryForUrl);
     if (!hydrated || params === lastWritten) return;
+    const cityChanged = app.selectedName !== lastCity;
     lastWritten = params;
-    replaceState(params ? `?${params}` : location.pathname, history.state ?? {});
+    lastCity = app.selectedName;
+    const url = params ? `?${params}` : location.pathname;
+    // New city → push a history entry so Back/Forward returns here. Salary/compare
+    // tweaks replace the current entry so they don't clutter the history stack.
+    if (cityChanged) pushState(url, history.state ?? {});
+    else replaceState(url, history.state ?? {});
   });
+
+  // Re-hydrate on browser back/forward. Shallow routing (pushState/replaceState)
+  // doesn't update `page.url`, so we read the authoritative live URL instead.
+  // Native popstate fires only on genuine history navigation — never on our own
+  // push/replace above — so no echo guard beyond the redundant-write short-circuit
+  // is needed.
+  function onPopState() {
+    const search = location.search.replace(/^\?/, '');
+    if (!hydrated || search === lastWritten) return;
+    lastWritten = search;
+    app.applyUrlNavigation(new URLSearchParams(location.search));
+    lastCity = app.selectedName;
+    salaryForUrl = app.salary;
+    salaryText = app.salary != null ? app.salary.toLocaleString() : '';
+  }
 
   async function onCitySelect(sug: CitySuggestion) {
     await app.resolveSuggestion(sug);
@@ -130,10 +155,15 @@
     }
     salaryForUrl = app.salary;
     lastWritten = app.buildSearch(salaryForUrl);
+    lastCity = app.selectedName;
     salaryText = app.salary != null ? app.salary.toLocaleString() : '';
     hydrated = true;
     app.refreshLive();
-    return () => clearTimeout(salaryUrlTimer);
+    window.addEventListener('popstate', onPopState);
+    return () => {
+      clearTimeout(salaryUrlTimer);
+      window.removeEventListener('popstate', onPopState);
+    };
   });
 </script>
 
@@ -145,17 +175,19 @@
 </svelte:head>
 
 <main class="wrap">
-  <header class="rt-header">
-    <div class="brand">
-      <div class="eyebrow-row">
-        <img src="/favicon.svg" alt="" width="26" height="26" class="mark" />
-        <span class="eyebrow">Rent Tool</span>
-      </div>
-    </div>
-  </header>
-
   <div class="rt-shell">
     <aside class="rt-side">
+      <!-- Inside the sticky column so the brand pins with the inputs instead of
+           scrolling away above them. -->
+      <header class="rt-header">
+        <div class="brand">
+          <div class="eyebrow-row">
+            <img src="/favicon.svg" alt="" width="26" height="26" class="mark" />
+            <span class="eyebrow">Rent Tool</span>
+          </div>
+        </div>
+      </header>
+
       <section class="card inputs-card">
         <CitySearch onselect={onCitySelect} selectedName={app.selectedName} />
 
@@ -271,14 +303,14 @@
     padding: 34px 22px 70px;
   }
 
-  /* Header */
+  /* Header — first item in the sticky sidebar column; column `gap` handles the
+     spacing below it, so no margin needed. */
   .rt-header {
     display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
+    align-items: center;
     gap: 20px;
     flex-wrap: wrap;
-    margin-bottom: 26px;
+    padding: 4px 0;
   }
   .eyebrow-row {
     display: flex;
@@ -304,8 +336,12 @@
     align-items: start;
   }
   .rt-side {
+    /* Two-column view: stays pinned on the side while the results scroll.
+       Drops to static in the single-column layout below (scrolls away normally).
+       `top` matches the wrap's 34px top padding so the column pins exactly where
+       it rests — no upward shift as it engages. */
     position: sticky;
-    top: 22px;
+    top: 34px;
     display: flex;
     flex-direction: column;
     gap: 16px;
@@ -317,13 +353,17 @@
     flex-direction: column;
     gap: 20px;
     min-width: 0;
+    /* Start level with the inputs card (34px brand row + 16px column gap) rather
+       than the brand itself, keeping the old header-band feel. Removed in the
+       single-column layout, where results sit below the sidebar. */
+    padding-top: 50px;
   }
 
   /* Cascade the result blocks in when they first appear. Because Svelte keeps
      these children mounted across city/salary changes, the animation only plays
      once — on the empty → results transition. */
   .rt-results > :global(*),
-  .rt-side > :global(*:not(.inputs-card)) {
+  .rt-side > :global(*:not(.inputs-card):not(.rt-header)) {
     animation: rt-rise 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
   .rt-results > :global(*:nth-child(2)) {
@@ -543,6 +583,9 @@
     }
     .rt-side {
       position: static;
+    }
+    .rt-results {
+      padding-top: 0;
     }
   }
   @media (max-width: 760px) {
