@@ -4,7 +4,7 @@
   import { pushState, replaceState } from '$app/navigation';
   import { app } from '$lib/appState.svelte';
   import { computeBudget } from '$lib/budget';
-  import { RENT_DATA_META } from '$lib/data/cities';
+  import { ACS_DATA_META, RENT_DATA_META } from '$lib/data/cities';
   import type { CitySuggestion } from '$lib/types';
 
   import CitySearch from '$lib/components/CitySearch.svelte';
@@ -287,7 +287,9 @@
       <footer>
         Rent estimates: <a href={RENT_DATA_META.dataUrl} target="_blank" rel="noopener">Apartment
           List Rent Estimates</a> ({RENT_DATA_META.label}), © Apartment List, Inc.. Off-list cities use bundled HUD Fair Market Rents. Tax figures are
-        2026 estimates for a single filer taking the standard deduction. City locations &amp; populations:
+        2026 estimates for a single filer taking the standard deduction. City facts:
+        <a href={ACS_DATA_META.dataUrl} target="_blank" rel="noopener">U.S. Census Bureau
+          {ACS_DATA_META.label}</a>. Other city locations &amp; populations:
         <a href="https://simplemaps.com/data/us-cities" target="_blank" rel="noopener">SimpleMaps US
           Cities</a> (CC BY 4.0). All numbers are estimates.
       </footer>

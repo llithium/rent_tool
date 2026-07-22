@@ -83,7 +83,6 @@ export async function lookupRent(
 
     if (fmr.ok && (fmr.r1 || fmr.r2)) {
       const county = fmr.county || geo.county || '';
-      const year = fmr.year ? `${fmr.year}, bundled` : '';
       return {
         r1: fmr.r1,
         r2: fmr.r2,
@@ -91,8 +90,7 @@ export async function lookupRent(
         source: 'hud-fmr' as RentSource,
         rentMetric: 'fair-market-rent',
         rentArea: county ? `${county} area` : 'resolved county area',
-        rentYear: String(fmr.year ?? ''),
-        note: `HUD Fair Market Rent, ${county}${year ? ` (${year})` : ''}`
+        rentYear: String(fmr.year ?? '')
       };
     }
     return empty;

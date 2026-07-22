@@ -4,6 +4,15 @@ export type RentSource = 'apartment-list' | 'hud-fmr' | 'none';
 /** What the rent number represents. Sources are not directly interchangeable. */
 export type RentMetric = 'estimated-median' | 'fair-market-rent' | 'unknown';
 
+/** Structured city-level facts from a dated ACS 5-year release. */
+export interface CitySnapshot {
+  population: number;
+  householdIncome: number;
+  commuteMinutes: number;
+  renterShare: number;
+  rentalVacancy: number;
+}
+
 /** A city record: curated context merged with bundled rent figures. */
 export interface City {
   /** Canonical "City, ST" key. */
@@ -18,10 +27,10 @@ export interface City {
   yoy: number | null;
   /** State/local income-tax note. */
   tax: string;
-  /** Population blurb. */
+  /** Display population; ACS place estimate when available. */
   pop: string;
-  /** Long-form context. */
-  blurb: string;
+  /** Structured, bundled ACS place facts. */
+  citySnapshot: CitySnapshot | null;
   lat?: number;
   lng?: number;
   /** Where r1/r2/yoy came from. */
@@ -62,7 +71,6 @@ export interface LookupResult {
   rentMetric: RentMetric;
   rentArea: string;
   rentYear: string;
-  note?: string;
   lat?: number;
   lng?: number;
 }

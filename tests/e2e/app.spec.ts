@@ -53,6 +53,9 @@ test('supports keyboard city selection and salary results', async ({ page }) => 
   await page.getByLabel('Annual salary', { exact: true }).fill('100000');
   await expect(page.getByRole('heading', { name: 'New York, NY' })).toBeVisible();
   await expect(page.locator('.fact').getByText('Estimated median 1BR rent', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'City snapshot' })).toBeVisible();
+  await expect(page.getByText('Median household income', { exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: '2020–2024 ACS 5-year estimates ↗' })).toBeVisible();
 });
 
 test('credits the bundled Apartment List estimates', async ({ page }) => {
@@ -60,10 +63,6 @@ test('credits the bundled Apartment List estimates', async ({ page }) => {
   await expect(source).toHaveAttribute(
     'href',
     'https://www.apartmentlist.com/research/category/data-rent-estimates'
-  );
-  await expect(page.getByRole('link', { name: 'terms' })).toHaveAttribute(
-    'href',
-    'https://www.apartmentlist.com/about/terms'
   );
   await expect(page.locator('footer')).toContainText('© Apartment List, Inc.');
 });

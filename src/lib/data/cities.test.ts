@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { findSeedCity, RENT_DATA_META, SEED_CITIES } from './cities';
+import { ACS_DATA_META, findSeedCity, RENT_DATA_META, SEED_CITIES } from './cities';
 
 describe('bundled Apartment List city rents', () => {
   it('loads the complete June 2026 snapshot with source metadata', () => {
@@ -19,7 +19,23 @@ describe('bundled Apartment List city rents', () => {
       yoy: 2.9,
       source: 'apartment-list',
       rentMetric: 'estimated-median',
-      rentYear: 'June 2026'
+      rentYear: 'June 2026',
+      citySnapshot: {
+        population: 8483844,
+        householdIncome: 80483,
+        commuteMinutes: 40.3,
+        renterShare: 67.2,
+        rentalVacancy: 3.6
+      }
+    });
+  });
+
+  it('covers every rent city with a dated ACS place snapshot', () => {
+    expect(SEED_CITIES.every((city) => city.citySnapshot != null)).toBe(true);
+    expect(ACS_DATA_META).toMatchObject({
+      year: 2024,
+      label: '2020–2024 ACS 5-year estimates',
+      geography: 'Census place'
     });
   });
 

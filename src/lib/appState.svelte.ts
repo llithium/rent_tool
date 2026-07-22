@@ -1,6 +1,6 @@
 import { SEED_CITIES, findSeedCity, STATE_TAX, stateOf, cityOf } from '$lib/data/cities';
 import { popText } from '$lib/format';
-import type { City, CitySuggestion, RentMetric } from '$lib/types';
+import type { City, CitySnapshot, CitySuggestion, RentMetric } from '$lib/types';
 import { fetchPopulation, lookupRent } from '$lib/api';
 
 const LAST_KEY = 'rentToolLast.v3';
@@ -10,6 +10,25 @@ function metricForSource(source: City['source']): RentMetric {
   if (source === 'apartment-list') return 'estimated-median';
   if (source === 'hud-fmr') return 'fair-market-rent';
   return 'unknown';
+}
+
+function restoredSnapshot(value: unknown): CitySnapshot | null {
+  if (!value || typeof value !== 'object') return null;
+  const f = value as Partial<CitySnapshot>;
+  if (
+    typeof f.population !== 'number' || f.population <= 0 ||
+    typeof f.householdIncome !== 'number' || f.householdIncome <= 0 ||
+    typeof f.commuteMinutes !== 'number' || f.commuteMinutes < 0 || f.commuteMinutes > 300 ||
+    typeof f.renterShare !== 'number' || f.renterShare < 0 || f.renterShare > 100 ||
+    typeof f.rentalVacancy !== 'number' || f.rentalVacancy < 0 || f.rentalVacancy > 100
+  ) return null;
+  return {
+    population: f.population,
+    householdIncome: f.householdIncome,
+    commuteMinutes: f.commuteMinutes,
+    renterShare: f.renterShare,
+    rentalVacancy: f.rentalVacancy
+  };
 }
 
 function restoredCity(value: unknown): City | null {
@@ -34,7 +53,7 @@ function restoredCity(value: unknown): City | null {
     yoy: c.yoy ?? null,
     tax: typeof c.tax === 'string' ? c.tax.slice(0, 200) : STATE_TAX[c.state] || 'varies',
     pop: typeof c.pop === 'string' ? c.pop.slice(0, 200) : '',
-    blurb: typeof c.blurb === 'string' ? c.blurb.slice(0, 500) : '',
+    citySnapshot: restoredSnapshot(c.citySnapshot),
     lat: c.lat,
     lng: c.lng,
     source,
@@ -151,7 +170,7 @@ class AppState {
           yoy: null,
           tax: STATE_TAX[target.state] || 'varies',
           pop: prefillPop,
-          blurb: '',
+          citySnapshot: null,
           lat: target.lat,
           lng: target.lng,
           source: 'none',
@@ -191,8 +210,7 @@ class AppState {
           source: r.source,
           rentMetric: r.rentMetric,
           rentArea: r.rentArea,
-          rentYear: r.rentYear,
-          blurb: r.note ?? ''
+          rentYear: r.rentYear
         });
       }
     } finally {

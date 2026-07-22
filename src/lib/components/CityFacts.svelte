@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { City, RentSource } from '$lib/types';
   import { money, pctTrend, rentMetricLabel } from '$lib/format';
+  import { ACS_DATA_META } from '$lib/data/cities';
   import { STATE_NAME } from '$lib/data/states';
 
   let { city, looking }: { city: City; looking: boolean } = $props();
@@ -17,7 +18,7 @@
   };
 
   // Metric-aware labels keep Apartment List estimates distinct from HUD FMRs.
-  let facts = $derived(
+  let rentFacts = $derived(
     [
       { l: rentMetricLabel(city.rentMetric, '1BR'), v: money(city.r1), cls: '' },
       { l: rentMetricLabel(city.rentMetric, '2BR'), v: money(city.r2), cls: '' },
@@ -25,10 +26,21 @@
         l: '1BR trend',
         v: pctTrend(city.yoy),
         cls: city.yoy == null ? '' : city.yoy > 0 ? 'up' : city.yoy < 0 ? 'down' : ''
-      },
-      { l: 'Population', v: city.pop, cls: '' }
+      }
     ].filter((f) => f.v && f.v !== '—')
   );
+
+  let snapshotFacts = $derived.by(() => {
+    const f = city.citySnapshot;
+    if (!f) return city.pop ? [{ l: 'Population', v: city.pop }] : [];
+    return [
+      { l: 'Population', v: f.population.toLocaleString('en-US') },
+      { l: 'Median household income', v: money(f.householdIncome) },
+      { l: 'Mean commute', v: f.commuteMinutes > 0 ? `${f.commuteMinutes.toFixed(1)} min` : '' },
+      { l: 'Renter-occupied homes', v: `${f.renterShare.toFixed(1)}%` },
+      { l: 'Rental vacancy rate', v: f.rentalVacancy > 0 ? `${f.rentalVacancy.toFixed(1)}%` : '' }
+    ].filter((fact) => fact.v);
+  });
 </script>
 
 <section class="card">
@@ -37,19 +49,15 @@
     <span class="src">{SOURCE_LABEL[city.source]}</span>
   </div>
 
-  {#if city.blurb}
-    <p class="blurb">{city.blurb}</p>
-  {/if}
-
   {#if looking}
     <p class="hint">Looking up rent data for this city…</p>
   {:else if city.r1 == null}
     <p class="hint">No rent figure available for this city — the search links below still work.</p>
   {/if}
 
-  {#if facts.length}
+  {#if rentFacts.length}
     <div class="grid">
-      {#each facts as f (f.l)}
+      {#each rentFacts as f (f.l)}
         <div class="fact">
           <div class="fv {f.cls}">{f.v}</div>
           <div class="fl">{f.l}</div>
@@ -60,6 +68,28 @@
 
   {#if city.rentArea || city.rentYear}
     <p class="vintage">{city.rentArea}{city.rentYear ? ` · ${city.rentYear}` : ''}</p>
+  {/if}
+
+  {#if snapshotFacts.length}
+    <div class="snapshot-head">
+      <h3>City snapshot</h3>
+      {#if city.citySnapshot}
+        <a href={ACS_DATA_META.dataUrl} target="_blank" rel="noopener">
+          {ACS_DATA_META.label} ↗
+        </a>
+      {/if}
+    </div>
+    <div class="grid snapshot-grid">
+      {#each snapshotFacts as f (f.l)}
+        <div class="fact">
+          <div class="fv">{f.v}</div>
+          <div class="fl">{f.l}</div>
+        </div>
+      {/each}
+    </div>
+    {#if city.citySnapshot}
+      <p class="vintage">{ACS_DATA_META.geography} · U.S. Census Bureau</p>
+    {/if}
   {/if}
 
   <a class="wiki" href={wikiUrl} target="_blank" rel="noopener">
@@ -98,13 +128,6 @@
     padding: 4px 9px;
     border-radius: 99px;
   }
-  .blurb {
-    font-size: 1.02rem;
-    line-height: 1.6;
-    color: var(--ink);
-    max-width: 64ch;
-    margin-bottom: 16px;
-  }
   .hint {
     font-size: 0.85rem;
     color: var(--muted);
@@ -120,6 +143,31 @@
     border: 1px solid var(--border);
     border-radius: 12px;
     overflow: hidden;
+  }
+  .snapshot-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 22px;
+    margin-bottom: 8px;
+  }
+  .snapshot-head h3 {
+    font-size: 0.78rem;
+    font-weight: 650;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+  }
+  .snapshot-head a {
+    color: var(--muted);
+    font-size: 0.72rem;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+  }
+  .snapshot-grid {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   }
   .fact {
     padding: 13px 15px;

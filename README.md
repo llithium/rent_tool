@@ -27,6 +27,7 @@ Other scripts: `pnpm build` (production, adapter-vercel), `pnpm preview`,
 | --- | --- | --- | --- |
 | **Photon** (OSM) | `/api/city-suggest` | none | City autocomplete + coordinates |
 | **Apartment List Rent Estimates** (bundled) | none | none | Monthly city 1BR/2BR estimates |
+| **Census ACS 5-year** (bundled) | none | none | Structured facts for 651 Census places |
 | **FCC Area API** | `/api/geocode` | none | Coords → county FIPS |
 | **HUD FMR** (bundled) | `/api/fmr` | none | FY2026 Fair Market Rents for **every US county** |
 | **SimpleMaps places** (bundled) | `/api/nearby` | none | Nearby towns/suburbs around a point |
@@ -41,6 +42,10 @@ request or API key.
 The UI identifies the statistic it is showing: Apartment List estimated median rent, or
 HUD 40th-percentile Fair Market Rent. See
 [docs/API.md](docs/API.md) for the full endpoint reference (params, responses, examples).
+
+The City snapshot replaces editorial blurbs with consistently sourced Census-place facts:
+population, median household income, mean commute, renter-occupied housing share, and
+rental vacancy rate. Each snapshot shows its ACS vintage and geography in the UI.
 
 ### Apartment List data refresh and attribution
 
@@ -64,6 +69,21 @@ to the [Apartment List Terms of Service](https://www.apartmentlist.com/about/ter
 deployment is intended for the maintainer's private, non-commercial use; review the terms
 again before making it public or using it commercially. The app keeps this attribution in
 its footer.
+
+### Annual Census city-facts refresh
+
+After the Census Bureau releases a new ACS 5-year Summary File, rebuild the city snapshot:
+
+```bash
+python3 scripts/build-acs-city-data.py --year 2025
+```
+
+The generator downloads six official table-based Summary Files plus the matching national
+place Gazetteer into a temporary directory. It uses no API key and makes no runtime request
+from the app. To retain or reuse the raw downloads locally, pass `--source-dir /path/to/acs`.
+It refuses to write unless at least 600 Apartment List cities match Census places; review
+the reported match count and sample values before committing
+`src/lib/data/acs-city-facts.json`.
 
 ### Annual HUD data refresh
 
@@ -93,7 +113,7 @@ Commit the regenerated JSON together with the fiscal-year documentation update.
 
 ## Structure
 
-- `src/lib/data/` — bundled rent/place data, curated city context, coordinates, and tax tables
+- `src/lib/data/` — bundled rent, ACS, and place data plus coordinates and tax tables
 - `src/lib/` — city-aware estimated tax/budget math, formatting, search links, typed API client,
   `appState.svelte.ts` (runes-based shared state)
 - `src/lib/components/` — CitySearch (autocomplete combobox), BudgetCard, Verdict,
