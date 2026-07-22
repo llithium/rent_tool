@@ -26,13 +26,16 @@
         l: '1BR trend',
         v: pctTrend(city.yoy),
         cls: city.yoy == null ? '' : city.yoy > 0 ? 'up' : city.yoy < 0 ? 'down' : ''
-      }
+      },
+      ...(!city.citySnapshot && city.pop
+        ? [{ l: 'Population', v: city.pop, cls: '' }]
+        : [])
     ].filter((f) => f.v && f.v !== '—')
   );
 
   let snapshotFacts = $derived.by(() => {
     const f = city.citySnapshot;
-    if (!f) return city.pop ? [{ l: 'Population', v: city.pop }] : [];
+    if (!f) return [];
     return [
       { l: 'Population', v: f.population.toLocaleString('en-US') },
       { l: 'Median household income', v: money(f.householdIncome) },

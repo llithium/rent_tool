@@ -151,10 +151,16 @@ test('labels HUD data as Fair Market Rent', async ({ page }) => {
     contentType: 'application/json',
     body: JSON.stringify({ ok: true, r1: 1400, r2: 1700, county: 'Tompkins County', year: 'FY2026', bundled: true })
   }));
+  await page.route('**/api/population**', (route) => route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({ ok: true, pop: 32108, name: 'Ithaca', source: 'simplemaps' })
+  }));
   await selectCity(page, 'Ithaca', 'Ithaca, NY');
   await page.getByLabel('Annual salary', { exact: true }).fill('80000');
   await expect(page.locator('.fact').getByText('1BR Fair Market Rent', { exact: true })).toBeVisible();
   await expect(page.getByText('Tompkins County area · FY2026', { exact: true })).toBeVisible();
+  await expect(page.locator('.fact').getByText('Population', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'City snapshot' })).toHaveCount(0);
 });
 
 test('restores selected city and salary after reload', async ({ page }) => {
