@@ -93,7 +93,7 @@ interface GeoResult {
   state?: string;
 }
 
-/** Look up rent for an off-list city via government APIs (HUD FMR → Census ACS). */
+/** Look up bundled HUD Fair Market Rent for an off-list city. */
 export async function lookupRent(
   lat: number,
   lng: number,
@@ -110,19 +110,12 @@ export async function lookupRent(
 
     const fipsQ = `state=${geo.stateFips}&county=${geo.countyFips}`;
 
-    // Prefer HUD FMR; fall back to ACS.
-    const [fmr, acs] = await Promise.all([
-      fetch(`/api/fmr?${fipsQ}`, { signal }).then((r) => (r.ok ? r.json() : { ok: false })),
-      fetch(`/api/acs?${fipsQ}`, { signal }).then((r) => (r.ok ? r.json() : { ok: false }))
-    ]);
+    const fmrRes = await fetch(`/api/fmr?${fipsQ}`, { signal });
+    const fmr = fmrRes.ok ? await fmrRes.json() : { ok: false };
 
     if (fmr.ok && (fmr.r1 || fmr.r2)) {
       const county = fmr.county || geo.county || '';
-      const year = fmr.bundled
-        ? `${fmr.year}, bundled`
-        : fmr.year
-          ? `FY${fmr.year}`
-          : '';
+      const year = fmr.year ? `${fmr.year}, bundled` : '';
       return {
         r1: fmr.r1,
         r2: fmr.r2,
@@ -132,18 +125,6 @@ export async function lookupRent(
         rentArea: county ? `${county} area` : 'resolved county area',
         rentYear: String(fmr.year ?? ''),
         note: `HUD Fair Market Rent, ${county}${year ? ` (${year})` : ''}`
-      };
-    }
-    if (acs.ok && (acs.r1 || acs.r2)) {
-      return {
-        r1: acs.r1,
-        r2: acs.r2,
-        yoy: null,
-        source: 'census-acs' as RentSource,
-        rentMetric: 'median-gross',
-        rentArea: acs.name || (geo.county ? `${geo.county} County` : 'resolved county'),
-        rentYear: String(acs.year ?? ''),
-        note: `Census ACS median gross rent, ${geo.county} County (${acs.year})`
       };
     }
     return empty;

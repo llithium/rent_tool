@@ -9,7 +9,6 @@ const LEGACY_KEY = 'rentToolLast.v2';
 function metricForSource(source: City['source']): RentMetric {
   if (source === 'zumper-live' || source === 'zumper-snapshot') return 'median-asking';
   if (source === 'hud-fmr') return 'fair-market-rent';
-  if (source === 'census-acs') return 'median-gross';
   return 'unknown';
 }
 
@@ -19,7 +18,7 @@ function restoredCity(value: unknown): City | null {
   if (
     typeof c.name !== 'string' || c.name.length > 100 ||
     typeof c.city !== 'string' || typeof c.state !== 'string' || !/^[A-Z]{2}$/.test(c.state) ||
-    !['zumper-live', 'zumper-snapshot', 'hud-fmr', 'census-acs', 'none'].includes(c.source ?? '')
+    !['zumper-live', 'zumper-snapshot', 'hud-fmr', 'none'].includes(c.source ?? '')
   ) return null;
   const numberOrNull = (n: unknown) => n == null || (typeof n === 'number' && Number.isFinite(n));
   if (!numberOrNull(c.r1) || !numberOrNull(c.r2) || !numberOrNull(c.yoy)) return null;
@@ -39,7 +38,7 @@ function restoredCity(value: unknown): City | null {
     lat: c.lat,
     lng: c.lng,
     source,
-    rentMetric: ['median-asking', 'fair-market-rent', 'median-gross', 'unknown'].includes(c.rentMetric ?? '')
+    rentMetric: ['median-asking', 'fair-market-rent', 'unknown'].includes(c.rentMetric ?? '')
       ? c.rentMetric as RentMetric
       : metricForSource(source),
     rentArea: typeof c.rentArea === 'string' ? c.rentArea.slice(0, 150) : c.name,
@@ -173,7 +172,7 @@ class AppState {
   }
 
   /** Resolve a city from an autocomplete suggestion: add it if new, then fill rent
-   * from government APIs if it isn't a seed city. Returns the canonical name.
+   * from the bundled HUD table if it isn't a seed city. Returns the canonical name.
    * Nearby-place picks carry an OSM population — used as an instant prefill. */
   async resolveSuggestion(sug: CitySuggestion & { pop?: number | null }): Promise<string> {
     const prefillPop = sug.pop != null && sug.pop > 0 ? popText(sug.pop) : '';
@@ -299,7 +298,7 @@ class AppState {
     const sel = this.selected;
     if (sel) {
       sp.set('city', sel.name);
-      const offList = sel.source === 'none' || sel.source === 'hud-fmr' || sel.source === 'census-acs';
+      const offList = sel.source === 'none' || sel.source === 'hud-fmr';
       if (offList && sel.lat != null && sel.lng != null) {
         sp.set('lat', String(sel.lat));
         sp.set('lng', String(sel.lng));
@@ -330,7 +329,7 @@ class AppState {
         selectedCity = true;
       } else if (this.resolveOffList(cityName, search)) {
         // Off-list city from a shared link: re-resolved (fire-and-forget) via the
-        // government-API path using the coords the sharer encoded.
+        // bundled-HUD lookup path using the coords the sharer encoded.
         selectedCity = true;
       }
     }
@@ -342,8 +341,8 @@ class AppState {
     return selectedCity;
   }
 
-  /** Off-list city from a shared link/history entry: re-resolve rent via the
-   * government-API path using the encoded coords. Returns true when the coords
+  /** Off-list city from a shared link/history entry: re-resolve bundled HUD rent
+   * using the encoded coords. Returns true when the coords
    * validate and a resolve was kicked off. Both coords must be present — a
    * missing param must not coerce to 0 and resolve at (0,0). */
   private resolveOffList(cityName: string, search: URLSearchParams): boolean {

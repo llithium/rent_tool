@@ -286,7 +286,7 @@
 
       <footer>
         Rent snapshot: Zumper National Rent Report (June 2026 baseline), refreshed live when
-        available. Off-list cities fall back to HUD Fair Market Rents / Census ACS. Tax figures are
+        available. Off-list cities use bundled HUD Fair Market Rents. Tax figures are
         2026 estimates for a single filer taking the standard deduction — an estimate to power the
         visual, not tax advice. City locations &amp; populations:
         <a href="https://simplemaps.com/data/us-cities" target="_blank" rel="noopener">SimpleMaps US

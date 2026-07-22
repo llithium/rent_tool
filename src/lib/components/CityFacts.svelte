@@ -14,11 +14,10 @@
     'zumper-live': 'Live · Zumper',
     'zumper-snapshot': 'Zumper snapshot',
     'hud-fmr': 'HUD Fair Market Rent',
-    'census-acs': 'Census ACS',
     none: 'No rent data'
   };
 
-  // Metric-aware labels: HUD/Census fallbacks must not be mislabeled as a "median".
+  // Metric-aware labels keep HUD Fair Market Rents distinct from asking-rent medians.
   let facts = $derived(
     [
       { l: rentMetricLabel(city.rentMetric, '1BR'), v: money(city.r1), cls: '' },
@@ -44,7 +43,7 @@
   {/if}
 
   {#if looking}
-    <p class="hint">Looking up live rent data for this city…</p>
+    <p class="hint">Looking up rent data for this city…</p>
   {:else if city.r1 == null}
     <p class="hint">No rent figure available for this city — the search links below still work.</p>
   {/if}

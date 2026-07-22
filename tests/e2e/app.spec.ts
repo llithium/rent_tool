@@ -8,6 +8,27 @@ async function selectCity(page: Page, query: string, label: string) {
   await city.press('Enter');
 }
 
+test('serves bundled HUD rents without an upstream API', async ({ request }) => {
+  const response = await request.get('/api/fmr?state=12&county=057');
+  expect(response.ok()).toBe(true);
+  expect(await response.json()).toMatchObject({
+    ok: true,
+    r1: expect.any(Number),
+    r2: expect.any(Number),
+    year: 'FY2026',
+    bundled: true
+  });
+});
+
+test('validates bundled HUD lookup FIPS and handles missing counties', async ({ request }) => {
+  const malformed = await request.get('/api/fmr?state=1&county=57');
+  expect(malformed.status()).toBe(400);
+
+  const missing = await request.get('/api/fmr?state=99&county=999');
+  expect(missing.ok()).toBe(true);
+  expect(await missing.json()).toEqual({ ok: false, reason: 'not-found' });
+});
+
 test.beforeEach(async ({ page }) => {
   await page.route('**/api/rents', (route) => route.fulfill({
     contentType: 'application/json',
@@ -124,10 +145,6 @@ test('labels HUD data as Fair Market Rent', async ({ page }) => {
     contentType: 'application/json',
     body: JSON.stringify({ ok: true, r1: 1400, r2: 1700, county: 'Tompkins County', year: 'FY2026', bundled: true })
   }));
-  await page.route('**/api/acs**', (route) => route.fulfill({
-    contentType: 'application/json', body: JSON.stringify({ ok: false })
-  }));
-
   await selectCity(page, 'Ithaca', 'Ithaca, NY');
   await page.getByLabel('Annual salary', { exact: true }).fill('80000');
   await expect(page.locator('.fact').getByText('1BR Fair Market Rent', { exact: true })).toBeVisible();
@@ -167,10 +184,6 @@ test('re-resolves an off-list city from deep-linked coordinates', async ({ page 
     contentType: 'application/json',
     body: JSON.stringify({ ok: true, r1: 1400, r2: 1700, county: 'Tompkins County', year: 'FY2026', bundled: true })
   }));
-  await page.route('**/api/acs**', (route) => route.fulfill({
-    contentType: 'application/json', body: JSON.stringify({ ok: false })
-  }));
-
   const hydrated = page.waitForResponse('**/api/rents');
   await page.goto('/?salary=80000&city=Ithaca%2C+NY&lat=42.44&lng=-76.5');
   await hydrated;

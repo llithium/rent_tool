@@ -2,32 +2,52 @@
 """Build src/lib/data/fmr-county.json from HUD's county-level Fair Market Rents file.
 
 Usage:
-  python3 scripts/build-fmr-data.py [path-to-FY_FMRs.xlsx]
+  python3 scripts/build-fmr-data.py
+  python3 scripts/build-fmr-data.py --year FY2027 --url https://example/FY27_FMRs.xlsx
+  python3 scripts/build-fmr-data.py --year FY2027 --input /path/to/FY27_FMRs.xlsx
 
-With no argument, downloads the FY2026 file from huduser.gov (needs a browser
+With no arguments, downloads the currently bundled FY2026 file from huduser.gov (needs a browser
 User-Agent — plain curl gets a 202 bot-challenge). Stdlib only; the xlsx is read
 with zipfile + minimal XML parsing, no openpyxl required.
 
 Rows are aggregated by the first 5 digits of the `fips` column (state+county FIPS);
-New England has multiple town-level rows per county, which are averaged — matching
-the avg logic in src/routes/api/fmr/+server.ts. Output maps FIPS -> [1BR, 2BR].
+New England has multiple town-level rows per county, which are averaged during generation.
+Output maps FIPS -> [1BR, 2BR].
 
-Re-run annually when HUD publishes a new fiscal year (update YEAR/URL below).
+Re-run when HUD publishes or revises a fiscal year's county-level data.
 """
 
+import argparse
 import json
 import re
-import sys
 import urllib.request
 import zipfile
 from collections import defaultdict
 from pathlib import Path
 from xml.etree import ElementTree
 
-YEAR = "FY2026"
-URL = "https://www.huduser.gov/portal/datasets/fmr/fmr2026/FY26_FMRs.xlsx"
+DEFAULT_YEAR = "FY2026"
+DEFAULT_URL = "https://www.huduser.gov/portal/datasets/fmr/fmr2026/FY26_FMRs.xlsx"
 OUT = Path(__file__).resolve().parent.parent / "src" / "lib" / "data" / "fmr-county.json"
 NS = {"m": "http://schemas.openxmlformats.org/spreadsheetml/2006/main"}
+MIN_COUNTIES = 3_000
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--year",
+        default=DEFAULT_YEAR,
+        help=f"fiscal-year label stored in metadata (default: {DEFAULT_YEAR})",
+    )
+    source = parser.add_mutually_exclusive_group()
+    source.add_argument(
+        "--url",
+        default=None,
+        help=f"HUD county-level XLSX URL (default: {DEFAULT_URL})",
+    )
+    source.add_argument("--input", type=Path, help="local HUD county-level XLSX")
+    return parser.parse_args()
 
 
 def download(url: str) -> Path:
@@ -75,7 +95,12 @@ def read_rows(xlsx: Path):
 
 
 def main() -> None:
-    xlsx = Path(sys.argv[1]) if len(sys.argv) > 1 else download(URL)
+    args = parse_args()
+    if not re.fullmatch(r"FY\d{4}", args.year):
+        raise ValueError("--year must use the FY#### format, for example FY2027")
+    if args.input is not None and not args.input.is_file():
+        raise FileNotFoundError(f"Input workbook not found: {args.input}")
+    xlsx = args.input if args.input is not None else download(args.url or DEFAULT_URL)
     rows = read_rows(xlsx)
 
     header = next(rows)
@@ -101,10 +126,15 @@ def main() -> None:
         fips: [round(s[0] / s[2]), round(s[1] / s[2])]
         for fips, s in sorted(sums.items())
     }
+    if len(counties) < MIN_COUNTIES:
+        raise ValueError(
+            f"Refusing to write incomplete data: found {len(counties)} counties, "
+            f"expected at least {MIN_COUNTIES}"
+        )
 
     OUT.write_text(
         json.dumps(
-            {"meta": {"year": YEAR, "source": "HUD Fair Market Rents"}, "counties": counties},
+            {"meta": {"year": args.year, "source": "HUD Fair Market Rents"}, "counties": counties},
             separators=(",", ":"),
         )
         + "\n"

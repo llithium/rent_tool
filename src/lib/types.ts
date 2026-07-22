@@ -1,8 +1,8 @@
 /** Source of the rent figures currently shown for a city. */
-export type RentSource = 'zumper-live' | 'zumper-snapshot' | 'hud-fmr' | 'census-acs' | 'none';
+export type RentSource = 'zumper-live' | 'zumper-snapshot' | 'hud-fmr' | 'none';
 
 /** What the rent number represents. Sources are not directly interchangeable. */
-export type RentMetric = 'median-asking' | 'fair-market-rent' | 'median-gross' | 'unknown';
+export type RentMetric = 'median-asking' | 'fair-market-rent' | 'unknown';
 
 export type RentRefreshStatus = 'live' | 'stale' | 'unavailable';
 
@@ -55,7 +55,7 @@ export interface NearbyPlace {
   pop: number | null;
 }
 
-/** Result of resolving rent for an off-list city via government APIs. */
+/** Result of resolving bundled HUD rent for an off-list city. */
 export interface LookupResult {
   r1: number | null;
   r2: number | null;
