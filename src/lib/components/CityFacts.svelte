@@ -104,6 +104,7 @@
     border-radius: var(--radius);
     padding: 22px;
     box-shadow: var(--shadow);
+    container-type: inline-size;
   }
   .head {
     display: flex;
@@ -167,7 +168,7 @@
     text-underline-offset: 2px;
   }
   .snapshot-grid {
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
   .fact {
     padding: 13px 15px;
@@ -208,5 +209,14 @@
   }
   .wiki:hover {
     text-decoration: underline;
+  }
+
+  @container (max-width: 620px) {
+    .snapshot-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .snapshot-grid .fact:last-child {
+      grid-column: 1 / -1;
+    }
   }
 </style>
