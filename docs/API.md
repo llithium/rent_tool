@@ -1,7 +1,7 @@
 # API Reference
 
-The app ships six serverless `GET` endpoints under `/api/*` ([src/routes/api/](../src/routes/api/)).
-They provide a stable client contract over live and bundled data sources.
+The app ships five serverless `GET` endpoints under `/api/*` ([src/routes/api/](../src/routes/api/)).
+They provide a stable client contract over keyless and bundled data sources.
 
 **Conventions**
 
@@ -12,9 +12,9 @@ They provide a stable client contract over live and bundled data sources.
 - FIPS params are strings: `state` is 2 digits, `county` is 3 digits.
 - Responses set `Cache-Control` for CDN/edge caching (durations noted per endpoint).
 
-Typical call order for an off-list city:
+Typical call order for a city outside the bundled Apartment List snapshot:
 `city-suggest` → (pick gives coords) → `geocode` (coords → FIPS) → `fmr`.
-Seed cities skip this and use `/api/rents` + the bundled snapshot.
+Snapshot cities use their bundled city-level estimates and skip the geocode/FMR calls.
 
 ---
 
@@ -48,48 +48,6 @@ Cache: `max-age=60, s-maxage=300`.
 ```bash
 curl "http://localhost:5173/api/city-suggest?q=tampa"
 ```
-
----
-
-## GET `/api/rents`
-
-Fetches Zumper's National Rent Report, parses the top-100 table server-side, and caches it
-in-memory for 6h (persists across warm invocations). Best-effort: if the page can't be
-parsed it returns `rows: []` and the client keeps its bundled snapshot.
-
-**Query params** — none.
-
-**Response** `200`
-
-```json
-{
-  "rows": [
-    { "name": "New York, NY", "r1": 4200, "yoy": 3.1, "r2": 4600 }
-  ],
-  "reportDate": "May 1, 2026",
-  "live": true,
-  "status": "live",
-  "rowCount": 100,
-  "lastSuccessfulAt": "2026-06-29T12:00:00.000Z",
-  "cached": false
-}
-```
-
-| Field | Type | Meaning |
-| --- | --- | --- |
-| `rows[].name` | string | `"City, ST"` |
-| `rows[].r1` / `r2` | number | Median 1BR / 2BR rent (USD/mo) |
-| `rows[].yoy` | number | 1BR year-over-year change (%) |
-| `reportDate` | string \| null | Report date parsed from the page |
-| `live` | boolean | `true` when at least 80 validated current rows parsed |
-| `cached` | boolean | Served from the in-memory cache |
-| `status` | `live` \| `stale` \| `unavailable` | Whether rows are current, last-known-good, or absent |
-| `rowCount` | number | Number of validated rows returned |
-| `lastSuccessfulAt` | string \| null | ISO timestamp of the latest successful refresh |
-
-At least 80 validated rows are required for a successful refresh. Successful responses
-cache for 6h with stale-while-revalidate; failures cache for only 5 minutes and never
-replace the last-known-good in-memory result.
 
 ---
 

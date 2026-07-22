@@ -2,10 +2,8 @@ import type {
   CitySuggestion,
   LookupResult,
   NearbyPlace,
-  RentRefreshStatus,
   RentSource
 } from '$lib/types';
-import type { RentRow } from '$lib/rentTable';
 
 /** Typed client wrappers for the /api endpoints. All degrade gracefully. */
 
@@ -52,36 +50,6 @@ export async function fetchNearby(
     return Array.isArray(data.nearby) ? data.nearby : [];
   } catch {
     return [];
-  }
-}
-
-export interface RentsResponse {
-  rows: RentRow[];
-  reportDate: string | null;
-  live: boolean;
-  cached: boolean;
-  status: RentRefreshStatus;
-  rowCount: number;
-  lastSuccessfulAt: string | null;
-}
-
-const EMPTY_RENTS: RentsResponse = {
-  rows: [], reportDate: null, live: false, cached: false,
-  status: 'unavailable', rowCount: 0, lastSuccessfulAt: null
-};
-
-export async function fetchLiveRents(): Promise<RentsResponse> {
-  try {
-    const res = await fetch('/api/rents');
-    if (!res.ok) return EMPTY_RENTS;
-    const data = await res.json();
-    return {
-      ...EMPTY_RENTS,
-      ...data,
-      rows: Array.isArray(data.rows) ? data.rows : []
-    };
-  } catch {
-    return EMPTY_RENTS;
   }
 }
 

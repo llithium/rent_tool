@@ -37,14 +37,16 @@
   /** Local fallback: match against bundled seed cities when the API is unreachable. */
   function seedMatches(q: string): CitySuggestion[] {
     const t = q.toLowerCase();
-    return SEED_CITIES.filter((c) => c.name.toLowerCase().includes(t))
+    return SEED_CITIES.filter(
+      (c) => c.lat != null && c.lng != null && c.name.toLowerCase().includes(t)
+    )
       .slice(0, 8)
       .map((c) => ({
         label: c.name,
         city: c.city,
         state: c.state,
-        lat: c.lat ?? 0,
-        lng: c.lng ?? 0
+        lat: c.lat!,
+        lng: c.lng!
       }));
   }
 

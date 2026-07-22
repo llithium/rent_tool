@@ -12,8 +12,7 @@
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test",
-    "smoke:rents": "LIVE_RENT_SMOKE=1 vitest run src/lib/rentTable.live.test.ts"
+    "test:e2e": "playwright test"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.12.1",

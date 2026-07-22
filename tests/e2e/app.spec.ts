@@ -8,6 +8,10 @@ async function selectCity(page: Page, query: string, label: string) {
   await city.press('Enter');
 }
 
+async function waitForHydration(page: Page) {
+  await page.waitForFunction(() => document.querySelector('main')?.dataset.hydrated === 'true');
+}
+
 test('serves bundled HUD rents without an upstream API', async ({ request }) => {
   const response = await request.get('/api/fmr?state=12&county=057');
   expect(response.ok()).toBe(true);
@@ -30,23 +34,13 @@ test('validates bundled HUD lookup FIPS and handles missing counties', async ({ 
 });
 
 test.beforeEach(async ({ page }) => {
-  await page.route('**/api/rents', (route) => route.fulfill({
-    contentType: 'application/json',
-    body: JSON.stringify({
-      rows: [], reportDate: null, live: false, cached: false,
-      status: 'unavailable', rowCount: 0, lastSuccessfulAt: null
-    })
-  }));
   await page.route('**/api/city-suggest**', (route) => route.fulfill({
     contentType: 'application/json',
     body: JSON.stringify({ suggestions: [] })
   }));
   await page.route('https://*.basemaps.cartocdn.com/**', (route) => route.abort());
-  // refreshLive() fires /api/rents from onMount, so awaiting that response
-  // confirms the client has hydrated before we exercise event handlers.
-  const hydrated = page.waitForResponse('**/api/rents');
   await page.goto('/');
-  await hydrated;
+  await waitForHydration(page);
 });
 
 test('supports keyboard city selection and salary results', async ({ page }) => {
@@ -58,7 +52,20 @@ test('supports keyboard city selection and salary results', async ({ page }) => 
   await city.press('Enter');
   await page.getByLabel('Annual salary', { exact: true }).fill('100000');
   await expect(page.getByRole('heading', { name: 'New York, NY' })).toBeVisible();
-  await expect(page.locator('.fact').getByText('Median asking 1BR rent', { exact: true })).toBeVisible();
+  await expect(page.locator('.fact').getByText('Estimated median 1BR rent', { exact: true })).toBeVisible();
+});
+
+test('credits the bundled Apartment List estimates', async ({ page }) => {
+  const source = page.getByRole('link', { name: 'Apartment List Rent Estimates' });
+  await expect(source).toHaveAttribute(
+    'href',
+    'https://www.apartmentlist.com/research/category/data-rent-estimates'
+  );
+  await expect(page.getByRole('link', { name: 'terms' })).toHaveAttribute(
+    'href',
+    'https://www.apartmentlist.com/about/terms'
+  );
+  await expect(page.locator('footer')).toContainText('© Apartment List, Inc.');
 });
 
 test('has no serious accessibility violations in populated state', async ({ page }) => {
@@ -116,7 +123,7 @@ test('exposes map markers to the keyboard', async ({ page }) => {
   await selectCity(page, 'Tampa', 'Tampa, FL');
   await page.getByLabel('Annual salary', { exact: true }).fill('80000');
   const marker = page.getByRole('button', {
-    name: 'New York, NY, 1 bedroom $4,660, over budget'
+    name: 'New York, NY, 1 bedroom $2,443, over budget'
   });
   // Selecting a city recenters the map on it, so a far-away marker like New York
   // starts off-screen (Leaflet culls off-viewport markers). Zoom out until it's
@@ -157,9 +164,8 @@ test('restores selected city and salary after reload', async ({ page }) => {
   // State is mirrored into the URL, so the reload restores from the query string.
   await expect.poll(() => new URL(page.url()).searchParams.get('city')).toBe('Tampa, FL');
   await expect.poll(() => new URL(page.url()).searchParams.get('salary')).toBe('80000');
-  const hydrated = page.waitForResponse('**/api/rents');
   await page.reload();
-  await hydrated;
+  await waitForHydration(page);
   await expect(page.getByRole('heading', { name: 'Tampa, FL' })).toBeVisible();
 });
 
@@ -167,9 +173,8 @@ test('restores state from a deep link with no stored data', async ({ page, conte
   // A shared link opened on a fresh device: no localStorage to fall back on.
   await context.clearCookies();
   await page.evaluate(() => localStorage.clear());
-  const hydrated = page.waitForResponse('**/api/rents');
   await page.goto('/?salary=80000&city=Tampa%2C+FL&compare=Austin%2C+TX');
-  await hydrated;
+  await waitForHydration(page);
   await expect(page.getByRole('heading', { name: 'Tampa, FL' })).toBeVisible();
   await expect(page.getByLabel('Annual salary', { exact: true })).toHaveValue('80,000');
   await expect(page.getByText('Austin, TX')).toBeVisible();
@@ -184,9 +189,8 @@ test('re-resolves an off-list city from deep-linked coordinates', async ({ page 
     contentType: 'application/json',
     body: JSON.stringify({ ok: true, r1: 1400, r2: 1700, county: 'Tompkins County', year: 'FY2026', bundled: true })
   }));
-  const hydrated = page.waitForResponse('**/api/rents');
   await page.goto('/?salary=80000&city=Ithaca%2C+NY&lat=42.44&lng=-76.5');
-  await hydrated;
+  await waitForHydration(page);
   await expect(page.getByRole('heading', { name: 'Ithaca, NY' })).toBeVisible();
   await expect(page.locator('.fact').getByText('1BR Fair Market Rent', { exact: true })).toBeVisible();
 });

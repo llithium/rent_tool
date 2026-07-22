@@ -4,6 +4,7 @@
   import { pushState, replaceState } from '$app/navigation';
   import { app } from '$lib/appState.svelte';
   import { computeBudget } from '$lib/budget';
+  import { RENT_DATA_META } from '$lib/data/cities';
   import type { CitySuggestion } from '$lib/types';
 
   import CitySearch from '$lib/components/CitySearch.svelte';
@@ -158,7 +159,6 @@
     lastCity = app.selectedName;
     salaryText = app.salary != null ? app.salary.toLocaleString() : '';
     hydrated = true;
-    app.refreshLive();
     window.addEventListener('popstate', onPopState);
     return () => {
       clearTimeout(salaryUrlTimer);
@@ -174,7 +174,7 @@
   <meta property="og:description" content="See how an offered salary compares with rent and estimated take-home pay across U.S. cities." />
 </svelte:head>
 
-<main class="wrap">
+<main class="wrap" data-hydrated={hydrated ? 'true' : 'false'}>
   <div class="rt-shell">
     <aside class="rt-side">
       <!-- Inside the sticky column so the brand pins with the inputs instead of
@@ -285,12 +285,11 @@
       {/if}
 
       <footer>
-        Rent snapshot: Zumper National Rent Report (June 2026 baseline), refreshed live when
-        available. Off-list cities use bundled HUD Fair Market Rents. Tax figures are
-        2026 estimates for a single filer taking the standard deduction — an estimate to power the
-        visual, not tax advice. City locations &amp; populations:
+        Rent estimates: <a href={RENT_DATA_META.dataUrl} target="_blank" rel="noopener">Apartment
+          List Rent Estimates</a> ({RENT_DATA_META.label}), © Apartment List, Inc.. Off-list cities use bundled HUD Fair Market Rents. Tax figures are
+        2026 estimates for a single filer taking the standard deduction. City locations &amp; populations:
         <a href="https://simplemaps.com/data/us-cities" target="_blank" rel="noopener">SimpleMaps US
-          Cities</a> (CC BY 4.0). All numbers are estimates — verify before signing anything.
+          Cities</a> (CC BY 4.0). All numbers are estimates.
       </footer>
     </div>
   </div>

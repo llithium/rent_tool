@@ -15,7 +15,7 @@ export function pctTrend(yoy: number | null | undefined): string {
 }
 
 export function rentMetricLabel(metric: RentMetric, bedrooms: '1BR' | '2BR' = '1BR'): string {
-  if (metric === 'median-asking') return `Median asking ${bedrooms} rent`;
+  if (metric === 'estimated-median') return `Estimated median ${bedrooms} rent`;
   if (metric === 'fair-market-rent') return `${bedrooms} Fair Market Rent`;
   return `${bedrooms} rent`;
 }

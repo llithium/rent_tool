@@ -1,12 +1,10 @@
 /** Source of the rent figures currently shown for a city. */
-export type RentSource = 'zumper-live' | 'zumper-snapshot' | 'hud-fmr' | 'none';
+export type RentSource = 'apartment-list' | 'hud-fmr' | 'none';
 
 /** What the rent number represents. Sources are not directly interchangeable. */
-export type RentMetric = 'median-asking' | 'fair-market-rent' | 'unknown';
+export type RentMetric = 'estimated-median' | 'fair-market-rent' | 'unknown';
 
-export type RentRefreshStatus = 'live' | 'stale' | 'unavailable';
-
-/** A city record: curated context merged with (possibly live) rent figures. */
+/** A city record: curated context merged with bundled rent figures. */
 export interface City {
   /** Canonical "City, ST" key. */
   name: string;

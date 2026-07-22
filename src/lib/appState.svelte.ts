@@ -1,13 +1,13 @@
 import { SEED_CITIES, findSeedCity, STATE_TAX, stateOf, cityOf } from '$lib/data/cities';
 import { popText } from '$lib/format';
 import type { City, CitySuggestion, RentMetric } from '$lib/types';
-import { fetchLiveRents, fetchPopulation, lookupRent } from '$lib/api';
+import { fetchPopulation, lookupRent } from '$lib/api';
 
 const LAST_KEY = 'rentToolLast.v3';
 const LEGACY_KEY = 'rentToolLast.v2';
 
 function metricForSource(source: City['source']): RentMetric {
-  if (source === 'zumper-live' || source === 'zumper-snapshot') return 'median-asking';
+  if (source === 'apartment-list') return 'estimated-median';
   if (source === 'hud-fmr') return 'fair-market-rent';
   return 'unknown';
 }
@@ -18,7 +18,7 @@ function restoredCity(value: unknown): City | null {
   if (
     typeof c.name !== 'string' || c.name.length > 100 ||
     typeof c.city !== 'string' || typeof c.state !== 'string' || !/^[A-Z]{2}$/.test(c.state) ||
-    !['zumper-live', 'zumper-snapshot', 'hud-fmr', 'none'].includes(c.source ?? '')
+    !['apartment-list', 'hud-fmr', 'none'].includes(c.source ?? '')
   ) return null;
   const numberOrNull = (n: unknown) => n == null || (typeof n === 'number' && Number.isFinite(n));
   if (!numberOrNull(c.r1) || !numberOrNull(c.r2) || !numberOrNull(c.yoy)) return null;
@@ -38,7 +38,7 @@ function restoredCity(value: unknown): City | null {
     lat: c.lat,
     lng: c.lng,
     source,
-    rentMetric: ['median-asking', 'fair-market-rent', 'unknown'].includes(c.rentMetric ?? '')
+    rentMetric: ['estimated-median', 'fair-market-rent', 'unknown'].includes(c.rentMetric ?? '')
       ? c.rentMetric as RentMetric
       : metricForSource(source),
     rentArea: typeof c.rentArea === 'string' ? c.rentArea.slice(0, 150) : c.name,
@@ -55,9 +55,6 @@ class AppState {
   cities = $state<City[]>(cloneSeed());
   selectedName = $state<string | null>(null);
   compareNames = $state<string[]>([]);
-  liveLabel = $state('Zumper National Rent Report, June 2026 snapshot (100 cities)');
-  live = $state(false);
-  refreshStatus = $state<'live' | 'stale' | 'unavailable'>('unavailable');
   looking = $state(false);
   /** City being resolved in the background (rent still loading) — drives the
    * "loading" affordance on nearby chips while the current view stays put. */
@@ -119,99 +116,52 @@ class AppState {
     return this.compareNames.includes(name);
   }
 
-  /** Merge live Zumper rows over the working set. */
-  private mergeLive(
-    rows: { name: string; r1: number; yoy: number; r2: number }[],
-    reportDate: string | null
-  ) {
-    const byName = new Map(this.cities.map((c) => [c.name.toLowerCase(), c] as const));
-    const next = [...this.cities];
-    for (const row of rows) {
-      const existing = byName.get(row.name.toLowerCase());
-      if (existing) {
-        const idx = next.indexOf(existing);
-        next[idx] = {
-          ...existing, r1: row.r1, r2: row.r2, yoy: row.yoy, source: 'zumper-live',
-          rentMetric: 'median-asking', rentArea: row.name, rentYear: reportDate ?? ''
-        };
-      } else {
-        const st = stateOf(row.name);
-        next.push({
-          name: row.name,
-          city: cityOf(row.name),
-          state: st,
-          r1: row.r1,
-          r2: row.r2,
-          yoy: row.yoy,
-          tax: STATE_TAX[st] || 'varies',
-          pop: '',
-          blurb: '',
-          source: 'zumper-live',
-          rentMetric: 'median-asking',
-          rentArea: row.name,
-          rentYear: reportDate ?? ''
-        });
-      }
-    }
-    this.cities = next;
-  }
-
-  async refreshLive() {
-    const res = await fetchLiveRents();
-    if (res.rows.length) this.mergeLive(res.rows, res.reportDate);
-    this.refreshStatus = res.status;
-    this.live = res.status === 'live';
-    const when = res.reportDate ? ` · ${res.reportDate}` : '';
-    if (res.status === 'live') {
-      this.liveLabel = `Live · Zumper National Rent Report${when} · ${res.rowCount} cities`;
-    } else if (res.status === 'stale') {
-      this.liveLabel = `Cached rents${when} · live refresh unavailable`;
-    } else {
-      this.liveLabel = 'June 2026 rent snapshot · live refresh unavailable';
-    }
-  }
-
   /** Resolve a city from an autocomplete suggestion: add it if new, then fill rent
    * from the bundled HUD table if it isn't a seed city. Returns the canonical name.
    * Nearby-place picks carry an OSM population — used as an instant prefill. */
   async resolveSuggestion(sug: CitySuggestion & { pop?: number | null }): Promise<string> {
     const prefillPop = sug.pop != null && sug.pop > 0 ? popText(sug.pop) : '';
     const seed = findSeedCity(sug.label);
+    const target = seed
+      ? { ...sug, label: seed.name, city: seed.city, state: seed.state }
+      : sug;
     if (seed) {
       this.lookupController?.abort();
       this.lookupController = null;
       this.looking = false;
       // Ensure the seed city carries coords for the map.
-      if (seed.lat == null) this.patchCity(seed.name, { lat: sug.lat, lng: sug.lng });
+      if (seed.lat == null) this.patchCity(seed.name, { lat: target.lat, lng: target.lng });
       if (!seed.pop && prefillPop) this.patchCity(seed.name, { pop: prefillPop });
-      this.select(seed.name);
-      return seed.name;
+      if (seed.r1 != null) {
+        this.select(seed.name);
+        return seed.name;
+      }
     }
 
-    const existing = this.cityByName(sug.label);
+    const existing = this.cityByName(target.label);
     if (!existing) {
       this.cities = [
         ...this.cities,
         {
-          name: sug.label,
-          city: sug.city,
-          state: sug.state,
+          name: target.label,
+          city: target.city,
+          state: target.state,
           r1: null,
           r2: null,
           yoy: null,
-          tax: STATE_TAX[sug.state] || 'varies',
+          tax: STATE_TAX[target.state] || 'varies',
           pop: prefillPop,
           blurb: '',
-          lat: sug.lat,
-          lng: sug.lng,
+          lat: target.lat,
+          lng: target.lng,
           source: 'none',
           rentMetric: 'unknown',
-          rentArea: sug.label,
+          rentArea: target.label,
           rentYear: ''
         }
       ];
     } else if (!existing.pop && prefillPop) {
-      this.patchCity(sug.label, { pop: prefillPop });
+      this.patchCity(target.label, { pop: prefillPop });
     }
 
     // Load rent BEFORE switching the view. Selecting immediately would flash the
@@ -221,20 +171,20 @@ class AppState {
     // The clicked place shows a loading affordance via pendingName in the meantime.
     // If the city already has rent (revisited), skip the wait and select now.
     if (existing?.r1 != null) {
-      this.select(sug.label);
-      return sug.label;
+      this.select(target.label);
+      return target.label;
     }
 
     this.lookupController?.abort();
     const controller = new AbortController();
     this.lookupController = controller;
     this.looking = true;
-    this.pendingName = sug.label;
+    this.pendingName = target.label;
     try {
-      const r = await lookupRent(sug.lat, sug.lng, controller.signal);
-      if (controller.signal.aborted) return sug.label;
+      const r = await lookupRent(target.lat, target.lng, controller.signal);
+      if (controller.signal.aborted) return target.label;
       if (r.source !== 'none') {
-        this.patchCity(sug.label, {
+        this.patchCity(target.label, {
           r1: r.r1,
           r2: r.r2,
           yoy: r.yoy,
@@ -250,11 +200,11 @@ class AppState {
         this.looking = false;
         this.pendingName = null;
         this.lookupController = null;
-        this.select(sug.label); // atomic swap now that rent is in
+        this.select(target.label); // atomic swap now that rent is in
         this.persist();
       }
     }
-    return sug.label;
+    return target.label;
   }
 
   private patchCity(name: string, patch: Partial<City>) {
@@ -304,7 +254,7 @@ class AppState {
         sp.set('lng', String(sel.lng));
       }
     }
-    // Only seed/live compare cities survive a fresh load (resolvable by name);
+    // Only bundled seed cities survive a fresh load (resolvable by name);
     // off-list compare cities are intentionally not deep-linked.
     for (const name of this.compareNames) sp.append('compare', name);
     return sp.toString();

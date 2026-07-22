@@ -11,13 +11,12 @@
   });
 
   const SOURCE_LABEL: Record<RentSource, string> = {
-    'zumper-live': 'Live · Zumper',
-    'zumper-snapshot': 'Zumper snapshot',
+    'apartment-list': 'Apartment List estimate',
     'hud-fmr': 'HUD Fair Market Rent',
     none: 'No rent data'
   };
 
-  // Metric-aware labels keep HUD Fair Market Rents distinct from asking-rent medians.
+  // Metric-aware labels keep Apartment List estimates distinct from HUD FMRs.
   let facts = $derived(
     [
       { l: rentMetricLabel(city.rentMetric, '1BR'), v: money(city.r1), cls: '' },
