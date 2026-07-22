@@ -14,13 +14,13 @@ browser CORS).
 ## Run locally
 
 ```bash
-npm install
-npm run dev        # http://localhost:5173
+pnpm install
+pnpm dev        # http://localhost:5173
 ```
 
-Other scripts: `npm run build` (production, adapter-vercel), `npm run preview`,
-`npm run check` (type-check), `npm test` (unit tests), `npm run test:e2e`
-(browser/accessibility tests), and `npm run smoke:rents` (live Zumper parser check).
+Other scripts: `pnpm build` (production, adapter-vercel), `pnpm preview`,
+`pnpm check` (type-check), `pnpm test` (unit tests), `pnpm test:e2e`
+(browser/accessibility tests), and `pnpm smoke:rents` (live Zumper parser check).
 
 ## Data sources
 
