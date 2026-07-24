@@ -49,7 +49,9 @@
     line-height: 1.2;
     flex: none;
     color: var(--green);
-    animation: rt-pop 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
+    /* No delay and no fill-mode: the ✓/⚠ is the verdict signal, so it must be
+       visible whether or not the animation ever runs. */
+    animation: rt-pop 0.4s cubic-bezier(0.22, 1, 0.36, 1);
   }
   .verdict.bad .icon {
     color: var(--red);

@@ -43,7 +43,7 @@
         </div>
         <div class="track">
           <div
-            class="fill"
+            class="fill rt-grow"
             style="width:{Math.max(3, (b.value / max) * 100)}%;background:{barColor(b)}"
           ></div>
         </div>
@@ -85,14 +85,16 @@
   .track {
     height: 12px;
     border-radius: 99px;
-    background: var(--card2);
+    /* --border, not --card2: the track now sits on the page background rather
+       than inside a card, and card2 against bg is almost invisible — an unfilled
+       track has to still read as a bar. */
+    background: var(--border);
     overflow: hidden;
   }
   .fill {
     height: 100%;
     border-radius: 99px;
     transform-origin: left;
-    animation: rt-grow-x 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
     transition: width 0.4s ease;
   }
 </style>

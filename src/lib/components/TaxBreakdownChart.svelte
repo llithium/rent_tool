@@ -29,7 +29,7 @@
   <div class="rlabel">
     Gross monthly {money(budget.grossMonthly)}{taxAmt > 0 ? ` · tax ${money(taxAmt)}/mo` : ''}
   </div>
-  <div class="bar">
+  <div class="bar rt-grow">
     {#if budget.federalMonthly > 0}
       <div class="seg federal" style="width:{fedPct}%">
         {#if fedPct >= 13}<span>Federal {money(budget.federalMonthly)}</span>{/if}
@@ -63,7 +63,7 @@
 
   {#if city.r1 != null}
     <div class="rlabel">Take-home split</div>
-    <div class="bar">
+    <div class="bar rt-grow">
       <div class="seg rent {rentShare > 100 ? 'over' : ''}" style="width:{rentPct}%">
         {#if rentPct >= 30}<span>Rent {money(rent)}</span>{:else if rentPct >= 14}<span>{money(rent)}</span>{/if}
       </div>
@@ -105,7 +105,6 @@
     overflow: hidden;
     margin-bottom: 9px;
     transform-origin: left;
-    animation: rt-grow-x 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
   .seg {
     display: flex;
