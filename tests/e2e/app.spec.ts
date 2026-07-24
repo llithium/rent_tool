@@ -150,10 +150,16 @@ test('keeps newly selected cities when opening the detailed comparison', async (
   await expect(page).toHaveURL(/\/compare$/);
   await expect(page.getByRole('heading', { name: 'Denver, CO' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Nashville, TN' })).toBeVisible();
-  await expect(page.getByText('Within budget', { exact: true })).toHaveCSS(
+  await expect(page.getByText('$78 under budget', { exact: true })).toHaveCSS(
     'color',
     'rgb(55, 115, 75)'
   );
+  const oneBedroomRow = page.getByRole('row', {
+    name: '1BR rent $1,422/mo $1,216/mo',
+    exact: true
+  });
+  await expect(oneBedroomRow.locator('td.best')).toContainText('$1,216/mo');
+  await expect(oneBedroomRow.locator('td.worst')).toContainText('$1,422/mo');
 
   await page.setViewportSize({ width: 734, height: 969 });
   const highlightTops = await page.evaluate(() =>

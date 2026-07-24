@@ -117,8 +117,7 @@
 
   function status(row: Row): { label: string; tone: string } {
     if (row.rentGap == null) return { label: 'Rent unavailable', tone: '' };
-    if (row.rentGap >= 250) return { label: `${money(row.rentGap)} under budget`, tone: 'good' };
-    if (row.rentGap >= 0) return { label: 'Within budget', tone: 'good' };
+    if (row.rentGap >= 0) return { label: `${money(row.rentGap)} under budget`, tone: 'good' };
     return { label: `${money(Math.abs(row.rentGap))} over budget`, tone: 'bad' };
   }
 
@@ -144,21 +143,53 @@
     return '—';
   }
 
+  function metricNumber(row: Row, key: string): number | null {
+    const snapshot = row.city.citySnapshot;
+    if (key === 'salary') return row.salary;
+    if (key === 'takehome') return row.budget.takeHomeMonthly;
+    if (key === 'tax') return row.budget.effRate;
+    if (key === 'budget') return row.budget.maxRent;
+    if (key === 'rent1') return row.city.r1;
+    if (key === 'rent2') return row.city.r2;
+    if (key === 'after') return row.afterRent;
+    if (key === 'needed') return row.city.r1 == null ? null : salaryForRent(row.city.r1);
+    if (key === 'trend') return row.city.yoy;
+    if (key === 'income') return snapshot?.householdIncome ?? null;
+    if (key === 'commute') return snapshot?.commuteMinutes ?? null;
+    if (key === 'renters') return snapshot?.renterShare ?? null;
+    if (key === 'vacancy') return snapshot?.rentalVacancy ?? null;
+    return null;
+  }
+
+  function metricTone(row: Row, key: string, direction: 'high' | 'low'): 'best' | 'worst' | '' {
+    const values = rows
+      .map((candidate) => metricNumber(candidate, key))
+      .filter((value): value is number => value != null && Number.isFinite(value));
+    const value = metricNumber(row, key);
+    if (value == null || values.length < 2) return '';
+    const low = Math.min(...values);
+    const high = Math.max(...values);
+    if (low === high) return '';
+    if (value === (direction === 'high' ? high : low)) return 'best';
+    if (value === (direction === 'high' ? low : high)) return 'worst';
+    return '';
+  }
+
   const metrics = [
-    { key: 'salary', label: 'Annual salary' },
-    { key: 'takehome', label: 'Est. take-home' },
-    { key: 'tax', label: 'Effective tax rate' },
-    { key: 'budget', label: '30% rent budget' },
-    { key: 'rent1', label: '1BR rent' },
-    { key: 'rent2', label: '2BR rent' },
-    { key: 'after', label: 'Take-home after 1BR' },
-    { key: 'needed', label: 'Salary needed for 1BR' },
-    { key: 'trend', label: 'Rent trend' },
-    { key: 'income', label: 'Median household income' },
-    { key: 'commute', label: 'Average commute' },
-    { key: 'renters', label: 'Renter households' },
-    { key: 'vacancy', label: 'Rental vacancy' }
-  ];
+    { key: 'salary', label: 'Annual salary', direction: 'high' },
+    { key: 'takehome', label: 'Est. take-home', direction: 'high' },
+    { key: 'tax', label: 'Effective tax rate', direction: 'low' },
+    { key: 'budget', label: '30% rent budget', direction: 'high' },
+    { key: 'rent1', label: '1BR rent', direction: 'low' },
+    { key: 'rent2', label: '2BR rent', direction: 'low' },
+    { key: 'after', label: 'Take-home after 1BR', direction: 'high' },
+    { key: 'needed', label: 'Salary needed for 1BR', direction: 'low' },
+    { key: 'trend', label: 'Rent trend', direction: 'low' },
+    { key: 'income', label: 'Median household income', direction: 'high' },
+    { key: 'commute', label: 'Average commute', direction: 'low' },
+    { key: 'renters', label: 'Renter households', direction: 'high' },
+    { key: 'vacancy', label: 'Rental vacancy', direction: 'high' }
+  ] as const;
 
   onMount(() => {
     // A client-side visit from the city page already has the freshest state.
@@ -198,9 +229,7 @@
 
   <section class="intro">
     <div>
-      <p class="eyebrow">Side-by-side planner</p>
-      <h1>Compare cities on your terms.</h1>
-      <p class="lede">Use a different offer in every city. We’ll compare estimated take-home pay, rent fit, taxes, and the local rental market.</p>
+      <h1 class="eyebrow">Side-by-side planner</h1>
     </div>
     <div class="add-panel">
       <CitySearch onselect={addCity} />
@@ -282,8 +311,7 @@
     <section class="detail">
       <div class="section-head">
         <div>
-          <p class="eyebrow">Full breakdown</p>
-          <h2>Every number, aligned.</h2>
+          <h2 class="eyebrow">Full breakdown</h2>
         </div>
         <p>Taxes estimate a single filer taking the standard deduction.</p>
       </div>
@@ -297,9 +325,17 @@
           </thead>
           <tbody>
             {#each metrics as metric}
-              <tr class:emphasis={['after', 'budget', 'rent1'].includes(metric.key)}>
+              <tr>
                 <th>{metric.label}</th>
-                {#each rows as row}<td class="num">{metricValue(row, metric.key)}</td>{/each}
+                {#each rows as row}
+                  {@const tone = metricTone(row, metric.key, metric.direction)}
+                  <td
+                    class="num"
+                    class:best={tone === 'best'}
+                    class:worst={tone === 'worst'}
+                    title={tone === 'best' ? 'Best in comparison' : tone === 'worst' ? 'Worst in comparison' : undefined}
+                  >{metricValue(row, metric.key)}</td>
+                {/each}
               </tr>
             {/each}
             <tr>
@@ -332,8 +368,6 @@
   .back { font-size: .86rem; font-weight: 600; text-decoration: none; }
   .intro { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 38px; align-items: end; padding: 46px 0 28px; border-bottom: 1px solid var(--border); }
   .eyebrow { color: var(--muted); text-transform: uppercase; letter-spacing: .11em; font-size: .72rem; font-weight: 650; margin-bottom: 9px; }
-  h1 { font-size: 2rem; line-height: 1.15; letter-spacing: -.025em; max-width: 760px; font-weight: 600; }
-  .lede { color: var(--muted); font-size: .96rem; max-width: 620px; margin-top: 12px; }
   .add-panel { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
   .add-panel > p { color: var(--muted); font-size: .76rem; margin-top: 9px; }
   .salary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(215px, 1fr)); gap: 0; padding: 30px 0; }
@@ -371,7 +405,6 @@
   .highlights strong { display: block; font-size: 1rem; margin: 3px 0; }
   .detail { border-top: 1px solid var(--border); margin-top: 28px; padding-top: 28px; }
   .section-head { display: flex; justify-content: space-between; align-items: end; gap: 20px; margin-bottom: 20px; }
-  .section-head h2 { font-size: 1.6rem; letter-spacing: -.035em; }
   .section-head > p { max-width: 340px; color: var(--muted); font-size: .78rem; text-align: right; }
   .table-scroll { overflow-x: auto; border-top: 2px solid var(--border2); }
   table { width: 100%; border-collapse: collapse; min-width: 680px; font-size: .84rem; }
@@ -379,7 +412,8 @@
   thead th { color: var(--muted); font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; }
   th:first-child { text-align: left; position: sticky; left: 0; background: var(--bg); z-index: 1; min-width: 185px; }
   tbody th { color: var(--muted); font-weight: 600; }
-  tr.emphasis th, tr.emphasis td { color: var(--ink); font-weight: 700; }
+  td.best { color: var(--green); box-shadow: inset 0 -2px var(--green); }
+  td.worst { color: var(--red); box-shadow: inset 0 -2px var(--red); }
   tr:last-child th, tr:last-child td { border-bottom: 0; }
   td.note { white-space: normal; min-width: 175px; color: var(--muted); font-size: .74rem; }
   .empty { text-align: center; padding: 80px 20px; border-bottom: 1px solid var(--border); }
