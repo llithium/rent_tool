@@ -118,6 +118,65 @@ test('enforces the five-city comparison limit', async ({ page }) => {
   await expect(page.getByText('5 / 5', { exact: true })).toBeVisible();
 });
 
+test('keeps the current comparison set when navigating back through cities', async ({ page }) => {
+  await page.getByLabel('Annual salary', { exact: true }).fill('80000');
+  await expect.poll(() => new URL(page.url()).searchParams.get('salary')).toBe('80000');
+
+  await selectCity(page, 'Tampa', 'Tampa, FL');
+  await page.getByRole('button', { name: '+ Compare' }).click();
+  await expect.poll(() => new URL(page.url()).searchParams.getAll('compare')).toEqual(['Tampa, FL']);
+
+  await selectCity(page, 'Austin', 'Austin, TX');
+  await page.getByRole('button', { name: '+ Compare' }).click();
+  await expect.poll(() => new URL(page.url()).searchParams.getAll('compare')).toEqual([
+    'Tampa, FL',
+    'Austin, TX'
+  ]);
+
+  await page.goBack();
+  await expect(page.getByRole('heading', { name: 'Tampa, FL' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Remove Tampa, FL' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Remove Austin, TX' })).toBeVisible();
+});
+
+test('keeps newly selected cities when opening the detailed comparison', async ({ page }) => {
+  await page.getByLabel('Annual salary', { exact: true }).fill('60000');
+  await selectCity(page, 'Denver', 'Denver, CO');
+  await page.getByRole('button', { name: '+ Compare' }).click();
+  await selectCity(page, 'Nashville', 'Nashville, TN');
+  await page.getByRole('button', { name: '+ Compare' }).click();
+
+  await page.getByRole('link', { name: 'Detailed comparison →' }).click();
+  await expect(page).toHaveURL(/\/compare$/);
+  await expect(page.getByRole('heading', { name: 'Denver, CO' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Nashville, TN' })).toBeVisible();
+  await expect(page.getByText('Within budget', { exact: true })).toHaveCSS(
+    'color',
+    'rgb(55, 115, 75)'
+  );
+
+  await page.setViewportSize({ width: 734, height: 969 });
+  const highlightTops = await page.evaluate(() =>
+    [...document.querySelectorAll('.highlights > div')].map(
+      (element) => Math.round(element.getBoundingClientRect().top)
+    )
+  );
+  expect(new Set(highlightTops).size).toBe(1);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  const highlightWidths = await page.locator('.highlights').evaluate((element) => ({
+    client: element.clientWidth,
+    scroll: element.scrollWidth
+  }));
+  expect(highlightWidths.scroll).toBe(highlightWidths.client);
+
+  const denverScenario = page.locator('.scenario').filter({ hasText: 'Denver, CO' });
+  await expect(denverScenario).toHaveCount(1);
+  await denverScenario.getByRole('link', { name: 'Denver, CO', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Denver, CO' })).toBeVisible();
+  await expect(page.getByLabel('Annual salary', { exact: true })).toHaveValue('60,000');
+});
+
 test('exposes map markers to the keyboard', async ({ page }) => {
   await selectCity(page, 'Tampa', 'Tampa, FL');
   await page.getByLabel('Annual salary', { exact: true }).fill('80000');

@@ -356,8 +356,10 @@ class AppState {
       this.selectedName = null;
     }
 
-    const compare = search.getAll('compare').filter((n) => this.cityByName(n) != null);
-    this.compareNames = [...new Set(compare)].slice(0, 5);
+    // The compare set is persistent workspace state, not city-navigation state.
+    // Older history entries often predate the user's latest compare additions;
+    // replaying their query params here made cities appear to vanish on Back.
+    // Initial deep links are still handled by hydrateFromSearch().
 
     this.persist();
   }

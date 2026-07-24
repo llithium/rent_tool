@@ -13,7 +13,10 @@
 <section>
   <div class="rt-secthead">
     <h2>Compare cities</h2>
-    <span class="rt-meta tabnum">{cities.length} / 5</span>
+    <div class="head-actions">
+      <span class="rt-meta tabnum">{cities.length} / 5</span>
+      <a href="/compare">Detailed comparison →</a>
+    </div>
   </div>
   <p class="basis">
     {#if app.salary}
@@ -77,6 +80,16 @@
     margin-bottom: 14px;
     line-height: 1.5;
     max-width: 64ch;
+  }
+  .head-actions {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+  }
+  .head-actions a {
+    font-size: 0.78rem;
+    font-weight: 650;
+    text-decoration: none;
   }
   .basis strong {
     color: var(--ink);
