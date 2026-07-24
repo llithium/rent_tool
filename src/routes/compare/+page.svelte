@@ -166,7 +166,7 @@
       .map((candidate) => metricNumber(candidate, key))
       .filter((value): value is number => value != null && Number.isFinite(value));
     const value = metricNumber(row, key);
-    if (value == null || values.length < 2) return '';
+    if (value == null || values.length < 2 || values.length !== rows.length) return '';
     const low = Math.min(...values);
     const high = Math.max(...values);
     if (low === high) return '';
