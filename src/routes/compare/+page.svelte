@@ -367,7 +367,7 @@
   .brand img { border-radius: 7px; }
   .back { font-size: .86rem; font-weight: 600; text-decoration: none; }
   .intro { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 38px; align-items: end; padding: 46px 0 28px; border-bottom: 1px solid var(--border); }
-  .eyebrow { color: var(--muted); text-transform: uppercase; letter-spacing: .11em; font-size: .72rem; font-weight: 650; margin-bottom: 9px; }
+  .eyebrow { color: var(--muted); text-transform: uppercase; letter-spacing: .11em; font-size: .74rem; font-weight: 650; line-height: 1.5; }
   .add-panel { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
   .add-panel > p { color: var(--muted); font-size: .76rem; margin-top: 9px; }
   .salary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(215px, 1fr)); gap: 0; padding: 30px 0; }
@@ -412,8 +412,21 @@
   thead th { color: var(--muted); font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; }
   th:first-child { text-align: left; position: sticky; left: 0; background: var(--bg); z-index: 1; min-width: 185px; }
   tbody th { color: var(--muted); font-weight: 600; }
-  td.best { color: var(--green); box-shadow: inset 0 -2px var(--green); }
-  td.worst { color: var(--red); box-shadow: inset 0 -2px var(--red); }
+  td.best, td.worst { position: relative; border-bottom-color: transparent; box-shadow: none; }
+  td.best { color: var(--green); }
+  td.worst { color: var(--red); }
+  td.best::after, td.worst::after {
+    content: '';
+    position: absolute;
+    right: 6px;
+    bottom: 0;
+    left: 6px;
+    height: 2px;
+  }
+  td.best:first-of-type::after, td.worst:first-of-type::after { left: 0; }
+  td.best:last-child::after, td.worst:last-child::after { right: 0; }
+  td.best::after { background: var(--green); }
+  td.worst::after { background: var(--red); }
   tr:last-child th, tr:last-child td { border-bottom: 0; }
   td.note { white-space: normal; min-width: 175px; color: var(--muted); font-size: .74rem; }
   .empty { text-align: center; padding: 80px 20px; border-bottom: 1px solid var(--border); }
