@@ -10,10 +10,10 @@
   }
 </script>
 
-<section class="card">
-  <div class="head">
+<section>
+  <div class="rt-secthead">
     <h2>Compare cities</h2>
-    <span class="count tabnum">{cities.length} / 5</span>
+    <span class="rt-meta tabnum">{cities.length} / 5</span>
   </div>
   <p class="basis">
     {#if app.salary}
@@ -70,30 +70,10 @@
 </section>
 
 <style>
-  .card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 22px;
-    box-shadow: var(--shadow);
-  }
-  .head {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 5px;
-  }
-  h2 {
-    font-size: 1.15rem;
-    font-weight: 600;
-  }
-  .count {
-    font-size: 0.72rem;
-    color: var(--muted);
-  }
   .basis {
     font-size: 0.88rem;
     color: var(--muted);
+    margin-top: -6px;
     margin-bottom: 14px;
     line-height: 1.5;
     max-width: 64ch;
@@ -173,8 +153,6 @@
     border-radius: 99px;
     font-size: 0.78rem;
     font-weight: 600;
-    background: var(--card2);
-    border: 1px solid var(--border);
     color: var(--muted);
   }
   .pill.good {

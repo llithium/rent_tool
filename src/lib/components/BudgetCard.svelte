@@ -5,7 +5,7 @@
   let { budget }: { budget: Budget } = $props();
 </script>
 
-<section class="card">
+<section class="budget rt-reveal">
   <div class="eyebrow">Your 30% budget</div>
   <div class="big num">
     {money(budget.maxRent)}<span class="per">/mo</span>
@@ -27,12 +27,11 @@
 </section>
 
 <style>
-  .card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 18px 20px;
+  /* Lives inside the sidebar panel, below a hairline — not its own card. */
+  .budget {
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
   }
   .eyebrow {
     font-size: 0.68rem;

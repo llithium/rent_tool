@@ -152,6 +152,31 @@ button {
   outline-offset: 2px;
 }
 
+/* Flat section chrome. The results column reads as one document — sections are
+   separated by hairlines and a small uppercase label, not by nested card boxes.
+   Defined globally so all seven result sections share one definition. */
+.rt-secthead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.rt-secthead h2,
+.rt-secthead h3 {
+  font-size: 0.74rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+  color: var(--muted);
+}
+.rt-meta {
+  font-size: 0.74rem;
+  color: var(--muted);
+  font-weight: 500;
+}
+
 /* Utility */
 .sr-only {
   position: absolute;

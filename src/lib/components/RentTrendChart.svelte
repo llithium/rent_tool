@@ -26,9 +26,9 @@
   }
 </script>
 
-<section class="card">
-  <div class="head">
-    <h3>Rent vs your budget</h3>
+<section>
+  <div class="rt-secthead">
+    <h2>Rent vs your budget</h2>
     {#if city.yoy != null}
       <span class="yoy {city.yoy > 0 ? 'up' : city.yoy < 0 ? 'down' : ''}">1BR {pctTrend(city.yoy)}</span>
     {/if}
@@ -53,30 +53,10 @@
 </section>
 
 <style>
-  .card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 20px;
-    box-shadow: var(--shadow);
-  }
-  .head {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-  }
-  h3 {
-    font-size: 1rem;
-    font-weight: 600;
-  }
   .yoy {
-    font-size: 0.72rem;
+    font-size: 0.74rem;
     font-weight: 600;
-    padding: 3px 9px;
-    border-radius: 99px;
-    background: var(--card2);
-    border: 1px solid var(--border);
+    color: var(--muted);
     white-space: nowrap;
   }
   .yoy.up {
@@ -106,7 +86,6 @@
     height: 12px;
     border-radius: 99px;
     background: var(--card2);
-    border: 1px solid var(--border);
     overflow: hidden;
   }
   .fill {

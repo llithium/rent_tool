@@ -32,23 +32,21 @@
 {/if}
 
 <style>
+  /* The lede under the city headline. Carries its signal through a colored rule
+     and colored verdict word instead of a tinted box. */
   .verdict {
     display: flex;
     align-items: flex-start;
     gap: 14px;
-    padding: 20px;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    background: var(--green-soft);
-    border: 1px solid color-mix(in srgb, var(--green) 32%, transparent);
+    padding-left: 16px;
+    border-left: 3px solid var(--green);
   }
   .verdict.bad {
-    background: var(--red-soft);
-    border-color: color-mix(in srgb, var(--red) 32%, transparent);
+    border-left-color: var(--red);
   }
   .icon {
-    font-size: 1.9rem;
-    line-height: 1;
+    font-size: 1.5rem;
+    line-height: 1.2;
     flex: none;
     color: var(--green);
     animation: rt-pop 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
@@ -57,7 +55,7 @@
     color: var(--red);
   }
   .head {
-    font-size: 1.35rem;
+    font-size: 1.2rem;
     font-weight: 600;
     letter-spacing: -0.01em;
     margin-bottom: 3px;
@@ -67,11 +65,12 @@
     color: var(--red);
   }
   .body {
-    font-size: 1.02rem;
-    line-height: 1.5;
+    font-size: 1.05rem;
+    line-height: 1.55;
     color: var(--ink);
-    /* Reserve 3 lines so the box height stays constant between the short
+    max-width: 62ch;
+    /* Reserve 3 lines so the block height stays constant between the short
        "Comfortable" copy and the longer "A stretch" copy — no layout shift. */
-    min-height: calc(1.5em * 3);
+    min-height: calc(1.55em * 3);
   }
 </style>

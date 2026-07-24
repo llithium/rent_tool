@@ -5,7 +5,7 @@
   import { app } from '$lib/appState.svelte';
   import { computeBudget } from '$lib/budget';
   import { ACS_DATA_META, RENT_DATA_META } from '$lib/data/cities';
-  import type { CitySuggestion } from '$lib/types';
+  import type { CitySuggestion, RentSource } from '$lib/types';
 
   import CitySearch from '$lib/components/CitySearch.svelte';
   import BudgetCard from '$lib/components/BudgetCard.svelte';
@@ -20,6 +20,14 @@
 
   const SLIDER_MIN = 30000;
   const SLIDER_MAX = 200000;
+
+  // Which dataset the headline rent came from — shown beside the city headline,
+  // which now owns the page title role that CityFacts' card header used to.
+  const SOURCE_LABEL: Record<RentSource, string> = {
+    'apartment-list': 'Apartment List estimate',
+    'hud-fmr': 'HUD Fair Market Rent',
+    none: 'No rent data'
+  };
 
   let selected = $derived(app.selected);
   let budget = $derived(
@@ -188,7 +196,10 @@
         </div>
       </header>
 
-      <section class="card inputs-card">
+      <!-- One panel for the whole control surface: search, salary, actions and the
+           resulting budget. They're a single thought, so they share a single box —
+           the only card in the layout. -->
+      <section class="panel">
         <CitySearch onselect={onCitySelect} selectedName={app.selectedName} />
 
         <div class="salary">
@@ -245,15 +256,20 @@
             </button>
           </div>
         {/if}
-      </section>
 
-      {#if selected && budget}
-        <BudgetCard {budget} />
-      {/if}
+        {#if selected && budget}
+          <BudgetCard {budget} />
+        {/if}
+      </section>
     </aside>
 
     <div class="rt-results">
       {#if selected && budget}
+        <header class="city-head">
+          <h1>{selected.name}</h1>
+          <span class="rt-meta">{SOURCE_LABEL[selected.source]}</span>
+        </header>
+
         {#if selected.r1 != null}
           <Verdict {budget} city={selected} />
         {/if}
@@ -279,7 +295,7 @@
           onselect={(n) => app.select(n)}
         />
       {:else}
-        <section class="card empty">
+        <section class="empty">
           <p>Enter a city and salary to see your rent budget, verdict, facts, charts, and a map.</p>
         </section>
       {/if}
@@ -352,19 +368,44 @@
   .rt-results {
     display: flex;
     flex-direction: column;
-    gap: 20px;
     min-width: 0;
-    /* Start level with the inputs card (34px brand row + 16px column gap) rather
+    /* Start level with the inputs panel (34px brand row + 16px column gap) rather
        than the brand itself, keeping the old header-band feel. Removed in the
        single-column layout, where results sit below the sidebar. */
     padding-top: 50px;
   }
 
+  /* One rule between sections replaces seven card borders. The headline and the
+     verdict below it read as a single lede, so that seam alone stays open. */
+  .rt-results > :global(* + *) {
+    margin-top: 28px;
+    padding-top: 28px;
+    border-top: 1px solid var(--border);
+  }
+  .rt-results > :global(.city-head + *) {
+    margin-top: 14px;
+    padding-top: 0;
+    border-top: none;
+  }
+
+  .city-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .city-head h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+  }
+
   /* Cascade the result blocks in when they first appear. Because Svelte keeps
      these children mounted across city/salary changes, the animation only plays
      once — on the empty → results transition. */
-  .rt-results > :global(*),
-  .rt-side > :global(*:not(.inputs-card):not(.rt-header)) {
+  .rt-results > :global(*) {
     animation: rt-rise 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
   .rt-results > :global(*:nth-child(2)) {
@@ -386,13 +427,11 @@
     animation-delay: 0.3s;
   }
 
-  .card {
+  .panel {
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
-  }
-  .inputs-card {
     padding: 20px;
   }
 
@@ -559,15 +598,21 @@
   }
 
   .empty {
-    padding: 40px 24px;
     color: var(--muted);
-    text-align: center;
+    font-size: 1.02rem;
+    max-width: 40ch;
   }
 
+  /* The two charts share one section band, split by a hairline rather than sitting
+     in two boxes. */
   .rt-charts {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 20px;
+    gap: 30px;
+  }
+  .rt-charts > :global(* + *) {
+    border-left: 1px solid var(--border);
+    padding-left: 30px;
   }
 
   footer {
@@ -575,7 +620,6 @@
     color: var(--muted);
     line-height: 1.6;
     max-width: 74ch;
-    padding-top: 6px;
   }
 
   @media (max-width: 900px) {
@@ -592,6 +636,17 @@
   @media (max-width: 760px) {
     .rt-charts {
       grid-template-columns: 1fr;
+      gap: 26px;
+    }
+    /* Stacked: the split becomes horizontal. */
+    .rt-charts > :global(* + *) {
+      border-left: none;
+      padding-left: 0;
+      border-top: 1px solid var(--border);
+      padding-top: 26px;
+    }
+    .city-head h1 {
+      font-size: 1.7rem;
     }
   }
 </style>

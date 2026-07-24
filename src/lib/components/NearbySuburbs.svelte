@@ -38,10 +38,10 @@
 </script>
 
 {#if (city.lat != null && city.lng != null) && (loading || places.length)}
-  <section class="card">
-    <div class="head">
+  <section>
+    <div class="rt-secthead">
       <h2>Nearby suburbs &amp; towns</h2>
-      <span class="src">SimpleMaps</span>
+      <span class="rt-meta">SimpleMaps</span>
     </div>
     <p class="note">
       Within ~25 miles of {city.city}, largest population first. Click a place to load its rent.
@@ -75,36 +75,6 @@
 {/if}
 
 <style>
-  .card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 22px;
-    box-shadow: var(--shadow);
-  }
-  .head {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 6px;
-    flex-wrap: wrap;
-  }
-  h2 {
-    font-size: 1.15rem;
-    font-weight: 600;
-  }
-  .src {
-    font-size: 0.66rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--muted);
-    background: var(--card2);
-    border: 1px solid var(--border);
-    padding: 4px 9px;
-    border-radius: 99px;
-  }
   .note {
     font-size: 0.85rem;
     color: var(--muted);
@@ -115,9 +85,6 @@
   .hint {
     font-size: 0.85rem;
     color: var(--muted);
-    background: var(--card2);
-    border-radius: var(--radius-sm);
-    padding: 9px 11px;
   }
   .chips {
     display: flex;

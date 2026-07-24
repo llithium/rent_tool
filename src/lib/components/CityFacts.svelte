@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { City, RentSource } from '$lib/types';
+  import type { City } from '$lib/types';
   import { money, pctTrend, rentMetricLabel } from '$lib/format';
   import { ACS_DATA_META } from '$lib/data/cities';
   import { STATE_NAME } from '$lib/data/states';
@@ -10,12 +10,6 @@
     const query = `${city.city}, ${STATE_NAME[city.state] ?? city.state}`;
     return `https://en.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(query)}&go=Go`;
   });
-
-  const SOURCE_LABEL: Record<RentSource, string> = {
-    'apartment-list': 'Apartment List estimate',
-    'hud-fmr': 'HUD Fair Market Rent',
-    none: 'No rent data'
-  };
 
   // Metric-aware labels keep Apartment List estimates distinct from HUD FMRs.
   let rentFacts = $derived(
@@ -46,12 +40,7 @@
   });
 </script>
 
-<section class="card">
-  <div class="head">
-    <h2>{city.name}</h2>
-    <span class="src">{SOURCE_LABEL[city.source]}</span>
-  </div>
-
+<section class="facts">
   {#if looking}
     <p class="hint">Looking up rent data for this city…</p>
   {:else if city.r1 == null}
@@ -59,7 +48,7 @@
   {/if}
 
   {#if rentFacts.length}
-    <div class="grid">
+    <div class="grid lead-grid">
       {#each rentFacts as f (f.l)}
         <div class="fact">
           <div class="fv {f.cls}">{f.v}</div>
@@ -74,10 +63,10 @@
   {/if}
 
   {#if snapshotFacts.length}
-    <div class="snapshot-head">
-      <h3>City snapshot</h3>
+    <div class="rt-secthead snapshot-head">
+      <h2>City snapshot</h2>
       {#if city.citySnapshot}
-        <a href={ACS_DATA_META.dataUrl} target="_blank" rel="noopener">
+        <a class="rt-meta" href={ACS_DATA_META.dataUrl} target="_blank" rel="noopener">
           {ACS_DATA_META.label} ↗
         </a>
       {/if}
@@ -101,89 +90,40 @@
 </section>
 
 <style>
-  .card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 22px;
-    box-shadow: var(--shadow);
+  .facts {
     container-type: inline-size;
   }
-  .head {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 6px;
-    flex-wrap: wrap;
-  }
-  h2 {
-    font-size: 1.15rem;
-    font-weight: 600;
-  }
-  .src {
-    font-size: 0.66rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--muted);
-    background: var(--card2);
-    border: 1px solid var(--border);
-    padding: 4px 9px;
-    border-radius: 99px;
-  }
   .hint {
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     color: var(--muted);
-    background: var(--card2);
-    border-radius: var(--radius-sm);
-    padding: 9px 11px;
-    margin-bottom: 16px;
+    margin-bottom: 18px;
   }
-  /* Ruled grid: shared 1px borders via right/bottom on each cell, clipped by the wrapper. */
+  /* Stat rows carried by type and whitespace — no cell fills, no grid rules. */
   .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    overflow: hidden;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 20px 26px;
   }
   .snapshot-head {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-top: 22px;
-    margin-bottom: 8px;
-  }
-  .snapshot-head h3 {
-    font-size: 0.78rem;
-    font-weight: 650;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--muted);
+    margin-top: 28px;
+    margin-bottom: 14px;
   }
   .snapshot-head a {
-    color: var(--muted);
-    font-size: 0.72rem;
     text-decoration-thickness: 1px;
     text-underline-offset: 2px;
   }
   .snapshot-grid {
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
-  .fact {
-    padding: 13px 15px;
-    border-right: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
-    background: var(--card2);
-  }
   .fv {
-    font-size: 1.25rem;
+    font-size: 1.2rem;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.02em;
+  }
+  /* The headline rents outrank the ACS snapshot below them. */
+  .lead-grid .fv {
+    font-size: 1.7rem;
   }
   .fv.up {
     color: var(--red);
@@ -199,13 +139,13 @@
     margin-top: 3px;
   }
   .vintage {
-    margin-top: 12px;
+    margin-top: 14px;
     font-size: 0.72rem;
     color: var(--muted);
   }
   .wiki {
     display: inline-block;
-    margin-top: 14px;
+    margin-top: 16px;
     font-size: 0.9rem;
     font-weight: 600;
     color: var(--accent);

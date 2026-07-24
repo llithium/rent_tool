@@ -160,8 +160,8 @@
   });
 </script>
 
-<section class="card">
-  <div class="head">
+<section>
+  <div class="rt-secthead">
     <h2>Affordability map</h2>
     <div class="legend">
       <span><i style="background:#37734b"></i> fits budget</span>
@@ -176,25 +176,6 @@
 </section>
 
 <style>
-  .card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 22px;
-    box-shadow: var(--shadow);
-  }
-  .head {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 14px;
-  }
-  h2 {
-    font-size: 1.15rem;
-    font-weight: 600;
-  }
   .legend {
     display: flex;
     gap: 14px;

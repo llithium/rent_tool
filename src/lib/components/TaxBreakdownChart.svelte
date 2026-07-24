@@ -23,8 +23,8 @@
   let leftPct = $derived(pct(remaining, budget.takeHomeMonthly));
 </script>
 
-<section class="card">
-  <h3>Where the money goes</h3>
+<section>
+  <div class="rt-secthead"><h2>Where the money goes</h2></div>
 
   <div class="rlabel">
     Gross monthly {money(budget.grossMonthly)}{taxAmt > 0 ? ` · tax ${money(taxAmt)}/mo` : ''}
@@ -92,18 +92,6 @@
 </section>
 
 <style>
-  .card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 20px;
-    box-shadow: var(--shadow);
-  }
-  h3 {
-    font-size: 1rem;
-    font-weight: 600;
-    margin-bottom: 16px;
-  }
   .rlabel {
     font-size: 0.72rem;
     color: var(--muted);
@@ -115,7 +103,6 @@
     height: 32px;
     border-radius: 8px;
     overflow: hidden;
-    border: 1px solid var(--border);
     margin-bottom: 9px;
     transform-origin: left;
     animation: rt-grow-x 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;

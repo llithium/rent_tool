@@ -11,8 +11,8 @@
   });
 </script>
 
-<section class="card">
-  <h2>Find apartments under {money(maxRent)}</h2>
+<section>
+  <div class="rt-secthead"><h2>Find apartments under {money(maxRent)}</h2></div>
   <div class="links">
     {#each links as link (link.label)}
       <a class="lk" href={link.url} target="_blank" rel="noopener">{link.label}</a>
@@ -25,18 +25,6 @@
 </section>
 
 <style>
-  .card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 22px;
-    box-shadow: var(--shadow);
-  }
-  h2 {
-    font-size: 1.15rem;
-    font-weight: 600;
-    margin-bottom: 14px;
-  }
   .links {
     display: flex;
     gap: 10px;
