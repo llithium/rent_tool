@@ -2,7 +2,7 @@
   "name": "rent-tool",
   "version": "1.0.0",
   "private": true,
-  "packageManager": "pnpm@11.15.1",
+  "packageManager": "bun@1.3.14",
   "type": "module",
   "scripts": {
     "prepare": "svelte-kit sync",

@@ -13,12 +13,12 @@ app with serverless endpoints for search and location lookups.
 ## Run locally
 
 ```bash
-pnpm install
-pnpm dev        # http://localhost:5173
+bun install
+bun run dev        # http://localhost:5173
 ```
 
-Other scripts: `pnpm build` (production, adapter-vercel), `pnpm preview`,
-`pnpm check` (type-check), `pnpm test` (unit tests), and `pnpm test:e2e`
+Other scripts: `bun run build` (production, adapter-vercel), `bun run preview`,
+`bun run check` (type-check), `bun run test` (unit tests), and `bun run test:e2e`
 (browser/accessibility tests).
 
 ## Data sources
@@ -102,10 +102,10 @@ generator refuses to overwrite the bundle when fewer than 3,000 counties are par
 prints the final county count and file size. Review the metadata and sample counties, then run:
 
 ```bash
-pnpm check
-pnpm test
-pnpm build
-pnpm test:e2e
+bun run check
+bun run test
+bun run build
+bun run test:e2e
 git add src/lib/data/fmr-county.json
 ```
 
