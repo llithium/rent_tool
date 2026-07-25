@@ -366,7 +366,7 @@
   .brand { display: flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; font-size: .74rem; font-weight: 700; text-transform: uppercase; letter-spacing: .14em; }
   .brand img { border-radius: 7px; }
   .back { font-size: .86rem; font-weight: 600; text-decoration: none; }
-  .intro { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 38px; align-items: end; padding: 46px 0 28px; border-bottom: 1px solid var(--border); }
+  .intro { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 38px; align-items: end; padding: 46px 0 28px; }
   .eyebrow { color: var(--muted); text-transform: uppercase; letter-spacing: .11em; font-size: .74rem; font-weight: 650; line-height: 1.5; }
   .add-panel { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
   .add-panel > p { color: var(--muted); font-size: .76rem; margin-top: 9px; }
@@ -406,7 +406,7 @@
   .detail { border-top: 1px solid var(--border); margin-top: 28px; padding-top: 28px; }
   .section-head { display: flex; justify-content: space-between; align-items: end; gap: 20px; margin-bottom: 20px; }
   .section-head > p { max-width: 340px; color: var(--muted); font-size: .78rem; text-align: right; }
-  .table-scroll { overflow-x: auto; border-top: 2px solid var(--border2); }
+  .table-scroll { overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; min-width: 680px; font-size: .84rem; }
   th, td { padding: 13px 16px; border-bottom: 1px solid var(--border); text-align: right; vertical-align: top; }
   thead th { color: var(--muted); font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; }
