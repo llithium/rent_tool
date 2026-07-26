@@ -1,5 +1,5 @@
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
 
   /* Brand — refined terracotta (redesign palette) */
   --accent: #a9542e;
@@ -39,31 +39,30 @@
   --maxw: 1120px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #17150f;
-    --card: #211e17;
-    --card2: #1b1913;
-    --card-2: var(--card2);
-    --ink: #f0ede6;
-    --muted: #a49f95;
-    --faint: #7d766a;
-    --border: #35312a;
-    --border2: #423d34;
-    --border-strong: var(--border2);
-    --accent: #d98a5f;
-    --accent-ink: #1a120c;
-    --accent-soft: #3a2a20;
-    --accent-deep: #e8a883;
-    --accent-muted: var(--accent-deep);
-    --green: #5cc487;
-    --green-soft: #22322a;
-    --red: #e0725e;
-    --red-soft: #3a2420;
-    --amber: #e0b64a;
-    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 20px rgba(0, 0, 0, 0.35);
-    --shadow-lg: 0 2px 6px rgba(0, 0, 0, 0.4), 0 18px 50px rgba(0, 0, 0, 0.5);
-  }
+[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #17150f;
+  --card: #211e17;
+  --card2: #1b1913;
+  --card-2: var(--card2);
+  --ink: #f0ede6;
+  --muted: #a49f95;
+  --faint: #7d766a;
+  --border: #35312a;
+  --border2: #423d34;
+  --border-strong: var(--border2);
+  --accent: #d98a5f;
+  --accent-ink: #1a120c;
+  --accent-soft: #3a2a20;
+  --accent-deep: #e8a883;
+  --accent-muted: var(--accent-deep);
+  --green: #5cc487;
+  --green-soft: #22322a;
+  --red: #e0725e;
+  --red-soft: #3a2420;
+  --amber: #e0b64a;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 20px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 2px 6px rgba(0, 0, 0, 0.4), 0 18px 50px rgba(0, 0, 0, 0.5);
 }
 
 * {
@@ -140,6 +139,53 @@ body {
   color: var(--ink);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  transition:
+    background-color 180ms ease,
+    color 180ms ease;
+}
+
+.theme-toggle {
+  position: fixed;
+  z-index: 1000;
+  top: max(16px, env(safe-area-inset-top));
+  right: max(16px, env(safe-area-inset-right));
+  display: grid;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  place-items: center;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+  border: 1px solid var(--border2);
+  border-radius: 999px;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition:
+    color 180ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease,
+    transform 150ms ease;
+}
+
+.theme-toggle:hover {
+  color: var(--accent);
+  background: var(--card);
+  transform: translateY(-1px);
+}
+
+.theme-toggle:active {
+  transform: translateY(0);
+}
+
+.theme-toggle svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 a {
