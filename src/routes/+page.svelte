@@ -4,6 +4,7 @@
   import { pushState, replaceState } from '$app/navigation';
   import { app } from '$lib/appState.svelte';
   import { computeBudget } from '$lib/budget';
+  import { formatSalaryInput, MAX_SALARY, parseSalaryInput, sanitizeSalaryInput } from '$lib/salary';
   import { ACS_DATA_META, RENT_DATA_META } from '$lib/data/cities';
   import type { CitySuggestion, RentSource } from '$lib/types';
 
@@ -106,23 +107,35 @@
 
   function validate(v: number): string {
     if (!Number.isFinite(v) || v <= 0) return 'Enter an annual salary greater than zero.';
-    if (v > 10_000_000) return 'Enter an annual salary of $10,000,000 or less.';
+    if (v > MAX_SALARY) return 'Enter an annual salary of $10,000,000 or less.';
     return '';
   }
 
   function onSalaryInput(e: Event) {
-    const digits = (e.target as HTMLInputElement).value.replace(/[^0-9]/g, '');
-    salaryText = digits ? parseInt(digits, 10).toLocaleString() : '';
+    const digits = sanitizeSalaryInput((e.target as HTMLInputElement).value);
+    salaryText = digits ? Number.parseInt(digits, 10).toLocaleString() : '';
     if (!digits) {
       salaryError = '';
       app.salary = null;
     } else {
-      const v = parseInt(digits, 10);
+      const v = parseSalaryInput(digits)!;
       salaryError = validate(v);
       app.salary = salaryError ? null : v;
     }
     scheduleSalaryUrl(app.salary);
     app.persist();
+  }
+
+  function commitSalary() {
+    if (!salaryText) return;
+    salaryText = formatSalaryInput(salaryText);
+  }
+
+  function onSalaryKeydown(e: KeyboardEvent) {
+    if (e.key === 'Enter') {
+      commitSalary();
+      (e.currentTarget as HTMLInputElement).blur();
+    }
   }
 
   function onSlider(e: Event) {
@@ -213,6 +226,8 @@
               placeholder="e.g. 65,000"
               value={salaryText}
               oninput={onSalaryInput}
+              onblur={commitSalary}
+              onkeydown={onSalaryKeydown}
               aria-invalid={salaryError ? 'true' : 'false'}
               aria-describedby={salaryError ? 'salary-error' : undefined}
             />

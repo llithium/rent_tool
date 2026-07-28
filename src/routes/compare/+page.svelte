@@ -3,6 +3,7 @@
   import { app } from '$lib/appState.svelte';
   import { computeBudget, salaryForRent } from '$lib/budget';
   import { money, pctTrend, rentMetricLabel } from '$lib/format';
+  import { formatSalaryInput, MAX_SALARY, parseSalaryInput, sanitizeSalaryInput } from '$lib/salary';
   import type { Budget, City, CitySuggestion } from '$lib/types';
   import CitySearch from '$lib/components/CitySearch.svelte';
 
@@ -27,8 +28,8 @@
 
   let rows = $derived.by((): Row[] =>
     app.compareCities.map((city) => {
-      const salary = parseInt((salaryText[city.name] ?? '').replace(/,/g, ''), 10);
-      const validSalary = Number.isFinite(salary) && salary > 0 ? salary : DEFAULT_SALARY;
+      const salary = parseSalaryInput(salaryText[city.name] ?? '');
+      const validSalary = salary != null && salary > 0 ? salary : DEFAULT_SALARY;
       const budget = computeBudget(validSalary, city);
       return {
         city,
@@ -63,8 +64,8 @@
     try {
       const values: Record<string, number> = {};
       for (const [name, text] of Object.entries(salaryText)) {
-        const salary = parseInt(text.replace(/,/g, ''), 10);
-        if (Number.isFinite(salary) && salary > 0) values[name] = salary;
+        const salary = parseSalaryInput(text);
+        if (salary != null && salary > 0) values[name] = salary;
       }
       localStorage.setItem(SALARY_KEY, JSON.stringify(values));
     } catch {
@@ -73,17 +74,23 @@
   }
 
   function onSalaryInput(name: string, event: Event) {
-    const digits = (event.target as HTMLInputElement).value.replace(/\D/g, '');
-    const value = digits ? parseInt(digits, 10) : 0;
+    const digits = sanitizeSalaryInput((event.target as HTMLInputElement).value);
+    const value = parseSalaryInput(digits) ?? 0;
     salaryText = {
       ...salaryText,
-      [name]: digits ? value.toLocaleString() : ''
+      [name]: digits ? Number.parseInt(digits, 10).toLocaleString() : ''
     };
     salaryErrors = {
       ...salaryErrors,
-      [name]: !digits ? 'Enter a salary.' : value > 10_000_000 ? 'Use $10,000,000 or less.' : ''
+      [name]: !digits ? 'Enter a salary.' : value > MAX_SALARY ? 'Use $10,000,000 or less.' : ''
     };
     persistSalaries();
+  }
+
+  function commitSalary(name: string) {
+    const text = salaryText[name];
+    if (!text) return;
+    salaryText = { ...salaryText, [name]: formatSalaryInput(text) };
   }
 
   async function addCity(suggestion: CitySuggestion) {
@@ -258,6 +265,7 @@
               inputmode="numeric"
               value={salaryFor(row.city.name)}
               oninput={(event) => onSalaryInput(row.city.name, event)}
+              onblur={() => commitSalary(row.city.name)}
             />
           </div>
           {#if salaryErrors[row.city.name]}<span class="error">{salaryErrors[row.city.name]}</span>{/if}
