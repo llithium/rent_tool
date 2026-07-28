@@ -2,13 +2,13 @@
   color-scheme: light;
 
   /* Reference palette — burnt orange, crisp paper, and confident green. */
-  --accent: #bd592d;
+  --accent: #b25027;
   --accent-ink: #ffffff;
   --accent-soft: #f6e7df;
   --accent-deep: #8f3e1c;
   /* Legacy alias — earlier components referenced --accent-muted. */
   --accent-muted: var(--accent-deep);
-  --green: #188442;
+  --green: #147b3b;
   --green-soft: #e4f2e8;
   --red: #b7352d;
   --red-soft: #f7e4e1;
@@ -21,7 +21,7 @@
   /* Legacy alias — earlier components referenced --card-2. */
   --card-2: var(--card2);
   --ink: #1f1e1c;
-  --muted: #746e68;
+  --muted: #716a64;
   --faint: #99928c;
   --border: #ebe6e2;
   --border2: #ded7d1;

@@ -152,7 +152,7 @@ test('keeps newly selected cities when opening the detailed comparison', async (
   await expect(page.getByRole('heading', { name: 'Nashville, TN' })).toBeVisible();
   await expect(page.getByText('$78 under budget', { exact: true })).toHaveCSS(
     'color',
-    'rgb(55, 115, 75)'
+    'rgb(20, 123, 59)'
   );
   const oneBedroomRow = page.getByRole('row', {
     name: '1BR rent $1,422/mo $1,216/mo',
