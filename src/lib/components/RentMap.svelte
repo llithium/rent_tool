@@ -26,8 +26,8 @@
   const markers = new Map<string, CircleMarker>();
 
   function colorFor(c: City): string {
-    if (c.r1 == null || maxRent == null) return '#9a948a';
-    return c.r1 <= maxRent ? '#37734b' : '#b23f2c';
+    if (c.r1 == null || maxRent == null) return '#99928c';
+    return c.r1 <= maxRent ? '#188442' : '#b7352d';
   }
 
   function draw() {
@@ -58,7 +58,7 @@
       const marker = L.circleMarker([c.lat, c.lng], {
         radius: selected ? 9 : 5.5,
         weight: selected ? 3 : 1.5,
-        color: selected ? '#a9542e' : '#fffdf9',
+        color: selected ? '#bd592d' : '#ffffff',
         fillColor: colorFor(c),
         fillOpacity: 0.9
       });
@@ -164,8 +164,8 @@
   <div class="rt-secthead">
     <h2>Affordability map</h2>
     <div class="legend">
-      <span><i style="background:#37734b"></i> fits budget</span>
-      <span><i style="background:#b23f2c"></i> over budget</span>
+      <span><i style="background:#188442"></i> fits budget</span>
+      <span><i style="background:#b7352d"></i> over budget</span>
     </div>
   </div>
   <div class="map" bind:this={el}></div>
