@@ -207,11 +207,10 @@
             <span class="eyebrow">Rent Tool</span>
           </div>
         </div>
+        <a class="compare-link" href="/compare">Compare cities →</a>
       </header>
 
-      <!-- One panel for the whole control surface: search, salary, actions and the
-           resulting budget. They're a single thought, so they share a single box —
-           the only card in the layout. -->
+      <!-- One control surface for search, salary, actions, and the resulting budget. -->
       <section class="panel">
         <CitySearch onselect={onCitySelect} selectedName={app.selectedName} />
 
@@ -340,6 +339,7 @@
   .rt-header {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 20px;
     flex-wrap: wrap;
     padding: 4px 0;
@@ -359,6 +359,15 @@
     text-transform: uppercase;
     letter-spacing: 0.16em;
     color: var(--muted);
+  }
+  .compare-link {
+    color: var(--accent);
+    font-size: 0.78rem;
+    font-weight: 650;
+    text-decoration: none;
+  }
+  .compare-link:hover {
+    color: var(--accent-deep);
   }
   /* Shell */
   .rt-shell {
@@ -443,11 +452,11 @@
   }
 
   .panel {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 20px;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0;
   }
 
   /* Salary field */

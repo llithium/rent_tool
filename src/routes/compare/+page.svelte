@@ -376,7 +376,7 @@
   .back { font-size: .86rem; font-weight: 600; text-decoration: none; }
   .intro { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 38px; align-items: end; padding: 46px 0 28px; }
   .eyebrow { color: var(--muted); text-transform: uppercase; letter-spacing: .11em; font-size: .74rem; font-weight: 650; line-height: 1.5; }
-  .add-panel { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+  .add-panel { background: transparent; border: 0; border-radius: 0; padding: 0; box-shadow: none; }
   .add-panel > p { color: var(--muted); font-size: .76rem; margin-top: 9px; }
   .salary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(215px, 1fr)); gap: 0; padding: 30px 0; }
   .scenario { padding: 4px 22px 24px; min-width: 0; }
