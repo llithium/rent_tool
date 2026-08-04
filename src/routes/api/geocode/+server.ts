@@ -7,7 +7,14 @@ import type { RequestHandler } from './$types';
 export const GET: RequestHandler = async ({ url, fetch, setHeaders }) => {
   const lat = parseFloat(url.searchParams.get('lat') || '');
   const lng = parseFloat(url.searchParams.get('lng') || '');
-  if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+  if (
+    !Number.isFinite(lat) ||
+    !Number.isFinite(lng) ||
+    lat < -90 ||
+    lat > 90 ||
+    lng < -180 ||
+    lng > 180
+  ) {
     throw error(400, 'lat and lng are required');
   }
 

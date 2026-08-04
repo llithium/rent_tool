@@ -51,7 +51,7 @@ export const COORDS: Record<string, [number, number]> = {
   'Jersey City, NJ': [40.7178, -74.0431],
   'San Jose, CA': [37.3382, -121.8863],
   'Miami, FL': [25.7617, -80.1918],
-  'Arlington, VA': [38.8816, -77.0910],
+  'Arlington, VA': [38.8816, -77.091],
   'Urban Honolulu, HI': [21.3069, -157.8583],
   'San Diego, CA': [32.7157, -117.1611],
   'Santa Ana, CA': [33.7455, -117.8677],

@@ -26,9 +26,9 @@ the map without a second geocode call.
 
 **Query params**
 
-| Param | Required | Description |
-| --- | --- | --- |
-| `q` | yes | Search text. Fewer than 2 chars returns an empty list. |
+| Param | Required | Description                                            |
+| ----- | -------- | ------------------------------------------------------ |
+| `q`   | yes      | Search text. Fewer than 2 chars returns an empty list. |
 
 **Response** `200`
 
@@ -59,9 +59,9 @@ Resolves county/state FIPS from coordinates via the [FCC Area API](https://geo.f
 **Query params**
 
 | Param | Required | Description |
-| --- | --- | --- |
-| `lat` | yes | Latitude |
-| `lng` | yes | Longitude |
+| ----- | -------- | ----------- |
+| `lat` | yes      | Latitude    |
+| `lng` | yes      | Longitude   |
 
 Missing, non-finite, or out-of-range `lat`/`lng` → **400**.
 
@@ -97,10 +97,10 @@ request and requires no key. New England town-level rows are averaged during gen
 
 **Query params**
 
-| Param | Required | Description |
-| --- | --- | --- |
-| `state` | yes | 2-digit state FIPS |
-| `county` | yes | 3-digit county FIPS |
+| Param    | Required | Description         |
+| -------- | -------- | ------------------- |
+| `state`  | yes      | 2-digit state FIPS  |
+| `county` | yes      | 3-digit county FIPS |
 
 Malformed FIPS → **400**.
 
@@ -110,12 +110,12 @@ Malformed FIPS → **400**.
 { "ok": true, "r1": 1696, "r2": 1977, "county": "", "year": "FY2026", "bundled": true }
 ```
 
-| Field | Meaning |
-| --- | --- |
-| `r1` / `r2` | 1BR / 2BR Fair Market Rent (USD/mo) |
-| `county` | County name (empty when served from the bundle) |
-| `year` | Fiscal year of the figures |
-| `bundled` | Always `true`; retained for response compatibility |
+| Field       | Meaning                                            |
+| ----------- | -------------------------------------------------- |
+| `r1` / `r2` | 1BR / 2BR Fair Market Rent (USD/mo)                |
+| `county`    | County name (empty when served from the bundle)    |
+| `year`      | Fiscal year of the figures                         |
+| `bundled`   | Always `true`; retained for response compatibility |
 
 County not found in the bundle: `{ "ok": false, "reason": "not-found" }`.
 Cache: `max-age=86400, s-maxage=2592000` (30d).
@@ -135,12 +135,12 @@ coordinates, rounded distance, and population so they can be selected without an
 
 **Query params**
 
-| Param | Required | Description |
-| --- | --- | --- |
-| `lat` | yes | Latitude |
-| `lng` | yes | Longitude |
-| `city` | no | Origin city to exclude from results |
-| `state` | no | Two-letter origin state used with `city` |
+| Param   | Required | Description                              |
+| ------- | -------- | ---------------------------------------- |
+| `lat`   | yes      | Latitude                                 |
+| `lng`   | yes      | Longitude                                |
+| `city`  | no       | Origin city to exclude from results      |
+| `state` | no       | Two-letter origin state used with `city` |
 
 Invalid coordinates → **400**.
 
@@ -180,9 +180,9 @@ places dataset.
 **Query params**
 
 | Param | Required | Description |
-| --- | --- | --- |
-| `lat` | yes | Latitude |
-| `lng` | yes | Longitude |
+| ----- | -------- | ----------- |
+| `lat` | yes      | Latitude    |
+| `lng` | yes      | Longitude   |
 
 Invalid coordinates → **400**.
 

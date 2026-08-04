@@ -58,9 +58,14 @@
       if (id !== requestId) return;
       suggestions = remote.length ? remote : seedMatches(q);
     } catch (cause) {
-      if (id !== requestId || (cause instanceof DOMException && cause.name === 'AbortError')) return;
+      if (id !== requestId || (cause instanceof DOMException && cause.name === 'AbortError'))
+        return;
       suggestions = seedMatches(q);
     } finally {
+      // Deliberate: a newer keystroke already owns `loading`/`activeIndex`, so a
+      // stale request must leave them alone. Nothing here can throw, so the early
+      // return has no exception to swallow.
+      // eslint-disable-next-line no-unsafe-finally
       if (id !== requestId) return;
       loading = false;
       activeIndex = suggestions.length ? 0 : -1;
@@ -138,11 +143,17 @@
   }
 </script>
 
-<div class="combo">
-  <label for="city-input">City</label>
-  <div class="control">
+<div class="relative min-w-0">
+  <label
+    for="city-input"
+    class="mb-1.5 block text-xs font-semibold tracking-[0.08em] text-muted uppercase"
+  >
+    City
+  </label>
+  <div class="relative">
     <input
       id="city-input"
+      class="w-full rounded-xl border border-line-strong bg-card-2 py-3 pr-10 pl-3.5 text-base font-semibold text-ink placeholder:text-faint focus:border-transparent focus:outline-2 focus:outline-accent"
       type="text"
       role="combobox"
       aria-expanded={open}
@@ -167,27 +178,45 @@
       }}
     />
     {#if loading}
-      <span class="spinner" aria-hidden="true"></span>
+      <span
+        aria-hidden="true"
+        class="absolute top-1/2 right-3 size-4 -translate-y-1/2 animate-spin rounded-full border-2 border-line-strong border-t-accent"
+      ></span>
     {/if}
   </div>
 
   {#if open && suggestions.length}
-    <ul class="listbox" id="city-listbox" role="listbox">
+    <ul
+      id="city-listbox"
+      role="listbox"
+      class="absolute inset-x-0 top-[calc(100%+0.3125rem)] z-40 max-h-72 overflow-y-auto rounded-xl border border-line-strong bg-card p-1.5 shadow-pop"
+    >
       {#each suggestions as sug, i (sug.label)}
         {@const parts = highlight(sug.label)}
         <li
           id={`city-option-${i}`}
           role="option"
           aria-selected={i === activeIndex}
-          class:active={i === activeIndex}
+          class="flex cursor-pointer items-baseline justify-between gap-2.5 rounded-lg px-3 py-2.5 text-base {i ===
+          activeIndex
+            ? 'bg-accent-soft'
+            : ''}"
           onmousedown={(e) => {
             e.preventDefault();
             choose(sug);
           }}
           onmouseenter={() => (activeIndex = i)}
         >
-          <span class="opt-label">{parts.before}{#if parts.match}<mark>{parts.match}</mark>{/if}{parts.after}</span>
-          {#if rentFor(sug.label)}<span class="opt-rent num">{rentFor(sug.label)}</span>{/if}
+          <span>
+            {parts.before}{#if parts.match}<mark class="bg-transparent font-bold text-accent"
+                >{parts.match}</mark
+              >{/if}{parts.after}
+          </span>
+          {#if rentFor(sug.label)}
+            <span class="text-sm whitespace-nowrap text-muted tabular-nums">
+              {rentFor(sug.label)}
+            </span>
+          {/if}
         </li>
       {/each}
     </ul>
@@ -196,92 +225,3 @@
     {loading ? 'Searching cities' : open ? `${suggestions.length} city suggestions available` : ''}
   </span>
 </div>
-
-<style>
-  .combo {
-    position: relative;
-    min-width: 0;
-  }
-  label {
-    display: block;
-    font-size: 0.7rem;
-    font-weight: 600;
-    color: var(--muted);
-    margin-bottom: 6px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
-  .control {
-    position: relative;
-  }
-  input {
-    width: 100%;
-    padding: 12px 38px 12px 14px;
-    font-size: 1.05rem;
-    font-weight: 600;
-    border: 1px solid var(--border2);
-    border-radius: 11px;
-    background: var(--card2);
-    color: var(--ink);
-  }
-  input:focus {
-    outline: 2px solid var(--accent);
-    border-color: transparent;
-  }
-  .spinner {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    width: 15px;
-    height: 15px;
-    margin-top: -7px;
-    border: 2px solid var(--border-strong);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-  }
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-  .listbox {
-    position: absolute;
-    z-index: 40;
-    top: calc(100% + 5px);
-    left: 0;
-    right: 0;
-    list-style: none;
-    margin: 0;
-    padding: 5px;
-    background: var(--card);
-    border: 1px solid var(--border2);
-    border-radius: 11px;
-    box-shadow: var(--shadow-lg);
-    max-height: 290px;
-    overflow-y: auto;
-  }
-  li {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    align-items: baseline;
-    padding: 10px 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1rem;
-  }
-  li.active {
-    background: var(--accent-soft);
-  }
-  .opt-rent {
-    font-size: 0.85rem;
-    color: var(--muted);
-    white-space: nowrap;
-  }
-  mark {
-    background: transparent;
-    color: var(--accent);
-    font-weight: 700;
-  }
-</style>

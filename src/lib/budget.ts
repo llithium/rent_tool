@@ -4,13 +4,57 @@ import type { Budget, City } from '$lib/types';
  * mid-career salary. This is a deliberate estimate to power the take-home visual — not tax
  * advice. States with no wage income tax are 0. */
 export const EST_STATE_RATE: Record<string, number> = {
-  AL: 0.045, AK: 0, AR: 0.039, AZ: 0.025, CA: 0.06, CO: 0.044, CT: 0.055,
-  DC: 0.075, DE: 0.05, FL: 0, GA: 0.0499, HI: 0.079, ID: 0.053, IL: 0.0495,
-  IN: 0.0295, IA: 0.038, KS: 0.052, KY: 0.035, LA: 0.03, MA: 0.05, MD: 0.045,
-  ME: 0.065, MI: 0.0425, MN: 0.068, MO: 0.047, MS: 0.044, MT: 0.055, NC: 0.0399,
-  ND: 0.02, NE: 0.045, NV: 0, NH: 0, NJ: 0.05, NM: 0.045, NY: 0.06, OH: 0.025,
-  OK: 0.045, OR: 0.085, PA: 0.0307, RI: 0.045, SC: 0.055, SD: 0, TN: 0, TX: 0,
-  UT: 0.0455, VA: 0.0525, VT: 0.06, WA: 0, WI: 0.055, WV: 0.048, WY: 0
+  AL: 0.045,
+  AK: 0,
+  AR: 0.039,
+  AZ: 0.025,
+  CA: 0.06,
+  CO: 0.044,
+  CT: 0.055,
+  DC: 0.075,
+  DE: 0.05,
+  FL: 0,
+  GA: 0.0499,
+  HI: 0.079,
+  ID: 0.053,
+  IL: 0.0495,
+  IN: 0.0295,
+  IA: 0.038,
+  KS: 0.052,
+  KY: 0.035,
+  LA: 0.03,
+  MA: 0.05,
+  MD: 0.045,
+  ME: 0.065,
+  MI: 0.0425,
+  MN: 0.068,
+  MO: 0.047,
+  MS: 0.044,
+  MT: 0.055,
+  NC: 0.0399,
+  ND: 0.02,
+  NE: 0.045,
+  NV: 0,
+  NH: 0,
+  NJ: 0.05,
+  NM: 0.045,
+  NY: 0.06,
+  OH: 0.025,
+  OK: 0.045,
+  OR: 0.085,
+  PA: 0.0307,
+  RI: 0.045,
+  SC: 0.055,
+  SD: 0,
+  TN: 0,
+  TX: 0,
+  UT: 0.0455,
+  VA: 0.0525,
+  VT: 0.06,
+  WA: 0,
+  WI: 0.055,
+  WV: 0.048,
+  WY: 0
 };
 
 /** Approximate effective local wage-income-tax rates for jurisdictions in the curated set. */
@@ -78,7 +122,7 @@ export function computeBudget(
 ): Budget {
   const grossMonthly = salary / 12;
   const state = typeof location === 'string' ? location : location?.state;
-  const cityName = typeof location === 'string' ? '' : location?.name ?? '';
+  const cityName = typeof location === 'string' ? '' : (location?.name ?? '');
   const stateRate = (state && EST_STATE_RATE[state.toUpperCase()]) || 0;
   const localTaxModeled = Object.hasOwn(EST_LOCAL_RATE, cityName);
   const localRate = localTaxModeled ? EST_LOCAL_RATE[cityName] : 0;

@@ -4,17 +4,20 @@
   import type { City } from '$lib/types';
   import { money } from '$lib/format';
   import type { Map as LMap, LayerGroup, CircleMarker } from 'leaflet';
+  import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
 
   let {
     cities,
     maxRent,
     selectedName,
-    onselect
+    onselect,
+    class: className = ''
   }: {
     cities: City[];
     maxRent: number | null;
     selectedName: string | null;
     onselect: (name: string) => void;
+    class?: string;
   } = $props();
 
   let el: HTMLDivElement;
@@ -62,9 +65,12 @@
         fillColor: colorFor(c),
         fillOpacity: 0.9
       });
-      const fit = maxRent != null && c.r1 != null
-        ? c.r1 <= maxRent ? 'fits budget' : 'over budget'
-        : 'rent data unavailable';
+      const fit =
+        maxRent != null && c.r1 != null
+          ? c.r1 <= maxRent
+            ? 'fits budget'
+            : 'over budget'
+          : 'rent data unavailable';
       const tooltip = document.createElement('div');
       const strong = document.createElement('strong');
       strong.textContent = c.name;
@@ -160,69 +166,52 @@
   });
 </script>
 
-<section>
-  <div class="rt-secthead">
-    <h2>Affordability map</h2>
-    <div class="legend">
-      <span><i style="background:#147b3b"></i> fits budget</span>
-      <span><i style="background:#b7352d"></i> over budget</span>
+<section class={className}>
+  <SectionHeading title="Affordability map">
+    <div class="flex gap-3.5 text-xs text-muted">
+      <!-- The marker colours are set in JS on Leaflet's SVG layer, so the legend
+           swatches repeat those literals rather than reading a theme token. -->
+      <span class="inline-flex items-center gap-1.5">
+        <i class="inline-block size-2.5 rounded-full" style="background:#147b3b"></i> fits budget
+      </span>
+      <span class="inline-flex items-center gap-1.5">
+        <i class="inline-block size-2.5 rounded-full" style="background:#b7352d"></i> over budget
+      </span>
     </div>
-  </div>
-  <div class="map" bind:this={el}></div>
-  <p class="note">
+  </SectionHeading>
+  <div
+    bind:this={el}
+    class="leaflet-theme h-100 w-full overflow-hidden rounded-xl border border-line bg-card-2"
+  ></div>
+  <p class="mt-3 text-xs text-muted">
     Each of the 100 markets is colored against your current 30% budget. Select a marker by mouse,
     Enter, or Space to load that city. Click the map to zoom with the scroll wheel.
   </p>
 </section>
 
 <style>
-  .legend {
-    display: flex;
-    gap: 14px;
-    font-size: 0.74rem;
-    color: var(--muted);
-  }
-  .legend span {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-  }
-  .legend i {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    display: inline-block;
-  }
-  .map {
-    height: 400px;
-    width: 100%;
-    border-radius: 12px;
-    overflow: hidden;
-    border: 1px solid var(--border);
-    background: var(--card2);
-  }
-  .note {
-    font-size: 0.8rem;
-    color: var(--muted);
-    margin-top: 11px;
-  }
-  /* Leaflet tooltip theming */
-  .map :global(.leaflet-tooltip) {
+  /* Leaflet renders its own DOM outside our markup, so its tooltip chrome and
+     focus rings can only be reached with real selectors. */
+  .leaflet-theme :global(.leaflet-tooltip) {
     background: var(--card);
     color: var(--ink);
-    border: 1px solid var(--border-strong);
-    box-shadow: var(--shadow);
+    border: 1px solid var(--line-strong);
+    box-shadow: var(--elevation-card);
     font-size: 0.78rem;
   }
-  .map :global(.leaflet-tooltip-top::before) {
-    border-top-color: var(--border-strong);
+  .leaflet-theme :global(.leaflet-tooltip-top::before) {
+    border-top-color: var(--line-strong);
   }
   /* No focus square when a marker is focused by click or by the post-select focus
-     restore; keyboard users still get a visible ring via :focus-visible. */
-  .map :global(.leaflet-interactive:focus) {
+     restore; keyboard users still get a visible ring via :focus-visible below.
+     That ring has to be repeated here rather than left to app.css: this scoped
+     block is unlayered, and unlayered declarations beat anything in @layer base
+     whatever the specificity, so the `outline: none` above would otherwise swallow
+     the base ring for keyboard users too. */
+  .leaflet-theme :global(.leaflet-interactive:focus) {
     outline: none;
   }
-  .map :global(.leaflet-interactive:focus-visible) {
+  .leaflet-theme :global(.leaflet-interactive:focus-visible) {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
   }

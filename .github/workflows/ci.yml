@@ -17,9 +17,13 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps chromium
+      # Cheap gates first: a formatting slip shouldn't cost a browser download
+      # and an apt dependency install before it reports.
+      - run: pnpm format:check
+      - run: pnpm lint
       - run: pnpm check
       - run: pnpm test
       - run: pnpm build
+      - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e
       - run: pnpm audit --prod

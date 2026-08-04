@@ -75,12 +75,62 @@ const TAX_OVERRIDES: Record<string, string> = {
   'Hartford, CT': 'CT 2%–6.99%',
   'Stamford, CT': 'CT 2%–6.99%',
   'Charleston, SC': 'SC top rate 6.2% (phasing down)',
-  'Columbia, SC': 'SC top rate 6.2% (phasing down)',
+  'Columbia, SC': 'SC top rate 6.2% (phasing down)'
 };
 
 /** Generic 2026 state income-tax notes for cities outside the detailed list. */
 export const STATE_TAX: Record<string, string> = {
-  AL: 'AL 2%–5%', AK: 'None (AK)', AR: 'AR top ~3.9% (2026)', AZ: '2.5% flat (AZ)', CA: 'CA 1%–13.3%', CO: '4.4% flat (CO)', CT: 'CT 2%–6.99%', DC: 'DC 4%–10.75%', DE: 'DE 2.2%–6.6%', FL: 'None (FL)', GA: '4.99% flat (GA, 2026)', HI: 'HI up to 11%', ID: '~5.3% flat (ID)', IL: '4.95% flat (IL)', IN: '2.95% flat (IN, 2026) + county', IA: '3.8% flat (IA)', KS: 'KS up to 5.58%', KY: '3.5% flat (KY, 2026)', LA: '3% flat (LA)', MA: '5% flat (MA, 9% over $1M)', MD: 'MD 2%–5.75% + local', ME: 'ME 5.8%–7.15%', MI: '4.25% flat (MI)', MN: 'MN 5.35%–9.85%', MO: 'MO 2%–4.7%', MS: 'MS ~4.4% flat (phasing down)', MT: 'MT top ~5.9%', NC: '3.99% flat (NC, 2026)', ND: 'ND up to 2.5%', NE: 'NE top ~4.55%', NV: 'None (NV)', NH: 'None on wages (NH)', NJ: 'NJ 1.4%–10.75%', NM: 'NM 1.7%–5.9%', NY: 'NY 4%–10.9%', OH: '2.75% flat (OH, 2026) + city', OK: 'OK top ~4.5%', OR: 'OR 4.75%–9.9%', PA: '3.07% flat (PA) + local', RI: 'RI 3.75%–5.99%', SC: 'SC top 6.2%', SD: 'None (SD)', TN: 'None (TN)', TX: 'None (TX)', UT: '4.55% flat (UT)', VA: 'VA 2%–5.75%', VT: 'VT 3.35%–8.75%', WA: 'None on wages (WA)', WI: 'WI 3.5%–7.65%', WV: 'WV ~4.8%', WY: 'None (WY)'
+  AL: 'AL 2%–5%',
+  AK: 'None (AK)',
+  AR: 'AR top ~3.9% (2026)',
+  AZ: '2.5% flat (AZ)',
+  CA: 'CA 1%–13.3%',
+  CO: '4.4% flat (CO)',
+  CT: 'CT 2%–6.99%',
+  DC: 'DC 4%–10.75%',
+  DE: 'DE 2.2%–6.6%',
+  FL: 'None (FL)',
+  GA: '4.99% flat (GA, 2026)',
+  HI: 'HI up to 11%',
+  ID: '~5.3% flat (ID)',
+  IL: '4.95% flat (IL)',
+  IN: '2.95% flat (IN, 2026) + county',
+  IA: '3.8% flat (IA)',
+  KS: 'KS up to 5.58%',
+  KY: '3.5% flat (KY, 2026)',
+  LA: '3% flat (LA)',
+  MA: '5% flat (MA, 9% over $1M)',
+  MD: 'MD 2%–5.75% + local',
+  ME: 'ME 5.8%–7.15%',
+  MI: '4.25% flat (MI)',
+  MN: 'MN 5.35%–9.85%',
+  MO: 'MO 2%–4.7%',
+  MS: 'MS ~4.4% flat (phasing down)',
+  MT: 'MT top ~5.9%',
+  NC: '3.99% flat (NC, 2026)',
+  ND: 'ND up to 2.5%',
+  NE: 'NE top ~4.55%',
+  NV: 'None (NV)',
+  NH: 'None on wages (NH)',
+  NJ: 'NJ 1.4%–10.75%',
+  NM: 'NM 1.7%–5.9%',
+  NY: 'NY 4%–10.9%',
+  OH: '2.75% flat (OH, 2026) + city',
+  OK: 'OK top ~4.5%',
+  OR: 'OR 4.75%–9.9%',
+  PA: '3.07% flat (PA) + local',
+  RI: 'RI 3.75%–5.99%',
+  SC: 'SC top 6.2%',
+  SD: 'None (SD)',
+  TN: 'None (TN)',
+  TX: 'None (TX)',
+  UT: '4.55% flat (UT)',
+  VA: 'VA 2%–5.75%',
+  VT: 'VT 3.35%–8.75%',
+  WA: 'None on wages (WA)',
+  WI: 'WI 3.5%–7.65%',
+  WV: 'WV ~4.8%',
+  WY: 'None (WY)'
 };
 
 function stateOf(name: string): string {
@@ -95,7 +145,7 @@ function normalizedCityKey(name: string): string {
   const key = name
     .trim()
     .toLowerCase()
-    .replace(/[.\-]/g, ' ')
+    .replace(/[.-]/g, ' ')
     .replace(/[^a-z0-9]+/g, ' ')
     .trim()
     .replace(/\s+/g, ' ');
