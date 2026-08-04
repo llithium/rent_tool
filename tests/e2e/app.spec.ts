@@ -204,6 +204,28 @@ test('exposes map markers to the keyboard', async ({ page }) => {
     await zoomOut.click();
   }
   await expect(marker).toBeVisible();
+
+  // A keyboard-focused marker must keep a visible ring. RentMap suppresses the
+  // default `:focus` square from its scoped (unlayered) <style>, which outranks
+  // the layered `:focus-visible` rule in app.css, so the ring has to be restored
+  // there — easy to drop by accident, invisible to the assertions below.
+  // Chromium only matches :focus-visible when the last interaction was a
+  // keypress, so tab into the map before focusing the marker itself — a bare
+  // .focus() from a mouse-driven test never qualifies.
+  await page.keyboard.press('Tab');
+  await marker.focus();
+  const ring = await marker.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return {
+      focusVisible: element.matches(':focus-visible'),
+      width: style.outlineWidth,
+      style: style.outlineStyle
+    };
+  });
+  expect(ring.focusVisible).toBe(true);
+  expect(ring.style).not.toBe('none');
+  expect(ring.width).toBe('2px');
+
   await marker.press('Enter');
   await expect(page.getByRole('heading', { name: 'New York, NY' })).toBeVisible();
 });

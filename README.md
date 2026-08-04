@@ -21,8 +21,9 @@ Other scripts: `pnpm build` (production, adapter-vercel), `pnpm preview`,
 `pnpm format` / `pnpm format:check` (Prettier, with the Svelte and Tailwind plugins),
 `pnpm lint` / `pnpm lint:fix` (ESLint flat config), `pnpm check` (type-check),
 `pnpm test` (unit tests), and `pnpm test:e2e` (browser/accessibility tests).
-`pnpm validate` runs the format check, lint, type-check, unit tests, and build in one go —
-the same gates CI enforces.
+`pnpm validate` runs the format check, lint, type-check, unit tests, and build in one go.
+CI runs that same set and then adds `pnpm test:e2e` and `pnpm audit --prod`, which are
+left out of `validate` because they need a browser download and network access.
 
 ## Styling
 

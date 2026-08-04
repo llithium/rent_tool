@@ -203,8 +203,16 @@
     border-top-color: var(--line-strong);
   }
   /* No focus square when a marker is focused by click or by the post-select focus
-     restore; keyboard users still get a visible ring via :focus-visible. */
+     restore; keyboard users still get a visible ring via :focus-visible below.
+     That ring has to be repeated here rather than left to app.css: this scoped
+     block is unlayered, and unlayered declarations beat anything in @layer base
+     whatever the specificity, so the `outline: none` above would otherwise swallow
+     the base ring for keyboard users too. */
   .leaflet-theme :global(.leaflet-interactive:focus) {
     outline: none;
+  }
+  .leaflet-theme :global(.leaflet-interactive:focus-visible) {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
 </style>

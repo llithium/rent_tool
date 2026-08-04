@@ -1,8 +1,11 @@
 @import 'tailwindcss';
 
-/* The theme is a manual toggle (see static/theme-init.js + ThemeToggle.svelte),
-   so Tailwind's default prefers-color-scheme `dark:` variant would disagree with
-   what the user actually picked. Point it at the attribute instead. */
+/* Nothing uses `dark:` today — both themes come from the tokens below, which the
+   [data-theme] block re-points. This redefinition is here so that the first
+   `dark:` utility someone reaches for is correct by default: the theme is a
+   manual toggle (see static/theme-init.js + ThemeToggle.svelte), so Tailwind's
+   stock prefers-color-scheme variant would follow the OS rather than what the
+   user actually picked. Delete it only alongside the toggle. */
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
 /* Reference palette — burnt orange, crisp paper, and confident green.
@@ -140,8 +143,11 @@
 }
 
 @layer base {
-  /* One visible focus ring for the whole app, including Leaflet's markers and
-     controls, which never pass through our markup. */
+  /* One visible focus ring for the whole app, including Leaflet's controls,
+     which never pass through our markup. Being in a layer, this loses to any
+     unlayered rule regardless of specificity — a component that suppresses the
+     default `:focus` outline in its scoped <style> has to restore the
+     `:focus-visible` ring there too (see RentMap). */
   :focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
