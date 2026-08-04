@@ -16,12 +16,21 @@ function restoredSnapshot(value: unknown): CitySnapshot | null {
   if (!value || typeof value !== 'object') return null;
   const f = value as Partial<CitySnapshot>;
   if (
-    typeof f.population !== 'number' || f.population <= 0 ||
-    typeof f.householdIncome !== 'number' || f.householdIncome <= 0 ||
-    typeof f.commuteMinutes !== 'number' || f.commuteMinutes < 0 || f.commuteMinutes > 300 ||
-    typeof f.renterShare !== 'number' || f.renterShare < 0 || f.renterShare > 100 ||
-    typeof f.rentalVacancy !== 'number' || f.rentalVacancy < 0 || f.rentalVacancy > 100
-  ) return null;
+    typeof f.population !== 'number' ||
+    f.population <= 0 ||
+    typeof f.householdIncome !== 'number' ||
+    f.householdIncome <= 0 ||
+    typeof f.commuteMinutes !== 'number' ||
+    f.commuteMinutes < 0 ||
+    f.commuteMinutes > 300 ||
+    typeof f.renterShare !== 'number' ||
+    f.renterShare < 0 ||
+    f.renterShare > 100 ||
+    typeof f.rentalVacancy !== 'number' ||
+    f.rentalVacancy < 0 ||
+    f.rentalVacancy > 100
+  )
+    return null;
   return {
     population: f.population,
     householdIncome: f.householdIncome,
@@ -35,14 +44,26 @@ function restoredCity(value: unknown): City | null {
   if (!value || typeof value !== 'object') return null;
   const c = value as Partial<City>;
   if (
-    typeof c.name !== 'string' || c.name.length > 100 ||
-    typeof c.city !== 'string' || typeof c.state !== 'string' || !/^[A-Z]{2}$/.test(c.state) ||
+    typeof c.name !== 'string' ||
+    c.name.length > 100 ||
+    typeof c.city !== 'string' ||
+    typeof c.state !== 'string' ||
+    !/^[A-Z]{2}$/.test(c.state) ||
     !['apartment-list', 'hud-fmr', 'none'].includes(c.source ?? '')
-  ) return null;
+  )
+    return null;
   const numberOrNull = (n: unknown) => n == null || (typeof n === 'number' && Number.isFinite(n));
   if (!numberOrNull(c.r1) || !numberOrNull(c.r2) || !numberOrNull(c.yoy)) return null;
-  if (c.lat != null && (typeof c.lat !== 'number' || !Number.isFinite(c.lat) || c.lat < -90 || c.lat > 90)) return null;
-  if (c.lng != null && (typeof c.lng !== 'number' || !Number.isFinite(c.lng) || c.lng < -180 || c.lng > 180)) return null;
+  if (
+    c.lat != null &&
+    (typeof c.lat !== 'number' || !Number.isFinite(c.lat) || c.lat < -90 || c.lat > 90)
+  )
+    return null;
+  if (
+    c.lng != null &&
+    (typeof c.lng !== 'number' || !Number.isFinite(c.lng) || c.lng < -180 || c.lng > 180)
+  )
+    return null;
   const source = c.source as City['source'];
   return {
     name: c.name,
@@ -58,7 +79,7 @@ function restoredCity(value: unknown): City | null {
     lng: c.lng,
     source,
     rentMetric: ['estimated-median', 'fair-market-rent', 'unknown'].includes(c.rentMetric ?? '')
-      ? c.rentMetric as RentMetric
+      ? (c.rentMetric as RentMetric)
       : metricForSource(source),
     rentArea: typeof c.rentArea === 'string' ? c.rentArea.slice(0, 150) : c.name,
     rentYear: typeof c.rentYear === 'string' ? c.rentYear.slice(0, 40) : ''
@@ -85,9 +106,7 @@ class AppState {
   }
 
   get compareCities(): City[] {
-    return this.compareNames
-      .map((n) => this.cityByName(n))
-      .filter((c): c is City => c != null);
+    return this.compareNames.map((n) => this.cityByName(n)).filter((c): c is City => c != null);
   }
 
   cityByName(name: string): City | null {
@@ -141,9 +160,7 @@ class AppState {
   async resolveSuggestion(sug: CitySuggestion & { pop?: number | null }): Promise<string> {
     const prefillPop = sug.pop != null && sug.pop > 0 ? popText(sug.pop) : '';
     const seed = findSeedCity(sug.label);
-    const target = seed
-      ? { ...sug, label: seed.name, city: seed.city, state: seed.state }
-      : sug;
+    const target = seed ? { ...sug, label: seed.name, city: seed.city, state: seed.state } : sug;
     if (seed) {
       this.lookupController?.abort();
       this.lookupController = null;
@@ -227,9 +244,7 @@ class AppState {
 
   private patchCity(name: string, patch: Partial<City>) {
     const t = name.toLowerCase();
-    this.cities = this.cities.map((c) =>
-      c.name.toLowerCase() === t ? { ...c, ...patch } : c
-    );
+    this.cities = this.cities.map((c) => (c.name.toLowerCase() === t ? { ...c, ...patch } : c));
   }
 
   persist() {
@@ -302,8 +317,7 @@ class AppState {
       }
     }
 
-    const compare = search.getAll('compare')
-      .filter((n) => this.cityByName(n) != null);
+    const compare = search.getAll('compare').filter((n) => this.cityByName(n) != null);
     if (compare.length) this.compareNames = [...new Set(compare)].slice(0, 5);
 
     return selectedCity;
@@ -320,9 +334,14 @@ class AppState {
     const lng = Number(lngRaw);
     const state = stateOf(cityName);
     if (
-      latRaw && lngRaw &&
-      Number.isFinite(lat) && lat >= -90 && lat <= 90 &&
-      Number.isFinite(lng) && lng >= -180 && lng <= 180 &&
+      latRaw &&
+      lngRaw &&
+      Number.isFinite(lat) &&
+      lat >= -90 &&
+      lat <= 90 &&
+      Number.isFinite(lng) &&
+      lng >= -180 &&
+      lng <= 180 &&
       /^[A-Z]{2}$/.test(state)
     ) {
       void this.resolveSuggestion({ label: cityName, city: cityOf(cityName), state, lat, lng });
@@ -369,7 +388,12 @@ class AppState {
       const raw = localStorage.getItem(LAST_KEY) ?? localStorage.getItem(LEGACY_KEY);
       if (!raw) return;
       const s = JSON.parse(raw);
-      if (typeof s.salary === 'number' && Number.isFinite(s.salary) && s.salary > 0 && s.salary <= 10_000_000) {
+      if (
+        typeof s.salary === 'number' &&
+        Number.isFinite(s.salary) &&
+        s.salary > 0 &&
+        s.salary <= 10_000_000
+      ) {
         this.salary = s.salary;
       }
       if (Array.isArray(s.custom)) {

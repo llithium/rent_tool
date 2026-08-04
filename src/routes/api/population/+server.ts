@@ -7,7 +7,14 @@ import { placeAt } from '$lib/data/places';
 export const GET: RequestHandler = async ({ url, setHeaders }) => {
   const lat = Number(url.searchParams.get('lat'));
   const lng = Number(url.searchParams.get('lng'));
-  if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+  if (
+    !Number.isFinite(lat) ||
+    !Number.isFinite(lng) ||
+    lat < -90 ||
+    lat > 90 ||
+    lng < -180 ||
+    lng > 180
+  ) {
     throw error(400, 'lat and lng are required and must be valid coordinates');
   }
 

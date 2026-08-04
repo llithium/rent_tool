@@ -75,6 +75,13 @@ export interface LookupResult {
   lng?: number;
 }
 
+/** One cell in a StatGrid: a figure with its label and an optional colour cue. */
+export interface Stat {
+  label: string;
+  value: string;
+  tone?: 'up' | 'down';
+}
+
 /** Computed rent budget for a salary, with an estimated take-home breakdown. */
 export interface Budget {
   grossMonthly: number;

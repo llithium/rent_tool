@@ -1,9 +1,4 @@
-import type {
-  CitySuggestion,
-  LookupResult,
-  NearbyPlace,
-  RentSource
-} from '$lib/types';
+import type { CitySuggestion, LookupResult, NearbyPlace, RentSource } from '$lib/types';
 
 /** Typed client wrappers for the /api endpoints. All degrade gracefully. */
 
@@ -68,8 +63,13 @@ export async function lookupRent(
   signal?: AbortSignal
 ): Promise<LookupResult> {
   const empty: LookupResult = {
-    r1: null, r2: null, yoy: null, source: 'none',
-    rentMetric: 'unknown', rentArea: '', rentYear: ''
+    r1: null,
+    r2: null,
+    yoy: null,
+    source: 'none',
+    rentMetric: 'unknown',
+    rentArea: '',
+    rentYear: ''
   };
   try {
     const geoRes = await fetch(`/api/geocode?lat=${lat}&lng=${lng}`, { signal });

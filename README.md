@@ -18,20 +18,37 @@ pnpm dev        # http://localhost:5173
 ```
 
 Other scripts: `pnpm build` (production, adapter-vercel), `pnpm preview`,
-`pnpm check` (type-check), `pnpm test` (unit tests), and `pnpm test:e2e`
-(browser/accessibility tests).
+`pnpm format` / `pnpm format:check` (Prettier, with the Svelte and Tailwind plugins),
+`pnpm lint` / `pnpm lint:fix` (ESLint flat config), `pnpm check` (type-check),
+`pnpm test` (unit tests), and `pnpm test:e2e` (browser/accessibility tests).
+`pnpm validate` runs the format check, lint, type-check, unit tests, and build in one go —
+the same gates CI enforces.
+
+## Styling
+
+Tailwind CSS v4 through `@tailwindcss/vite`, with utilities written directly in the markup.
+`src/app.css` holds only what utilities cannot express: the light/dark design tokens (raw
+custom properties, republished as Tailwind theme tokens via `@theme inline` so a
+`[data-theme]` flip re-colors the page at runtime), the entrance keyframes, and the
+reduced-motion and focus-ring base rules. Two components keep a scoped `<style>` block for
+the same reason — `SalarySlider` (range-input vendor pseudo-elements) and `RentMap`
+(Leaflet's own DOM).
+
+`eslint-plugin-better-tailwindcss` enforces class hygiene: no duplicate, conflicting,
+unknown, deprecated, or non-canonical classes. Class ordering is left to
+`prettier-plugin-tailwindcss`.
 
 ## Data sources
 
-| Source | Endpoint | Key needed | Notes |
-| --- | --- | --- | --- |
-| **Photon** (OSM) | `/api/city-suggest` | none | City autocomplete + coordinates |
-| **Apartment List Rent Estimates** (bundled) | none | none | Monthly city 1BR/2BR estimates |
-| **Census ACS 5-year** (bundled) | none | none | Structured facts for 651 Census places |
-| **FCC Area API** | `/api/geocode` | none | Coords → county FIPS |
-| **HUD FMR** (bundled) | `/api/fmr` | none | FY2026 Fair Market Rents for **every US county** |
-| **SimpleMaps places** (bundled) | `/api/nearby` | none | Nearby towns/suburbs around a point |
-| **SimpleMaps places** (bundled) | `/api/population` | none | Population for a coordinate |
+| Source                                      | Endpoint            | Key needed | Notes                                            |
+| ------------------------------------------- | ------------------- | ---------- | ------------------------------------------------ |
+| **Photon** (OSM)                            | `/api/city-suggest` | none       | City autocomplete + coordinates                  |
+| **Apartment List Rent Estimates** (bundled) | none                | none       | Monthly city 1BR/2BR estimates                   |
+| **Census ACS 5-year** (bundled)             | none                | none       | Structured facts for 651 Census places           |
+| **FCC Area API**                            | `/api/geocode`      | none       | Coords → county FIPS                             |
+| **HUD FMR** (bundled)                       | `/api/fmr`          | none       | FY2026 Fair Market Rents for **every US county** |
+| **SimpleMaps places** (bundled)             | `/api/nearby`       | none       | Nearby towns/suburbs around a point              |
+| **SimpleMaps places** (bundled)             | `/api/population`   | none       | Population for a coordinate                      |
 
 The app **degrades gracefully** and needs **no keys at all**: 651 cities use the bundled
 June 2026 Apartment List snapshot, and cities outside that snapshot resolve through the
@@ -115,11 +132,23 @@ Commit the regenerated JSON together with the fiscal-year documentation update.
 
 - `src/lib/data/` — bundled rent, ACS, and place data plus coordinates and tax tables
 - `src/lib/` — city-aware estimated tax/budget math, formatting, search links, typed API client,
-  `appState.svelte.ts` (runes-based shared state)
-- `src/lib/components/` — CitySearch (autocomplete combobox), BudgetCard, Verdict,
-  CityFacts, SearchLinks, NearbySuburbs, RentTrendChart, TaxBreakdownChart, ComparisonTable,
-  RentMap (Leaflet)
+  `appState.svelte.ts` (runes-based shared state), `urlSync.svelte.ts` (state ⇄ address bar),
+  `salaryField.svelte.ts` (the salary input's own state)
+- `src/lib/compare/` — the compare view's logic: `metrics.ts` (metric table definitions,
+  value/rank accessors, deep links) and `salaries.svelte.ts` (per-city salaries + persistence)
+- `src/lib/components/ui/` — shared: Brand, CitySearch (autocomplete combobox), SalaryInput,
+  SectionHeading, StatGrid, ThemeToggle
+- `src/lib/components/city/` — the city view: CitySidebar (brand, search, salary, actions,
+  BudgetCard), SalarySlider, CityActions, CityHeadline, Verdict, CityFacts, SearchLinks,
+  NearbySuburbs, RentTrendChart, TaxBreakdownChart, ComparisonTable, RentMap (Leaflet),
+  SourcesFooter
+- `src/lib/components/compare/` — the compare view: ScenarioCard, CompareHighlights,
+  CompareMetricsTable
 - `src/routes/api/` — the five serverless endpoints above
+
+Both route files are orchestration only: they wire state to components and own the section
+rhythm (the hairline between result sections and the staggered entrance), which each
+component receives through a `class` prop rather than a `:global()` selector.
 
 ## Deploy
 
