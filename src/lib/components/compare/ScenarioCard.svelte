@@ -21,13 +21,11 @@
   let result = $derived(fitStatus(row));
 </script>
 
-<!-- Columns are separated by a hairline, which becomes a horizontal rule once
-     the grid stacks. -->
 <article
   data-testid="scenario"
-  class="min-w-0 border-line px-5.5 pt-1 pb-6 not-first:border-l first:pl-0 last:pr-0 max-md:px-0 max-md:py-5.5 max-md:not-first:border-t max-md:not-first:border-l-0 max-md:first:pt-0"
+  class="min-w-0 rounded-xl bg-card-2 p-6 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1 hover:shadow-card"
 >
-  <div class="flex min-h-13.5 items-start justify-between gap-2.5">
+  <div class="flex min-h-12 items-start justify-between gap-2">
     <div>
       <h2 class="text-base tracking-tight">
         <a {href} class="text-ink no-underline hover:text-inherit">{row.city.name}</a>
@@ -55,7 +53,7 @@
     class="mt-4"
   />
 
-  <div class="mt-5 grid grid-cols-2 gap-4.5 border-t border-line pt-3.5">
+  <div class="mt-6 grid grid-cols-2 gap-4 border-t border-line pt-4">
     <div class="min-w-0">
       <span class="block text-xs text-muted">1BR rent</span>
       <strong class="mt-0.5 block text-base tabular-nums">
@@ -71,7 +69,7 @@
   </div>
 
   <div
-    class="mt-3.5 border-t-2 pt-2.5 text-sm font-bold {result.tone === 'good'
+    class="mt-4 border-t-2 pt-3 text-sm font-semibold {result.tone === 'good'
       ? 'border-green text-green'
       : result.tone === 'bad'
         ? 'border-red text-red'

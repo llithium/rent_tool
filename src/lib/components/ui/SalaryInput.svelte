@@ -30,7 +30,7 @@
 </script>
 
 <div class={className}>
-  <label for={id} class="mb-1.5 block text-xs font-semibold tracking-[0.08em] text-muted uppercase">
+  <label for={id} class="mb-2 block text-sm font-medium text-muted">
     {label}
   </label>
   <div

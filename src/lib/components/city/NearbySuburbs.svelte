@@ -40,7 +40,7 @@
 
 {#if city.lat != null && city.lng != null && (loading || places.length)}
   <section class={className}>
-    <SectionHeading title="Nearby suburbs &amp; towns">
+    <SectionHeading title="Nearby suburbs and towns">
       <span class="text-xs font-medium text-muted">SimpleMaps</span>
     </SectionHeading>
     <p class="mb-3.5 max-w-[66ch] text-sm/normal text-muted">
@@ -50,13 +50,13 @@
     {#if !places.length}
       <p class="text-sm text-muted">Finding nearby places…</p>
     {:else}
-      <div class="flex flex-wrap gap-2.5">
+      <div class="flex flex-wrap gap-3">
         {#each places as p (p.label)}
           {@const pending = app.pendingName === p.label}
           <button
             disabled={pending}
             onclick={() => app.resolveSuggestion(p)}
-            class="group inline-flex items-baseline gap-2 rounded-xl border bg-card-2 px-4 py-2.5 text-sm font-semibold transition duration-150 hover:-translate-y-px hover:border-accent hover:bg-accent-soft hover:text-accent hover:shadow-card active:translate-y-0 {pending
+            class="group inline-flex items-baseline gap-2 rounded-xl border bg-card-2 px-4 py-2 text-sm font-semibold transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-px hover:border-accent hover:bg-accent-soft hover:text-accent hover:shadow-card active:scale-98 {pending
               ? 'cursor-default border-accent text-accent'
               : 'cursor-pointer border-line-strong text-ink'}"
           >

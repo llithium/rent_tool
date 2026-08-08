@@ -25,28 +25,22 @@
 </script>
 
 {#if city.r1 != null && cushion != null}
-  <!-- The lede under the city headline. Carries its signal through a colored rule
-       and a colored verdict word instead of a tinted box. -->
-  <section
-    class="flex items-start gap-3.5 border-l-4 pl-4 {good
-      ? 'border-green'
-      : 'border-red'} {className}"
-  >
+  <section class="flex items-start gap-4 rounded-xl border border-line bg-card-2 p-6 {className}">
     <!-- No delay and no fill-mode: the ✓/⚠ is the verdict signal, so it must be
          visible whether or not the animation ever runs. -->
     <span
       aria-hidden="true"
-      class="shrink-0 animate-pop text-2xl/tight {good ? 'text-green' : 'text-red'}"
+      class="shrink-0 animate-pop text-2xl {good ? 'text-green' : 'text-red'}"
     >
       {good ? '✓' : '⚠'}
     </span>
     <div>
-      <div class="mb-1 text-xl font-semibold tracking-tight {good ? 'text-green' : 'text-red'}">
+      <div class="mb-2 text-xl font-semibold tracking-tight {good ? 'text-green' : 'text-red'}">
         {good ? 'Comfortable' : 'A stretch'}
       </div>
       <!-- Three lines are reserved so the block height stays constant between the
            short "Comfortable" copy and the longer "A stretch" copy — no layout shift. -->
-      <div class="min-h-[4.875em] max-w-[62ch] leading-relaxed text-ink">
+      <div class="max-w-2xl leading-relaxed text-ink">
         {#if good}
           Your {money(budget.maxRent)} budget covers the {rentLabel} ({money(city.r1)}) with
           {money(cushion)}/mo to spare{twoBrClause}

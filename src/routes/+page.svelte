@@ -54,10 +54,11 @@
 </svelte:head>
 
 <main
+  id="main-content"
   data-hydrated={urlSync.hydrated ? 'true' : 'false'}
-  class="mx-auto max-w-page px-5 pt-8 pb-18"
+  class="mx-auto max-w-7xl px-4 pt-6 pb-24 md:px-6"
 >
-  <div class="grid items-start gap-5 lg:grid-cols-[21.25rem_1fr]">
+  <div class="grid items-start gap-12 lg:grid-cols-[22rem_minmax(0,1fr)]">
     <CitySidebar
       {salary}
       {selected}
@@ -71,8 +72,19 @@
          one carries its own rhythm and entrance delay. Because Svelte keeps these
          children mounted across city/salary changes, the cascade plays once — on
          the empty → results transition. -->
-    <div data-testid="results" class="flex min-w-0 flex-col lg:pt-12">
-      {#if selected && budget}
+    <div data-testid="results" class="flex min-w-0 flex-col lg:pt-16">
+      {#if !urlSync.hydrated}
+        <section
+          aria-busy="true"
+          aria-label="Loading saved rent plan"
+          class="min-h-96 rounded-2xl bg-card-2 p-8 md:p-12"
+        >
+          <div class="h-4 w-32 animate-pulse rounded-md bg-line-strong"></div>
+          <div class="mt-6 h-12 max-w-2xl animate-pulse rounded-lg bg-line"></div>
+          <div class="mt-4 h-12 max-w-xl animate-pulse rounded-lg bg-line"></div>
+          <div class="mt-8 h-6 max-w-2xl animate-pulse rounded-md bg-line"></div>
+        </section>
+      {:else if selected && budget}
         <CityHeadline city={selected} class="animate-rise" />
 
         {#if selected.r1 != null}
@@ -126,12 +138,39 @@
           class="mt-7 animate-rise border-t border-line pt-7 [animation-delay:300ms]"
         />
       {:else}
-        <section class="max-w-[40ch] animate-rise text-base text-muted">
-          <p>Enter a city and salary to see your rent budget, verdict, facts, charts, and a map.</p>
+        <section class="min-h-96 animate-rise rounded-2xl bg-card-2 p-8 md:p-12">
+          <p class="mb-4 text-sm font-semibold text-accent">Plan with real numbers</p>
+          <h1
+            class="max-w-3xl bg-linear-to-r from-black to-[#666666] bg-clip-text text-4xl font-semibold tracking-tight text-transparent md:text-6xl dark:from-white dark:to-[#9B9B9B]"
+          >
+            Know what rent fits before you move.
+          </h1>
+          <p class="mt-6 max-w-2xl text-base/relaxed text-muted md:text-lg">
+            Choose a U.S. city and enter the salary you are considering. Rent Tool compares your
+            budget with current rent estimates, taxes, and nearby options.
+          </p>
+          <ol class="mt-10 grid gap-6 border-t border-line pt-8 md:grid-cols-3">
+            <li>
+              <span class="text-sm font-semibold text-accent tabular-nums">01</span>
+              <p class="mt-2 font-medium text-ink">Choose a city</p>
+            </li>
+            <li>
+              <span class="text-sm font-semibold text-accent tabular-nums">02</span>
+              <p class="mt-2 font-medium text-ink">Enter an annual salary</p>
+            </li>
+            <li>
+              <span class="text-sm font-semibold text-accent tabular-nums">03</span>
+              <p class="mt-2 font-medium text-ink">Review the full rent picture</p>
+            </li>
+          </ol>
         </section>
       {/if}
 
-      <SourcesFooter class="mt-7 animate-rise border-t border-line pt-7 [animation-delay:300ms]" />
+      {#if urlSync.hydrated}
+        <SourcesFooter
+          class="mt-7 animate-rise border-t border-line pt-7 [animation-delay:300ms]"
+        />
+      {/if}
     </div>
   </div>
 </main>

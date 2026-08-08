@@ -33,6 +33,15 @@ test('validates bundled HUD lookup FIPS and handles missing counties', async ({ 
   expect(await missing.json()).toEqual({ ok: false, reason: 'not-found' });
 });
 
+test('does not server-render the landing state before a saved city hydrates', async ({
+  request
+}) => {
+  const response = await request.get('/?salary=80000&city=Tampa%2C+FL');
+  const html = await response.text();
+  expect(html).toContain('Loading saved rent plan');
+  expect(html).not.toContain('Know what rent fits before you move.');
+});
+
 test.beforeEach(async ({ page }) => {
   await page.route('**/api/city-suggest**', (route) =>
     route.fulfill({
@@ -146,10 +155,13 @@ test('keeps the current comparison set when navigating back through cities', asy
   await expect(page.getByRole('button', { name: 'Remove Austin, TX' })).toBeVisible();
 });
 
-test('keeps newly selected cities when opening the detailed comparison', async ({ page }) => {
+test('keeps each selected city with its salary when opening the detailed comparison', async ({
+  page
+}) => {
   await page.getByLabel('Annual salary', { exact: true }).fill('60000');
   await selectCity(page, 'Denver', 'Denver, CO');
   await page.getByRole('button', { name: '+ Compare' }).click();
+  await page.getByLabel('Annual salary', { exact: true }).fill('90000');
   await selectCity(page, 'Nashville', 'Nashville, TN');
   await page.getByRole('button', { name: '+ Compare' }).click();
 
@@ -157,6 +169,8 @@ test('keeps newly selected cities when opening the detailed comparison', async (
   await expect(page).toHaveURL(/\/compare$/);
   await expect(page.getByRole('heading', { name: 'Denver, CO' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Nashville, TN' })).toBeVisible();
+  await expect(page.getByLabel('Annual salary in Denver, CO')).toHaveValue('60,000');
+  await expect(page.getByLabel('Annual salary in Nashville, TN')).toHaveValue('90,000');
   await expect(page.getByText('$78 under budget', { exact: true })).toHaveCSS(
     'color',
     'rgb(20, 123, 59)'

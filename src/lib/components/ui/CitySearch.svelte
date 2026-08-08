@@ -144,17 +144,13 @@
 </script>
 
 <div class="relative min-w-0">
-  <label
-    for="city-input"
-    class="mb-1.5 block text-xs font-semibold tracking-[0.08em] text-muted uppercase"
-  >
-    City
-  </label>
+  <label for="city-input" class="mb-2 block text-sm font-medium text-muted"> City </label>
   <div class="relative">
     <input
       id="city-input"
-      class="w-full rounded-xl border border-line-strong bg-card-2 py-3 pr-10 pl-3.5 text-base font-semibold text-ink placeholder:text-faint focus:border-transparent focus:outline-2 focus:outline-accent"
-      type="text"
+      name="city-search"
+      class="w-full rounded-xl border border-line-strong bg-card-2 py-3 pr-10 pl-3 text-base font-semibold text-ink transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] placeholder:text-faint hover:border-accent focus:border-transparent focus:outline-2 focus:outline-accent"
+      type="search"
       role="combobox"
       aria-expanded={open}
       aria-controls="city-listbox"
@@ -162,6 +158,9 @@
       aria-activedescendant={open && activeIndex >= 0 ? `city-option-${activeIndex}` : undefined}
       aria-busy={loading}
       autocomplete="off"
+      data-1p-ignore
+      data-lpignore="true"
+      data-form-type="other"
       autocorrect="off"
       autocapitalize="off"
       spellcheck="false"

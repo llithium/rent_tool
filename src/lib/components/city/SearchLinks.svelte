@@ -18,13 +18,13 @@
 
 <section class={className}>
   <SectionHeading title="Find apartments under {money(maxRent)}" />
-  <div class="flex flex-wrap gap-2.5">
+  <div class="flex flex-wrap gap-3">
     {#each links as link (link.label)}
       <a
         href={link.url}
         target="_blank"
         rel="noopener"
-        class="inline-block rounded-xl border border-line-strong bg-card-2 px-4 py-3 text-sm font-semibold text-ink no-underline transition duration-150 hover:-translate-y-px hover:border-accent hover:bg-accent-soft hover:text-accent hover:shadow-card active:translate-y-0"
+        class="inline-block rounded-xl border border-line-strong bg-card-2 px-4 py-3 text-sm font-semibold text-ink no-underline transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-px hover:border-accent hover:bg-accent-soft hover:text-accent hover:shadow-card active:scale-98"
       >
         {link.label}
       </a>

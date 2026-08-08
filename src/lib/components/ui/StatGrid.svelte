@@ -23,7 +23,7 @@
       >
         {stat.value}
       </div>
-      <div class="mt-1 text-xs tracking-wide text-muted uppercase">{stat.label}</div>
+      <div class="mt-1 text-xs text-muted">{stat.label}</div>
     </div>
   {/each}
 </div>

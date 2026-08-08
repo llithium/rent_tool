@@ -6,6 +6,7 @@
   import { createCompareSalaries } from '$lib/compare/salaries.svelte';
   import type { CitySuggestion } from '$lib/types';
   import Brand from '$lib/components/ui/Brand.svelte';
+  import ThemeToggle from '$lib/components/ui/ThemeToggle.svelte';
   import CitySearch from '$lib/components/ui/CitySearch.svelte';
   import ScenarioCard from '$lib/components/compare/ScenarioCard.svelte';
   import CompareHighlights from '$lib/components/compare/CompareHighlights.svelte';
@@ -63,27 +64,26 @@
 </svelte:head>
 
 <main
+  id="main-content"
   data-hydrated={hydrated ? 'true' : 'false'}
-  class="mx-auto max-w-page px-4 pt-5 pb-12 md:px-5 md:pt-8 md:pb-18"
+  class="mx-auto max-w-7xl px-4 pt-6 pb-24 md:px-6"
 >
-  <!-- Reserves the corner the fixed theme toggle occupies. -->
-  <header class="flex items-center justify-between gap-5 pr-14">
+  <header class="flex items-center justify-between gap-4">
     <Brand href={cityViewHref} />
-    <a
-      href={cityViewHref}
-      class="text-sm font-semibold text-accent no-underline hover:text-accent-deep"
-    >
-      ← Back to city view
-    </a>
+    <nav aria-label="Primary" class="flex items-center gap-2">
+      <a
+        href={cityViewHref}
+        class="rounded-lg px-3 py-2 text-sm font-semibold text-accent no-underline transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-accent-soft hover:text-accent-deep active:scale-98"
+      >
+        City view
+      </a>
+      <ThemeToggle />
+    </nav>
   </header>
 
-  <section
-    class="grid gap-6 pt-9 pb-7 md:grid-cols-[minmax(0,1fr)_20rem] md:items-end md:gap-9 md:pt-11"
-  >
-    <div>
-      <h1 class="text-xs/normal font-semibold tracking-[0.11em] text-muted uppercase">
-        Side-by-side planner
-      </h1>
+  <section class="grid gap-6 pt-6 md:grid-cols-[minmax(0,1fr)_20rem] md:items-start md:gap-12">
+    <div class="self-center">
+      <h1 class="text-3xl font-semibold tracking-tight text-ink">Side by side planner</h1>
     </div>
     <div>
       <CitySearch onselect={addCity} />
@@ -93,7 +93,7 @@
 
   {#if rows.length}
     <section
-      class="grid grid-cols-[repeat(auto-fit,minmax(13.5rem,1fr))] py-7 max-md:grid-cols-1"
+      class="grid grid-cols-1 gap-4 pt-6 pb-8 md:grid-cols-2"
       aria-label="Comparison scenarios"
     >
       {#each rows as row (row.city.name)}
@@ -113,9 +113,7 @@
 
     <section class="mt-7 border-t border-line pt-7">
       <div class="mb-5 flex items-end justify-between gap-5 max-md:flex-col max-md:items-start">
-        <h2 class="text-xs/normal font-semibold tracking-[0.11em] text-muted uppercase">
-          Full breakdown
-        </h2>
+        <h2 class="text-lg font-semibold tracking-tight">Full breakdown</h2>
         <p class="max-w-85 text-right text-xs text-muted max-md:text-left">
           Taxes estimate a single filer taking the standard deduction.
         </p>
@@ -124,7 +122,7 @@
     </section>
   {:else if hydrated}
     <section class="border-b border-line px-5 py-20 text-center">
-      <h2 class="text-2xl">Add your first city</h2>
+      <h2 class="text-3xl font-semibold tracking-tight">Add your first city</h2>
       <p class="mx-auto mt-2 max-w-130 text-muted">
         Search above to start a comparison. You can add up to five cities and use a separate salary
         for each one.

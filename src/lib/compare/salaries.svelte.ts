@@ -4,6 +4,37 @@ const SALARY_KEY = 'rentToolCompareSalaries.v1';
 
 export const DEFAULT_SALARY = 80_000;
 
+function savedCompareSalaries(): Record<string, number> {
+  try {
+    const parsed: unknown = JSON.parse(localStorage.getItem(SALARY_KEY) ?? '{}');
+    if (!parsed || typeof parsed !== 'object') return {};
+    return Object.fromEntries(
+      Object.entries(parsed).filter(
+        (entry): entry is [string, number] =>
+          typeof entry[1] === 'number' &&
+          Number.isFinite(entry[1]) &&
+          entry[1] > 0 &&
+          entry[1] <= MAX_SALARY
+      )
+    );
+  } catch {
+    return {};
+  }
+}
+
+/** Capture the salary attached to a city when it is added to Compare. */
+export function saveCompareSalary(name: string, salary: number | null) {
+  if (salary == null || !Number.isFinite(salary) || salary <= 0 || salary > MAX_SALARY) return;
+  try {
+    localStorage.setItem(
+      SALARY_KEY,
+      JSON.stringify({ ...savedCompareSalaries(), [name]: Math.round(salary) })
+    );
+  } catch {
+    // Compare still works for this session when storage is unavailable.
+  }
+}
+
 /**
  * One salary per compared city, mirrored to localStorage so a scenario survives
  * a reload. Text is kept verbatim (comma-formatted) while the user types; the
@@ -23,14 +54,6 @@ export function createCompareSalaries() {
       localStorage.setItem(SALARY_KEY, JSON.stringify(values));
     } catch {
       // Storage can be unavailable in private browsing.
-    }
-  }
-
-  function saved(): Record<string, number> {
-    try {
-      return JSON.parse(localStorage.getItem(SALARY_KEY) ?? '{}');
-    } catch {
-      return {};
     }
   }
 
@@ -69,7 +92,7 @@ export function createCompareSalaries() {
 
     /** Seed every compared city from storage, then the shared salary. */
     hydrate(names: string[], fallback: number | null) {
-      const stored = saved();
+      const stored = savedCompareSalaries();
       text = Object.fromEntries(
         names.map((name) => [name, (stored[name] ?? fallback ?? DEFAULT_SALARY).toLocaleString()])
       );

@@ -7,7 +7,7 @@
 
 <!-- Lives inside the sidebar panel, below a hairline — not its own card. -->
 <section class="mt-5 animate-rise border-t border-line pt-4.5">
-  <div class="mb-3 text-xs font-semibold tracking-widest text-muted uppercase">Your 30% budget</div>
+  <div class="mb-3 text-sm font-medium text-muted">Your 30% budget</div>
   <div class="text-5xl leading-none font-semibold tracking-tight text-accent tabular-nums">
     {money(budget.maxRent)}<span class="text-lg font-medium text-muted">/mo</span>
   </div>

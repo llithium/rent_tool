@@ -12,7 +12,13 @@
   let { city, class: className = '' }: { city: City; class?: string } = $props();
 </script>
 
-<header class="flex flex-wrap items-baseline justify-between gap-3.5 {className}">
-  <h1 class="text-2xl/tight font-semibold tracking-tight md:text-3xl">{city.name}</h1>
-  <span class="text-xs font-medium text-muted">{SOURCE_LABEL[city.source]}</span>
+<header class={className}>
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    <h1
+      class="bg-linear-to-r from-black to-[#666666] bg-clip-text text-5xl font-semibold tracking-tight text-transparent md:text-6xl dark:from-white dark:to-[#9B9B9B]"
+    >
+      {city.name}
+    </h1>
+    <span class="pb-2 text-sm font-medium text-muted">{SOURCE_LABEL[city.source]}</span>
+  </div>
 </header>

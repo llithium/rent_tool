@@ -9,77 +9,68 @@
   let fill = $derived(Math.round(((clamped - SLIDER_MIN) / (SLIDER_MAX - SLIDER_MIN)) * 100));
 </script>
 
-<input
-  type="range"
-  min={SLIDER_MIN}
-  max={SLIDER_MAX}
-  step="1000"
-  value={clamped}
-  style="--fill:{fill}%"
-  aria-label="Annual salary slider"
-  {oninput}
-  class="w-full cursor-pointer appearance-none bg-transparent"
-/>
+<div class="relative flex h-6 items-center">
+  <div
+    aria-hidden="true"
+    class="absolute inset-x-0 h-1 overflow-hidden rounded-full bg-line-strong"
+  >
+    <span class="block h-full rounded-full bg-accent" style="width:{fill}%"></span>
+  </div>
+  <input
+    type="range"
+    min={SLIDER_MIN}
+    max={SLIDER_MAX}
+    step="1000"
+    value={clamped}
+    aria-label="Annual salary slider"
+    {oninput}
+    class="relative z-10 w-full cursor-pointer appearance-none bg-transparent"
+  />
+</div>
 <!-- --muted (not --faint) so these labels clear AA contrast on the canvas. -->
 <div class="mt-1 flex justify-between text-xs text-muted tabular-nums">
   <span>$30k</span><span>drag to explore</span><span>$200k</span>
 </div>
 
 <style>
-  /* Range-input internals are vendor pseudo-elements: no Tailwind utility can
-     reach them, and the track needs a gradient stop driven by the --fill custom
-     property the markup sets. */
   input::-webkit-slider-runnable-track {
-    height: 6px;
-    border-radius: 99px;
-    background: linear-gradient(
-      90deg,
-      var(--accent) var(--fill, 40%),
-      var(--line-strong) var(--fill, 40%)
-    );
+    height: 4px;
+    background: transparent;
   }
   input::-moz-range-track {
-    height: 6px;
-    border-radius: 99px;
-    background: var(--line-strong);
+    height: 4px;
+    background: transparent;
   }
   input::-moz-range-progress {
-    height: 6px;
-    border-radius: 99px;
-    background: var(--accent);
+    height: 4px;
+    background: transparent;
   }
   input::-webkit-slider-thumb {
     appearance: none;
-    width: 22px;
-    height: 22px;
-    margin-top: -8px;
+    width: 24px;
+    height: 24px;
+    margin-top: -10px;
     border-radius: 50%;
     background: var(--accent);
     border: 3px solid var(--card);
-    box-shadow: 0 1px 4px rgba(60, 40, 20, 0.35);
-    transition:
-      transform 0.12s ease,
-      box-shadow 0.12s ease;
+    box-shadow: var(--elevation-card);
+    transition: transform 700ms cubic-bezier(0.32, 0.72, 0, 1);
   }
   input:hover::-webkit-slider-thumb,
   input:active::-webkit-slider-thumb {
     transform: scale(1.12);
-    box-shadow: 0 2px 8px rgba(60, 40, 20, 0.4);
   }
   input::-moz-range-thumb {
-    width: 22px;
-    height: 22px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     background: var(--accent);
     border: 3px solid var(--card);
-    box-shadow: 0 1px 4px rgba(60, 40, 20, 0.35);
-    transition:
-      transform 0.12s ease,
-      box-shadow 0.12s ease;
+    box-shadow: var(--elevation-card);
+    transition: transform 700ms cubic-bezier(0.32, 0.72, 0, 1);
   }
   input:hover::-moz-range-thumb,
   input:active::-moz-range-thumb {
     transform: scale(1.12);
-    box-shadow: 0 2px 8px rgba(60, 40, 20, 0.4);
   }
 </style>
