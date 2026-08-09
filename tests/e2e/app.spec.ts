@@ -54,6 +54,16 @@ test.beforeEach(async ({ page }) => {
   await waitForHydration(page);
 });
 
+test('focuses a visible calculator without scrolling the landing page', async ({ page }) => {
+  const city = page.getByRole('combobox', { name: 'City' });
+  const before = await page.evaluate(() => window.scrollY);
+
+  await page.getByRole('button', { name: 'Check my rent budget' }).first().click();
+
+  await expect(city).toBeFocused();
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(before);
+});
+
 test('supports keyboard city selection and salary results', async ({ page }) => {
   const city = page.getByRole('combobox', { name: 'City' });
   await city.click();

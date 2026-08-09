@@ -14,9 +14,7 @@
 
 <header class={className}>
   <div class="flex flex-wrap items-end justify-between gap-4">
-    <h1
-      class="bg-linear-to-r from-black to-[#666666] bg-clip-text text-5xl font-semibold tracking-tight text-transparent md:text-6xl dark:from-white dark:to-[#9B9B9B]"
-    >
+    <h1 class="text-5xl font-semibold tracking-tight text-ink md:text-6xl">
       {city.name}
     </h1>
     <span class="pb-2 text-sm font-medium text-muted">{SOURCE_LABEL[city.source]}</span>

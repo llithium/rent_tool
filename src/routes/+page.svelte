@@ -18,6 +18,7 @@
   import ComparisonTable from '$lib/components/city/ComparisonTable.svelte';
   import RentMap from '$lib/components/city/RentMap.svelte';
   import SourcesFooter from '$lib/components/city/SourcesFooter.svelte';
+  import LandingContent from '$lib/components/landing/LandingContent.svelte';
 
   const urlSync = createUrlSync();
 
@@ -41,16 +42,22 @@
 </script>
 
 <svelte:head>
-  <title>{selected ? `${selected.name} · Rent Tool` : 'Rent Tool'}</title>
+  <title
+    >{selected
+      ? `${selected.name} · Rent Tool`
+      : 'Rent budget calculator for your next move · Rent Tool'}</title
+  >
   <meta
     name="description"
-    content="Compare a salary with current rent estimates, take-home pay, and apartment searches across U.S. cities."
+    content="Turn a salary offer into a practical rent budget, then compare it with current rent estimates, taxes, nearby options, and apartment searches."
   />
-  <meta property="og:title" content="Rent Tool" />
+  <meta property="og:title" content="Know what rent fits before you move · Rent Tool" />
   <meta
     property="og:description"
-    content="See how an offered salary compares with rent and estimated take-home pay across U.S. cities."
+    content="Turn a salary offer into a practical rent budget and compare it with current local estimates."
   />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="/favicon.svg" />
 </svelte:head>
 
 <main
@@ -138,35 +145,10 @@
           class="mt-7 animate-rise border-t border-line pt-7 [animation-delay:300ms]"
         />
       {:else}
-        <section class="min-h-96 animate-rise rounded-2xl bg-card-2 p-8 md:p-12">
-          <p class="mb-4 text-sm font-semibold text-accent">Plan with real numbers</p>
-          <h1
-            class="max-w-3xl bg-linear-to-r from-black to-[#666666] bg-clip-text text-4xl font-semibold tracking-tight text-transparent md:text-6xl dark:from-white dark:to-[#9B9B9B]"
-          >
-            Know what rent fits before you move.
-          </h1>
-          <p class="mt-6 max-w-2xl text-base/relaxed text-muted md:text-lg">
-            Choose a U.S. city and enter the salary you are considering. Rent Tool compares your
-            budget with current rent estimates, taxes, and nearby options.
-          </p>
-          <ol class="mt-10 grid gap-6 border-t border-line pt-8 md:grid-cols-3">
-            <li>
-              <span class="text-sm font-semibold text-accent tabular-nums">01</span>
-              <p class="mt-2 font-medium text-ink">Choose a city</p>
-            </li>
-            <li>
-              <span class="text-sm font-semibold text-accent tabular-nums">02</span>
-              <p class="mt-2 font-medium text-ink">Enter an annual salary</p>
-            </li>
-            <li>
-              <span class="text-sm font-semibold text-accent tabular-nums">03</span>
-              <p class="mt-2 font-medium text-ink">Review the full rent picture</p>
-            </li>
-          </ol>
-        </section>
+        <LandingContent />
       {/if}
 
-      {#if urlSync.hydrated}
+      {#if urlSync.hydrated && selected && budget}
         <SourcesFooter
           class="mt-7 animate-rise border-t border-line pt-7 [animation-delay:300ms]"
         />

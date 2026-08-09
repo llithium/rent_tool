@@ -179,7 +179,7 @@
     {#if loading}
       <span
         aria-hidden="true"
-        class="absolute top-1/2 right-3 size-4 -translate-y-1/2 animate-spin rounded-full border-2 border-line-strong border-t-accent"
+        class="absolute top-1/2 right-3 h-2 w-6 -translate-y-1/2 animate-pulse rounded-full bg-line-strong"
       ></span>
     {/if}
   </div>
