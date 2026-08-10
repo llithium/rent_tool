@@ -51,10 +51,6 @@
       question: 'Is my salary saved?',
       answer:
         'Your plan is stored in your browser and reflected in the page address so you can return to it or share it. Rent Tool does not require an account.'
-    },
-    {
-      question: 'Does Rent Tool cost anything?',
-      answer: 'No. The calculator is free to use and does not ask for a credit card.'
     }
   ];
 
@@ -127,7 +123,6 @@
     >
       Check my rent budget
     </button>
-    <p class="mt-4 text-sm text-muted">Free to use. No account or credit card.</p>
 
     <div class="mt-10 border-t border-line pt-8">
       <p class="max-w-2xl text-sm text-muted">
@@ -219,7 +214,6 @@
     >
       Check my rent budget
     </button>
-    <p class="mt-4 text-sm text-canvas/70">Free to use. Change the numbers as often as you need.</p>
   </section>
 
   <footer
