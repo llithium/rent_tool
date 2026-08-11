@@ -23,7 +23,3 @@
 # Operating-system files
 .DS_Store
 
-# Local agent and design-tool state.
-.agents/
-.codex/
-.impeccable/
