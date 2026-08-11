@@ -42,9 +42,7 @@
       ? `Loading a rent estimate for ${pendingName}. Your current plan remains ${selectedName ?? 'unchanged'}.`
       : awaitingSelection
         ? `Choose a city from the list to update your plan. Your current plan remains ${selectedName}.`
-        : selectedName
-          ? `Plan set to ${selectedName}.`
-          : ''
+        : ''
   );
 
   let debounceTimer: ReturnType<typeof setTimeout> | undefined;
@@ -242,7 +240,9 @@
   <span class="sr-only" aria-live="polite">
     {loading ? 'Searching cities' : open ? `${suggestions.length} city suggestions available` : ''}
   </span>
-  <p id="city-plan-status" aria-live="polite" class="mt-2 min-h-5 text-xs text-muted">
-    {planStatus}
-  </p>
+  {#if planStatus}
+    <p id="city-plan-status" aria-live="polite" class="mt-2 text-xs text-muted">
+      {planStatus}
+    </p>
+  {/if}
 </div>

@@ -5,30 +5,26 @@
   let { budget }: { budget: Budget } = $props();
 </script>
 
-<!-- Lives inside the sidebar panel, below a hairline — not its own card. -->
+<!-- Lives inside the planning surface, below one dividing line — not its own card. -->
 <section class="mt-5 animate-rise border-t border-line pt-4.5">
-  <div class="mb-3 text-sm font-medium text-muted">Your 30% budget</div>
+  <h2 class="text-sm font-medium text-muted">Rent budget</h2>
   <div class="text-5xl leading-none font-semibold tracking-tight text-accent tabular-nums">
     {money(budget.maxRent)}<span class="text-lg font-medium text-muted">/mo</span>
   </div>
-  <div class="mt-1 text-sm text-muted">Max monthly rent · 30% of gross</div>
+  <p class="mt-1 text-sm text-muted">30% of gross income</p>
 
-  <div class="my-4 h-px bg-line"></div>
-
-  <div class="grid grid-cols-2 gap-3">
+  <dl class="mt-5 grid grid-cols-2 gap-4 border-t border-line pt-4">
     <div>
-      <div class="text-xl font-semibold tracking-tight tabular-nums">
+      <dt class="text-xs text-muted">Conservative · 25%</dt>
+      <dd class="mt-0.5 text-xl font-semibold tracking-tight tabular-nums">
         {money(budget.comfyRent)}
-      </div>
-      <div class="text-xs text-muted">Conservative · 25%</div>
+      </dd>
     </div>
     <div>
-      <div class="text-xl font-semibold tracking-tight tabular-nums">
+      <dt class="text-xs text-muted">Take-home · ~{(budget.effRate * 100).toFixed(0)}% tax</dt>
+      <dd class="mt-0.5 text-xl font-semibold tracking-tight tabular-nums">
         {money(budget.takeHomeMonthly)}
-      </div>
-      <div class="text-xs whitespace-nowrap text-muted">
-        Take-home /mo · ~{(budget.effRate * 100).toFixed(0)}% tax
-      </div>
+      </dd>
     </div>
-  </div>
+  </dl>
 </section>

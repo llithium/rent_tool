@@ -36,15 +36,16 @@
   }
 </script>
 
-<div class="mt-4 flex gap-2">
+<!-- Secondary actions live after the answer so they cannot compete with the plan. -->
+<div class="mt-5 flex items-center gap-4 border-t border-line pt-3">
   <button
     type="button"
     disabled={compareFull}
     title={compareFull ? 'Remove a city before adding another' : undefined}
     onclick={onCompare}
-    class="flex-1 cursor-pointer rounded-lg border border-accent px-3 py-2 text-base font-semibold transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] not-disabled:hover:-translate-y-px not-disabled:hover:shadow-card not-disabled:active:scale-98 disabled:cursor-not-allowed disabled:opacity-55 {comparing
-      ? 'bg-accent text-accent-ink'
-      : 'bg-card-2 text-accent'}"
+    class="cursor-pointer rounded-md p-1 text-sm font-semibold transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-55 {comparing
+      ? 'text-ink'
+      : 'text-accent hover:text-accent-deep'}"
   >
     {comparing ? '✓ In compare' : '+ Compare'}
   </button>
@@ -53,7 +54,7 @@
     title="Copy a shareable link"
     disabled={!canShare}
     onclick={onShare}
-    class="flex-none cursor-pointer rounded-lg border border-line-strong bg-card-2 px-3 py-2 text-base font-semibold text-ink transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] not-disabled:hover:-translate-y-px not-disabled:hover:border-accent not-disabled:hover:text-accent not-disabled:active:scale-98 disabled:cursor-not-allowed disabled:opacity-55"
+    class="cursor-pointer rounded-md p-1 text-sm font-medium text-muted transition-colors duration-200 not-disabled:hover:text-accent disabled:cursor-not-allowed disabled:opacity-55"
   >
     {shareLabel}
   </button>

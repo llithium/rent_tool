@@ -30,9 +30,9 @@
     class="relative z-10 w-full cursor-pointer appearance-none bg-transparent"
   />
 </div>
-<!-- --muted (not --faint) so these labels clear AA contrast on the canvas. -->
+<!-- The endpoints name the available range; the control itself already explains how to adjust it. -->
 <div class="mt-1 flex justify-between text-xs text-muted tabular-nums">
-  <span>$30k</span><span>drag to explore</span><span>$200k</span>
+  <span>$30k</span><span>$200k</span>
 </div>
 
 <style>

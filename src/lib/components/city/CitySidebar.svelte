@@ -46,11 +46,8 @@
     </nav>
   </header>
 
-  <!-- One control surface for search, salary, actions, and the resulting budget. -->
-  <section
-    id="plan-controls"
-    class="scroll-mt-6 rounded-2xl border border-line bg-card p-6 shadow-card"
-  >
+  <!-- One control surface: inputs lead directly to the resulting budget. -->
+  <section id="plan-controls" class="scroll-mt-6 rounded-2xl bg-card p-6 shadow-card">
     <CitySearch {onselect} selectedName={app.selectedName} pendingName={app.pendingName} />
 
     <SalaryInput
@@ -68,12 +65,9 @@
       oninput={(event) => onsalary(Number.parseInt((event.target as HTMLInputElement).value, 10))}
     />
 
-    {#if selected}
-      <CityActions cityName={selected.name} canShare={budget != null} />
-    {/if}
-
     {#if selected && budget}
       <BudgetCard {budget} />
+      <CityActions cityName={selected.name} canShare={true} />
     {/if}
   </section>
 </aside>
