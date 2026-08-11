@@ -188,7 +188,7 @@
     <ul
       id="city-listbox"
       role="listbox"
-      class="absolute inset-x-0 top-[calc(100%+0.3125rem)] z-40 max-h-72 overflow-y-auto rounded-xl border border-line-strong bg-card p-1.5 shadow-pop"
+      class="absolute inset-x-0 top-[calc(100%+0.3125rem)] z-40 max-h-72 animate-overlay-settle overflow-y-auto rounded-xl border border-line-strong bg-card p-1.5 shadow-pop"
     >
       {#each suggestions as sug, i (sug.label)}
         {@const parts = highlight(sug.label)}
@@ -196,7 +196,8 @@
           id={`city-option-${i}`}
           role="option"
           aria-selected={i === activeIndex}
-          class="flex cursor-pointer items-baseline justify-between gap-2.5 rounded-lg px-3 py-2.5 text-base {i ===
+          style:animation-delay={`${Math.min(i * 24, 120)}ms`}
+          class="motion-option flex cursor-pointer items-baseline justify-between gap-2.5 rounded-lg px-3 py-2.5 text-base {i ===
           activeIndex
             ? 'bg-accent-soft'
             : ''}"

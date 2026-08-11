@@ -14,7 +14,10 @@
     aria-hidden="true"
     class="absolute inset-x-0 h-1 overflow-hidden rounded-full bg-line-strong"
   >
-    <span class="block h-full rounded-full bg-accent" style="width:{fill}%"></span>
+    <span
+      class="motion-fill block h-full w-full origin-left rounded-full bg-accent"
+      style:--motion-fill={fill / 100}
+    ></span>
   </div>
   <input
     type="range"

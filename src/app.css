@@ -100,11 +100,14 @@
   /* 1120px — the page measure, between Tailwind's 6xl and 7xl containers. */
   --container-page: 70rem;
 
-  /* Motion — subtle, tasteful. All CSS-based so the reduced-motion block below
-     neutralizes it automatically. */
+  /* Motion — the plan resolves like a ledger: search choices settle into place,
+     then a confirmed city gets one brief document refresh. All CSS-based so the
+     reduced-motion block below neutralizes it automatically. */
   --animate-rise: rise 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
   --animate-pop: pop 0.4s cubic-bezier(0.22, 1, 0.36, 1);
   --animate-grow-x: grow-x 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-ledger-refresh: ledger-refresh 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-overlay-settle: overlay-settle 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @keyframes rise {
@@ -137,7 +140,61 @@
     transform: scaleX(0);
   }
   to {
-    transform: scaleX(1);
+    transform: scaleX(var(--motion-fill, 1));
+  }
+}
+
+/* A city choice changes the facts underneath a plan. The short crop-and-settle
+   makes that handoff legible without shifting the document or delaying reading. */
+@keyframes ledger-refresh {
+  from {
+    opacity: 0;
+    clip-path: inset(0 0 16% 0);
+    filter: blur(2px);
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0);
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
+/* The autocomplete is a temporary layer, so it enters from its triggering
+   field rather than behaving like another page section. */
+@keyframes overlay-settle {
+  from {
+    opacity: 0;
+    clip-path: inset(0 0 10% 0 round 0.75rem);
+    transform: translateY(-4px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0 round 0.75rem);
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Fill length is represented as a transform so salary updates stay on the
+   compositor instead of repeatedly animating layout with `width`. */
+.motion-fill {
+  transform: scaleX(var(--motion-fill, 1));
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.motion-option {
+  animation: option-settle 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes option-settle {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 

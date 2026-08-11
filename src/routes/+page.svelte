@@ -92,17 +92,24 @@
           <div class="mt-8 h-6 max-w-2xl animate-pulse rounded-md bg-line"></div>
         </section>
       {:else if selected && budget}
-        <CityHeadline city={selected} class="animate-rise" />
-        <a
-          href="#plan-controls"
-          class="mt-3 inline-flex self-start rounded-lg px-2 py-1 text-sm font-semibold text-accent no-underline hover:bg-accent-soft hover:text-accent-deep lg:hidden"
-        >
-          Edit city or salary ↑
-        </a>
+        {#key selected.name}
+          <!-- The selected city is the plan's identity. Recreating only this
+               identity band makes a completed city choice explicit while the
+               larger results document stays stable and readable. -->
+          <div class="animate-ledger-refresh">
+            <CityHeadline city={selected} />
+            <a
+              href="#plan-controls"
+              class="mt-3 inline-flex self-start rounded-lg px-2 py-1 text-sm font-semibold text-accent no-underline hover:bg-accent-soft hover:text-accent-deep lg:hidden"
+            >
+              Edit city or salary ↑
+            </a>
 
-        {#if selected.r1 != null}
-          <Verdict {budget} city={selected} class="mt-3.5 animate-rise [animation-delay:50ms]" />
-        {/if}
+            {#if selected.r1 != null}
+              <Verdict {budget} city={selected} class="mt-3.5" />
+            {/if}
+          </div>
+        {/key}
         <CityFacts
           city={selected}
           looking={app.looking}
