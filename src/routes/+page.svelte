@@ -63,9 +63,9 @@
 <main
   id="main-content"
   data-hydrated={urlSync.hydrated ? 'true' : 'false'}
-  class="mx-auto max-w-7xl px-4 pt-6 pb-24 md:px-6"
+  class="mx-auto max-w-7xl px-4 pt-4 pb-20 md:px-6 md:pt-6 md:pb-24"
 >
-  <div class="grid items-start gap-12 lg:grid-cols-[22rem_minmax(0,1fr)]">
+  <div class="grid items-start gap-8 lg:gap-12 lg:grid-cols-[22rem_minmax(0,1fr)]">
     <CitySidebar
       {salary}
       {selected}
@@ -79,7 +79,7 @@
          one carries its own rhythm and entrance delay. Because Svelte keeps these
          children mounted across city/salary changes, the cascade plays once — on
          the empty → results transition. -->
-    <div data-testid="results" class="flex min-w-0 flex-col lg:pt-16">
+    <div data-testid="results" class="flex min-w-0 flex-col lg:pt-14">
       {#if !urlSync.hydrated}
         <section
           aria-busy="true"
@@ -93,6 +93,12 @@
         </section>
       {:else if selected && budget}
         <CityHeadline city={selected} class="animate-rise" />
+        <a
+          href="#plan-controls"
+          class="mt-3 inline-flex self-start rounded-lg px-2 py-1 text-sm font-semibold text-accent no-underline hover:bg-accent-soft hover:text-accent-deep lg:hidden"
+        >
+          Edit city or salary ↑
+        </a>
 
         {#if selected.r1 != null}
           <Verdict {budget} city={selected} class="mt-3.5 animate-rise [animation-delay:50ms]" />

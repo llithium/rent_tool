@@ -183,9 +183,8 @@
     bind:this={el}
     class="leaflet-theme h-100 w-full overflow-hidden rounded-xl border border-line bg-card-2"
   ></div>
-  <p class="mt-3 text-xs text-muted">
-    Each of the 100 markets is colored against your current 30% budget. Select a marker by mouse,
-    Enter, or Space to load that city. Click the map to zoom with the scroll wheel.
+  <p class="mt-3 text-xs/relaxed text-muted">
+    Select a marker to load a city.
   </p>
 </section>
 

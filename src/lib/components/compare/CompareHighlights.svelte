@@ -39,9 +39,12 @@
   ]);
 </script>
 
-<section data-testid="highlights" class="grid grid-cols-3 gap-8 max-md:gap-3">
+<section
+  data-testid="highlights"
+  class="mt-8 grid divide-y divide-line border-y border-line md:grid-cols-3 md:divide-x md:divide-y-0"
+>
   {#each leaders as leader (leader.label)}
-    <div class="min-w-0 px-5.5 pt-0.5 pb-3.5 first:pl-0 last:pr-0 max-md:px-0 max-md:py-4">
+    <div class="min-w-0 py-4 md:px-5.5 md:first:pl-0 md:last:pr-0">
       <span class="block text-xs text-muted">{leader.label}</span>
       <strong class="my-1 block text-base">
         {#if leader.row}

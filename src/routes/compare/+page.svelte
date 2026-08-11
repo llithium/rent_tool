@@ -66,7 +66,7 @@
 <main
   id="main-content"
   data-hydrated={hydrated ? 'true' : 'false'}
-  class="mx-auto max-w-7xl px-4 pt-6 pb-24 md:px-6"
+  class="mx-auto max-w-7xl px-4 pt-4 pb-20 md:px-6 md:pt-6 md:pb-24"
 >
   <header class="flex items-center justify-between gap-4">
     <Brand href={cityViewHref} />
@@ -81,11 +81,13 @@
     </nav>
   </header>
 
-  <section class="grid gap-6 pt-6 md:grid-cols-[minmax(0,1fr)_20rem] md:items-start md:gap-12">
-    <div class="self-center">
+  <section
+    class="mt-10 grid gap-6 border-b border-line pb-8 lg:mt-12 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-end lg:gap-12"
+  >
+    <div>
       <h1 class="text-3xl font-semibold tracking-tight text-ink">Side by side planner</h1>
     </div>
-    <div>
+    <div class="w-full lg:justify-self-end">
       <CitySearch onselect={addCity} />
       <p class="mt-2 text-xs text-muted">{app.compareNames.length} of 5 cities added</p>
     </div>
@@ -93,7 +95,7 @@
 
   {#if rows.length}
     <section
-      class="grid grid-cols-1 gap-4 pt-6 pb-8 md:grid-cols-2"
+      class="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-6"
       aria-label="Comparison scenarios"
     >
       {#each rows as row (row.city.name)}
@@ -111,7 +113,7 @@
       <CompareHighlights {rows} compareNames={app.compareNames} />
     {/if}
 
-    <section class="mt-7 border-t border-line pt-7">
+    <section class="mt-12 border-t border-line pt-8">
       <div class="mb-5 flex items-end justify-between gap-5 max-md:flex-col max-md:items-start">
         <h2 class="text-lg font-semibold tracking-tight">Full breakdown</h2>
         <p class="max-w-85 text-right text-xs text-muted max-md:text-left">
@@ -121,7 +123,7 @@
       <CompareMetricsTable {rows} compareNames={app.compareNames} />
     </section>
   {:else if hydrated}
-    <section class="border-b border-line px-5 py-20 text-center">
+    <section class="mt-12 border-b border-line px-5 py-16 text-center md:py-20">
       <h2 class="text-3xl font-semibold tracking-tight">Add your first city</h2>
       <p class="mx-auto mt-2 max-w-130 text-muted">
         Search above to start a comparison. You can add up to five cities and use a separate salary
@@ -130,7 +132,7 @@
     </section>
   {/if}
 
-  <footer class="mt-7 text-xs text-muted">
+  <footer class="mt-12 border-t border-line pt-6 text-xs text-muted">
     Figures are estimates for planning, not tax or financial advice. Rent sources and methodology
     are shown for each city.
   </footer>
