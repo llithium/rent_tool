@@ -9,12 +9,14 @@
     href,
     salaries,
     sharedSalary,
+    entranceDelay = 0,
     onremove
   }: {
     row: CompareRow;
     href: string;
     salaries: CompareSalaries;
     sharedSalary: number | null;
+    entranceDelay?: number;
     onremove: () => void;
   } = $props();
 
@@ -23,7 +25,8 @@
 
 <article
   data-testid="scenario"
-  class="min-w-0 rounded-xl bg-card-2 p-6 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1 hover:shadow-card"
+  style:animation-delay={`${entranceDelay}ms`}
+  class="min-w-0 animate-rise rounded-xl bg-card-2 p-6 transition-all duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1 hover:shadow-card"
 >
   <div class="flex min-h-12 items-start justify-between gap-2">
     <div>
@@ -69,9 +72,11 @@
     </div>
     <div class="min-w-0">
       <span class="block text-xs text-muted">Rent budget</span>
-      <strong class="mt-0.5 block text-base tabular-nums">
-        {money(row.budget.maxRent)}<small class="text-xs font-medium text-muted">/mo</small>
-      </strong>
+      {#key row.budget.maxRent}
+        <strong class="motion-value mt-0.5 block text-base tabular-nums">
+          {money(row.budget.maxRent)}<small class="text-xs font-medium text-muted">/mo</small>
+        </strong>
+      {/key}
     </div>
   </div>
 
@@ -82,7 +87,9 @@
         ? 'border-red text-red'
         : 'border-line-strong text-muted'}"
   >
-    {result.label}
+    {#key result.label}
+      <span class="motion-copy inline-block">{result.label}</span>
+    {/key}
   </div>
   {#if row.city.r1 == null}
     <p class="mt-2 text-xs/5 text-muted">

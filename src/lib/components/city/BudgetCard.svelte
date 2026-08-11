@@ -9,7 +9,11 @@
 <section class="mt-5 animate-rise border-t border-line pt-4.5">
   <h2 class="text-sm font-medium text-muted">Rent budget</h2>
   <div class="text-5xl leading-none font-semibold tracking-tight text-accent tabular-nums">
-    {money(budget.maxRent)}<span class="text-lg font-medium text-muted">/mo</span>
+    {#key budget.maxRent}
+      <span class="motion-value">
+        {money(budget.maxRent)}<span class="text-lg font-medium text-muted">/mo</span>
+      </span>
+    {/key}
   </div>
   <p class="mt-1 text-sm text-muted">30% of gross income</p>
 

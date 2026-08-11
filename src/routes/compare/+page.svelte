@@ -126,12 +126,13 @@
       class="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-6"
       aria-label="Comparison scenarios"
     >
-      {#each rows as row (row.city.name)}
+      {#each rows as row, index (row.city.name)}
         <ScenarioCard
           {row}
           href={cityHref(row, app.compareNames)}
           {salaries}
           sharedSalary={app.salary}
+          entranceDelay={Math.min(index * 60, 180)}
           onremove={() => app.toggleCompare(row.city.name)}
         />
       {/each}

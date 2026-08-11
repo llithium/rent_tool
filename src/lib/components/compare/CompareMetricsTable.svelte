@@ -49,6 +49,7 @@
             </th>
             {#each rows as row, index (row.city.name)}
               {@const tone = metricTone(rows, row, metric.key, metric.direction)}
+              {@const value = metricValue(row, metric.key)}
               <td
                 data-tone={tone}
                 title={tone === 'best'
@@ -60,7 +61,7 @@
                   ? 'border-b-transparent'
                   : ''} {tone === 'best' ? 'text-green' : tone === 'worst' ? 'text-red' : ''}"
               >
-                <span>{metricValue(row, metric.key)}</span>
+                {#key value}<span class="motion-value">{value}</span>{/key}
                 {#if tone}
                   <!-- Best/worst is called out with a rule under the cell rather
                      than a fill, so the number stays the loudest thing in the row.
@@ -108,6 +109,7 @@
               </th>
               {#each rows as row, index (row.city.name)}
                 {@const tone = metricTone(rows, row, metric.key, metric.direction)}
+                {@const value = metricValue(row, metric.key)}
                 <td
                   data-tone={tone}
                   class="relative text-right tabular-nums {tone === 'best'
@@ -116,7 +118,7 @@
                       ? 'text-red'
                       : ''}"
                 >
-                  <span>{metricValue(row, metric.key)}</span>
+                  {#key value}<span class="motion-value">{value}</span>{/key}
                   {#if tone}
                     <span
                       class="absolute bottom-0 h-0.5 {tone === 'best'

@@ -68,16 +68,18 @@
         >
           {good ? 'Fits your 30% gross-income target' : 'Above your gross-income target'}
         </h2>
-        <div class="max-w-2xl leading-relaxed text-ink">
-          {#if good}
-            Your {money(budget.maxRent)} target covers the {rentLabel} ({money(city.r1)}) with
-            {money(cushion)}/mo under the target{twoBrClause}
-          {:else}
-            The {rentLabel} ({money(city.r1)}) runs {money(-cushion)}/mo over your 30% target. You’d
-            want roughly {money(salaryForRent(city.r1))}/yr for it — consider below-median units, a
-            roommate, or nearby suburbs.
-          {/if}
-        </div>
+        {#key `${good}-${cushion}`}
+          <div class="motion-copy max-w-2xl leading-relaxed text-ink">
+            {#if good}
+              Your {money(budget.maxRent)} target covers the {rentLabel} ({money(city.r1)}) with
+              {money(cushion)}/mo under the target{twoBrClause}
+            {:else}
+              The {rentLabel} ({money(city.r1)}) runs {money(-cushion)}/mo over your 30% target.
+              You’d want roughly {money(salaryForRent(city.r1))}/yr for it — consider below-median
+              units, a roommate, or nearby suburbs.
+            {/if}
+          </div>
+        {/key}
       </div>
     </div>
 

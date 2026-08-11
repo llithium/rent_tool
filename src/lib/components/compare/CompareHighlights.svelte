@@ -87,22 +87,26 @@
     </div>
   </div>
 
-  <div class="mt-6 flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6">
-    <div>
-      <span class="block text-xs font-semibold tracking-wide text-muted uppercase">{title}</span>
-      {#if decision}
-        <a
-          href={cityHref(decision, compareNames)}
-          class="mt-1 inline-block text-2xl font-semibold tracking-tight text-ink decoration-accent underline-offset-4 hover:text-accent"
-        >
-          {decision.city.name}
-        </a>
-      {:else}
-        <strong class="mt-1 block text-2xl font-semibold tracking-tight text-ink"
-          >Not enough data yet</strong
-        >
-      {/if}
+  {#key `${criterion}-${decision?.city.name ?? 'none'}-${detail}`}
+    <div
+      class="motion-copy mt-6 flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6"
+    >
+      <div>
+        <span class="block text-xs font-semibold tracking-wide text-muted uppercase">{title}</span>
+        {#if decision}
+          <a
+            href={cityHref(decision, compareNames)}
+            class="mt-1 inline-block text-2xl font-semibold tracking-tight text-ink decoration-accent underline-offset-4 hover:text-accent"
+          >
+            {decision.city.name}
+          </a>
+        {:else}
+          <strong class="mt-1 block text-2xl font-semibold tracking-tight text-ink"
+            >Not enough data yet</strong
+          >
+        {/if}
+      </div>
+      <p class="max-w-sm text-sm text-muted tabular-nums sm:text-right">{detail}</p>
     </div>
-    <p class="max-w-sm text-sm text-muted tabular-nums sm:text-right">{detail}</p>
-  </div>
+  {/key}
 </section>

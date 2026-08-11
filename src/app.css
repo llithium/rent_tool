@@ -198,6 +198,30 @@
   }
 }
 
+/* A salary edit recalculates the plan in place. These values remain visible in
+   their resting state, then use a short lift and a bounded blur to acknowledge
+   the new number without moving the surrounding ledger. */
+.motion-value,
+.motion-copy {
+  animation: value-settle 240ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes value-settle {
+  from {
+    opacity: 0.62;
+    filter: blur(1.5px);
+    transform: translateY(4px);
+  }
+  55% {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
 @layer base {
   h1,
   h2,

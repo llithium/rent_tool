@@ -76,7 +76,12 @@
       <span>Explore city context</span>
       <span class="flex items-center gap-2 text-xs font-medium text-muted">
         {#if city.citySnapshot}ACS 2020–2024{:else}Background reading{/if}
-        <svg class="size-4" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <svg
+          class="size-4 transition-transform duration-200"
+          viewBox="0 0 16 16"
+          fill="none"
+          aria-hidden="true"
+        >
           <path
             d="m4 6 4 4 4-4"
             stroke="currentColor"

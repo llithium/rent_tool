@@ -18,7 +18,7 @@
         : 'Please return to the calculator and try again.'}
     </p>
     <a
-      class="mt-8 inline-flex rounded-xl bg-accent px-3 py-2 text-base font-semibold text-accent-ink transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-0.5 hover:bg-accent-deep active:translate-y-px active:scale-98"
+      class="mt-8 inline-flex rounded-xl bg-accent px-3 py-2 text-base font-semibold text-accent-ink transition-all duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-0.5 hover:bg-accent-deep active:translate-y-px active:scale-98"
       href="/"
     >
       Back to Rent Tool
