@@ -220,7 +220,7 @@
       <CompareHighlights {rows} compareNames={app.compareNames} />
     {/if}
 
-    <section class="mt-12 border-t border-line pt-8">
+    <section class="mt-8 border-t border-line pt-6">
       <div class="mb-5 flex items-end justify-between gap-5 max-md:flex-col max-md:items-start">
         <h2 class="text-lg font-semibold tracking-tight">Full breakdown</h2>
         <p class="max-w-85 text-right text-xs text-muted max-md:text-left">
