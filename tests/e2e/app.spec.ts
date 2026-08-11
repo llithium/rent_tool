@@ -58,7 +58,7 @@ test('focuses a visible calculator without scrolling the landing page', async ({
   const city = page.getByRole('combobox', { name: 'City' });
   const before = await page.evaluate(() => window.scrollY);
 
-  await page.getByRole('button', { name: 'Check my rent budget' }).first().click();
+  await page.getByRole('button', { name: 'Choose a city and salary' }).click();
 
   await expect(city).toBeFocused();
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(before);
@@ -79,6 +79,19 @@ test('supports keyboard city selection and salary results', async ({ page }) => 
   await expect(page.getByRole('heading', { name: 'City snapshot' })).toBeVisible();
   await expect(page.getByText('Median household income', { exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: '2020–2024 ACS 5-year estimates ↗' })).toBeVisible();
+});
+
+test('keeps the accepted city explicit while a different city is being typed', async ({ page }) => {
+  await selectCity(page, 'Tampa', 'Tampa, FL');
+  await page.getByLabel('Annual salary', { exact: true }).fill('80000');
+  const city = page.getByRole('combobox', { name: 'City' });
+  await city.fill('Austin');
+  await expect(
+    page.getByText(
+      'Choose a city from the list to update your plan. Your current plan remains Tampa, FL.'
+    )
+  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Tampa, FL' })).toBeVisible();
 });
 
 test('credits the bundled Apartment List estimates', async ({ page }) => {
@@ -217,6 +230,7 @@ test('keeps each selected city with its salary when opening the detailed compari
 test('exposes map markers to the keyboard', async ({ page }) => {
   await selectCity(page, 'Tampa', 'Tampa, FL');
   await page.getByLabel('Annual salary', { exact: true }).fill('80000');
+  await expect(page.getByText('Current city: Tampa, FL', { exact: true })).toBeVisible();
   const marker = page.getByRole('button', {
     name: 'New York, NY, 1 bedroom $2,443, over budget'
   });

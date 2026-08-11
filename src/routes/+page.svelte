@@ -65,7 +65,7 @@
   data-hydrated={urlSync.hydrated ? 'true' : 'false'}
   class="mx-auto max-w-7xl px-4 pt-4 pb-20 md:px-6 md:pt-6 md:pb-24"
 >
-  <div class="grid items-start gap-8 lg:gap-12 lg:grid-cols-[22rem_minmax(0,1fr)]">
+  <div class="grid items-start gap-8 lg:grid-cols-[22rem_minmax(0,1fr)] lg:gap-12">
     <CitySidebar
       {salary}
       {selected}
@@ -119,7 +119,8 @@
         />
 
         <!-- The two charts share one section band, split by a hairline rather
-             than sitting in two boxes. -->
+             than sitting in two boxes. They remain visible because the budget
+             and market comparison are part of the same decision. -->
         <div
           class="mt-7 grid animate-rise grid-cols-1 gap-6 border-t border-line pt-7 [animation-delay:150ms] md:grid-cols-2 md:gap-8"
         >
@@ -163,7 +164,7 @@
 
       {#if urlSync.hydrated && selected && budget}
         <SourcesFooter
-          class="mt-7 animate-rise border-t border-line pt-7 [animation-delay:300ms]"
+          class="mt-7 animate-rise border-t border-line pt-7 [animation-delay:200ms]"
         />
       {/if}
     </div>

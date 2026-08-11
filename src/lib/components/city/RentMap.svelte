@@ -25,6 +25,7 @@
   let group: LayerGroup | undefined;
   let L: typeof import('leaflet');
   let ready = $state(false);
+  let centeredName: string | null = null;
 
   const markers = new Map<string, CircleMarker>();
 
@@ -95,6 +96,18 @@
       markers.set(c.name, marker);
     }
 
+    const selectedCity = selectedName ? cities.find((c) => c.name === selectedName) : null;
+    if (
+      selectedCity?.lat != null &&
+      selectedCity.lng != null &&
+      centeredName !== selectedCity.name
+    ) {
+      map?.setView([selectedCity.lat, selectedCity.lng], 8, { animate: false });
+      centeredName = selectedCity.name;
+    } else if (!selectedCity) {
+      centeredName = null;
+    }
+
     if (hadFocus) {
       // Same marker if it still exists, else the selected one, else the container.
       // preventScroll, or the focus call scrolls the overflow-hidden container
@@ -153,30 +166,28 @@
     void selectedName;
     draw();
   });
-
-  // Recenter on the selected city. Instant, not flyTo: an animated flight can be
-  // interrupted by scroll/drag, which shifts every marker off its coordinates.
-  $effect(() => {
-    if (!ready || !map || !selectedName) return;
-    const c = cities.find((x) => x.name === selectedName);
-    if (c?.lat != null && c.lng != null) {
-      map.stop();
-      map.setView([c.lat, c.lng], Math.max(map.getZoom(), 8), { animate: false });
-    }
-  });
 </script>
 
 <section class={className}>
   <SectionHeading title="Affordability map">
     <div class="flex gap-3.5 text-xs text-muted">
-      <!-- The marker colours are set in JS on Leaflet's SVG layer, so the legend
-           swatches repeat those literals rather than reading a theme token. -->
-      <span class="inline-flex items-center gap-1.5">
-        <i class="inline-block size-2.5 rounded-full" style="background:#147b3b"></i> fits budget
-      </span>
-      <span class="inline-flex items-center gap-1.5">
-        <i class="inline-block size-2.5 rounded-full" style="background:#b7352d"></i> over budget
-      </span>
+      <div class="flex flex-wrap justify-end gap-x-3.5 gap-y-1">
+        {#if selectedName}
+          <span class="inline-flex items-center gap-1.5 font-semibold text-ink">
+            <i class="inline-block size-2.5 rounded-full border-2 border-accent bg-card"></i>
+            Current city:
+            {selectedName}
+          </span>
+        {/if}
+        <!-- The marker colours are set in JS on Leaflet's SVG layer, so the legend
+             swatches repeat those literals rather than reading a theme token. -->
+        <span class="inline-flex items-center gap-1.5">
+          <i class="inline-block size-2.5 rounded-full" style="background:#147b3b"></i> fits budget
+        </span>
+        <span class="inline-flex items-center gap-1.5">
+          <i class="inline-block size-2.5 rounded-full" style="background:#b7352d"></i> over budget
+        </span>
+      </div>
     </div>
   </SectionHeading>
   <div
@@ -184,7 +195,7 @@
     class="leaflet-theme h-100 w-full overflow-hidden rounded-xl border border-line bg-card-2"
   ></div>
   <p class="mt-3 text-xs/relaxed text-muted">
-    Select a marker to load a city.
+    Your current plan stays centered and labelled. Select another marker to load that city.
   </p>
 </section>
 

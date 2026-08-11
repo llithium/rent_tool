@@ -4,7 +4,7 @@
   let { class: className = '' }: { class?: string } = $props();
 </script>
 
-<footer class="max-w-[74ch] text-xs/relaxed text-muted {className}">
+<footer id="sources" class="max-w-[74ch] text-xs/relaxed text-muted {className}">
   Rent estimates:
   <a
     href={RENT_DATA_META.dataUrl}

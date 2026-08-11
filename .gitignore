@@ -1,15 +1,27 @@
-node_modules
-.pnpm-store/
-/build
-/.svelte-kit
-/package
-.env
-.env.*
-.vercel
+# Dependencies and package-manager state
+/node_modules/
+/.pnpm-store/
+
+# SvelteKit and Vite build output
+/.svelte-kit/
+/build/
+/package/
+/.vercel/
+
+# Test output and local caches
+/coverage/
+/test-results/
+/playwright-report/
+/blob-report/
+*.tsbuildinfo
+
+# Local environment configuration (keep an example template in Git)
+/.env
+/.env.*
+!/.env.example
+
+# Operating-system files
 .DS_Store
-test-results/
-playwright-report/
-blob-report/
 
 # Local agent and design-tool state.
 .agents/

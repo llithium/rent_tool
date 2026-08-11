@@ -16,17 +16,23 @@
     if (adding && app.isComparing(cityName)) saveCompareSalary(cityName, app.salary);
   }
 
-  function onShare() {
+  async function onShare() {
     // The URL sync keeps location.href in step with the current state, so the
     // live deep link is exactly the shareable URL for the current view.
-    try {
-      navigator.clipboard?.writeText(location.href);
-    } catch {
-      /* clipboard unavailable */
+    if (!navigator.clipboard?.writeText) {
+      shareLabel = 'Copy unavailable';
+      clearTimeout(shareTimer);
+      shareTimer = setTimeout(() => (shareLabel = 'Copy link'), 2600);
+      return;
     }
-    shareLabel = '✓ Copied';
+    try {
+      await navigator.clipboard.writeText(location.href);
+      shareLabel = '✓ Copied';
+    } catch {
+      shareLabel = 'Copy unavailable';
+    }
     clearTimeout(shareTimer);
-    shareTimer = setTimeout(() => (shareLabel = 'Copy link'), 1800);
+    shareTimer = setTimeout(() => (shareLabel = 'Copy link'), 2600);
   }
 </script>
 

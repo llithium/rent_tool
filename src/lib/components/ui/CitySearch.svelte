@@ -12,8 +12,13 @@
 
   let {
     onselect,
-    selectedName = null
-  }: { onselect: (sug: CitySuggestion) => void; selectedName?: string | null } = $props();
+    selectedName = null,
+    pendingName = null
+  }: {
+    onselect: (sug: CitySuggestion) => void;
+    selectedName?: string | null;
+    pendingName?: string | null;
+  } = $props();
 
   let query = $state('');
 
@@ -29,6 +34,18 @@
   let loading = $state(false);
   let activeIndex = $state(-1);
   let requestId = 0;
+  let awaitingSelection = $derived(
+    selectedName != null && query.trim().length >= 2 && query.trim() !== selectedName
+  );
+  let planStatus = $derived(
+    pendingName
+      ? `Loading a rent estimate for ${pendingName}. Your current plan remains ${selectedName ?? 'unchanged'}.`
+      : awaitingSelection
+        ? `Choose a city from the list to update your plan. Your current plan remains ${selectedName}.`
+        : selectedName
+          ? `Plan set to ${selectedName}.`
+          : ''
+  );
 
   let debounceTimer: ReturnType<typeof setTimeout> | undefined;
   let blurTimer: ReturnType<typeof setTimeout> | undefined;
@@ -157,6 +174,7 @@
       aria-autocomplete="list"
       aria-activedescendant={open && activeIndex >= 0 ? `city-option-${activeIndex}` : undefined}
       aria-busy={loading}
+      aria-describedby={planStatus ? 'city-plan-status' : undefined}
       autocomplete="off"
       data-1p-ignore
       data-lpignore="true"
@@ -224,4 +242,7 @@
   <span class="sr-only" aria-live="polite">
     {loading ? 'Searching cities' : open ? `${suggestions.length} city suggestions available` : ''}
   </span>
+  <p id="city-plan-status" aria-live="polite" class="mt-2 min-h-5 text-xs text-muted">
+    {planStatus}
+  </p>
 </div>

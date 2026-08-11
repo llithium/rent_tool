@@ -47,8 +47,8 @@
   </header>
 
   <!-- One control surface for search, salary, actions, and the resulting budget. -->
-  <section class="rounded-2xl border border-line bg-card p-6 shadow-card">
-    <CitySearch {onselect} selectedName={app.selectedName} />
+  <section id="plan-controls" class="scroll-mt-6 rounded-2xl border border-line bg-card p-6 shadow-card">
+    <CitySearch {onselect} selectedName={app.selectedName} pendingName={app.pendingName} />
 
     <SalaryInput
       id="salary"
