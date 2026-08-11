@@ -19,14 +19,14 @@
 </script>
 
 <section class={className}>
-  <SectionHeading title="Start your apartment search" />
+  <SectionHeading title="Next step" />
 
   <div class="border-y border-line py-5 sm:py-6">
     <div class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:gap-8">
       <div>
-        <p class="text-lg font-semibold tracking-tight text-ink">
-          Search listings that fit your {money(maxRent)} monthly target.
-        </p>
+        <h3 class="text-lg font-semibold tracking-tight text-ink">
+          Search listings under {money(maxRent)}
+        </h3>
         <p class="mt-1.5 max-w-[58ch] text-sm/normal text-muted">
           We pass your exact rent cap to Zillow. Other marketplaces are here if you want a wider
           look; each link states whether it carries a rent cap with it.
@@ -56,29 +56,54 @@
     </div>
   </div>
 
-  <div class="mt-4 grid border-t border-line sm:grid-cols-3">
-    {#each alternatives as link (link.label)}
-      <a
-        href={link.url}
-        target="_blank"
-        rel="noopener"
-        class="group flex min-h-22 flex-col justify-between gap-2 border-b border-line px-0 py-4 text-sm no-underline hover:text-accent sm:border-r sm:px-4 sm:first:pl-0 sm:last:border-r-0 sm:last:pr-0"
-      >
-        <span class="font-semibold text-ink group-hover:text-accent"
-          >{link.label.split(' · ')[0]}</span
+  <details class="mt-5 border-t border-line pt-4">
+    <summary
+      class="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold text-ink [&::-webkit-details-marker]:hidden"
+    >
+      <span>Browse other marketplaces</span>
+      <span class="flex items-center gap-2 text-xs font-medium text-muted">
+        {alternatives.length} more options
+        <svg class="size-4" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path
+            d="m4 6 4 4 4-4"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </span>
+    </summary>
+    <div class="mt-4 grid border-y border-line sm:grid-cols-3">
+      {#each alternatives as link (link.label)}
+        <a
+          href={link.url}
+          target="_blank"
+          rel="noopener"
+          class="group flex min-h-22 flex-col justify-between gap-2 border-b border-line px-0 py-4 text-sm no-underline hover:text-accent sm:border-r sm:px-4 sm:first:pl-0 sm:last:border-r-0 sm:last:pr-0"
         >
-        <span class="text-xs/normal text-muted group-hover:text-accent">
-          {#if link.prefiltered}
-            Shows listings {link.label.split(' · ')[1]}
-          {:else}
-            Browse listings — set your max rent
-          {/if}
-        </span>
-      </a>
-    {/each}
-  </div>
+          <span class="font-semibold text-ink group-hover:text-accent"
+            >{link.label.split(' · ')[0]}</span
+          >
+          <span class="text-xs/normal text-muted group-hover:text-accent">
+            {#if link.prefiltered}
+              Shows listings {link.label.split(' · ')[1]}
+            {:else}
+              Browse listings — set your max rent
+            {/if}
+          </span>
+        </a>
+      {/each}
+    </div>
+  </details>
   <p class="mt-3 max-w-[66ch] text-xs/normal text-muted">
     Apartment budgets are planning estimates. Confirm the rent, fees, and availability before you
     apply.
   </p>
 </section>
+
+<style>
+  details[open] summary svg {
+    transform: rotate(180deg);
+  }
+</style>

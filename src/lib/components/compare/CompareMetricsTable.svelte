@@ -73,7 +73,7 @@
                       : 'right-1.5'}"
                   ></span>
                   <span
-                    class="mt-1 block text-[0.6875rem] font-semibold {tone === 'best'
+                    class="mt-1 block text-xs font-semibold {tone === 'best'
                       ? 'text-green'
                       : 'text-red'}"
                   >
@@ -126,7 +126,7 @@
                         : 'right-1.5'}"
                     ></span>
                     <span
-                      class="mt-1 block text-[0.6875rem] font-semibold {tone === 'best'
+                      class="mt-1 block text-xs font-semibold {tone === 'best'
                         ? 'text-green'
                         : 'text-red'}"
                     >

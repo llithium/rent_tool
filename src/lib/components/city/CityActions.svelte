@@ -27,7 +27,7 @@
     }
     try {
       await navigator.clipboard.writeText(location.href);
-      shareLabel = '✓ Copied';
+      shareLabel = 'Copied link';
     } catch {
       shareLabel = 'Copy unavailable';
     }
@@ -37,20 +37,37 @@
 </script>
 
 <!-- Secondary actions live after the answer so they cannot compete with the plan. -->
-<div class="mt-5 flex items-center gap-4 border-t border-line pt-3">
+<div class="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line pt-3">
   <button
     type="button"
+    aria-pressed={comparing}
     disabled={compareFull}
     title={compareFull ? 'Remove a city before adding another' : undefined}
     onclick={onCompare}
-    class="cursor-pointer rounded-md p-1 text-sm font-semibold transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-55 {comparing
+    class="inline-flex cursor-pointer items-center gap-1.5 rounded-md p-1 text-sm font-semibold transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-55 {comparing
       ? 'text-ink'
       : 'text-accent hover:text-accent-deep'}"
   >
-    {comparing ? '✓ In compare' : '+ Compare'}
+    {#if comparing}
+      <svg class="size-4" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <path
+          d="m3.5 8.25 2.75 2.75L12.5 5"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+      In compare
+    {:else if compareFull}
+      Comparison full
+    {:else}
+      + Compare
+    {/if}
   </button>
   <button
     type="button"
+    aria-live="polite"
     title="Copy a shareable link"
     disabled={!canShare}
     onclick={onShare}
@@ -58,4 +75,12 @@
   >
     {shareLabel}
   </button>
+  {#if app.compareNames.length}
+    <a
+      href="#comparison-section"
+      class="rounded-md px-1 py-0.5 text-sm font-semibold text-accent no-underline hover:bg-accent-soft hover:text-accent-deep"
+    >
+      View comparison ({app.compareNames.length})
+    </a>
+  {/if}
 </div>

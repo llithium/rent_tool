@@ -20,6 +20,11 @@ export function rentMetricLabel(metric: RentMetric, bedrooms: '1BR' | '2BR' = '1
   return `${bedrooms} rent`;
 }
 
+/** Lower only the first character when a metric label starts a sentence. */
+export function sentenceLabel(label: string): string {
+  return label ? label[0].toLowerCase() + label.slice(1) : label;
+}
+
 /** Population fact text: "874,579" for place-level figures, "3.4M metro" for
  * the aggregated urban estimates the dataset uses on large anchor cities. */
 export function popText(pop: number): string {

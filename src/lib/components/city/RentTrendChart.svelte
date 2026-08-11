@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Budget, City } from '$lib/types';
-  import { money, pctTrend } from '$lib/format';
+  import { money, pctTrend, rentMetricLabel } from '$lib/format';
   import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
 
   let {
@@ -17,9 +17,19 @@
 
   let bars = $derived.by<Bar[]>(() => {
     const out: Bar[] = [];
-    if (city.r1 != null) out.push({ label: 'Median 1BR', value: city.r1, kind: 'rent' });
-    if (city.r2 != null) out.push({ label: 'Median 2BR', value: city.r2, kind: 'rent' });
-    out.push({ label: 'Your max (30%)', value: budget.maxRent, kind: 'budget' });
+    if (city.r1 != null)
+      out.push({
+        label: rentMetricLabel(city.rentMetric, '1BR').replace(' rent', ''),
+        value: city.r1,
+        kind: 'rent'
+      });
+    if (city.r2 != null)
+      out.push({
+        label: rentMetricLabel(city.rentMetric, '2BR').replace(' rent', ''),
+        value: city.r2,
+        kind: 'rent'
+      });
+    out.push({ label: 'Your max (30% gross)', value: budget.maxRent, kind: 'budget' });
     return out;
   });
 

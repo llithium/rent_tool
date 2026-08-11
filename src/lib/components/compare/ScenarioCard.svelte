@@ -35,9 +35,16 @@
     <button
       onclick={onremove}
       aria-label={`Remove ${row.city.name}`}
-      class="cursor-pointer rounded-md border-0 bg-transparent text-xl leading-none text-muted hover:bg-card-2 hover:text-red"
+      class="cursor-pointer rounded-md border-0 bg-transparent p-2 text-muted hover:bg-card-2 hover:text-red"
     >
-      ×
+      <svg class="size-4" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <path
+          d="m4.5 4.5 7 7m0-7-7 7"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+        />
+      </svg>
     </button>
   </div>
 

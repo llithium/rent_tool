@@ -6,7 +6,7 @@
 {#if href}
   <a
     {href}
-    class="flex items-center gap-2 text-sm font-semibold tracking-tight text-ink no-underline transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:text-accent"
+    class="flex items-center gap-2 text-sm font-semibold tracking-tight text-ink no-underline transition-colors duration-200 hover:text-accent"
   >
     <img src="/favicon.svg" alt="" width="26" height="26" class="block rounded-md" />
     <span>Rent Tool</span>

@@ -40,7 +40,8 @@
   function recenterOnSelectedCity(force = false) {
     const selectedCity = selectedName ? cities.find((c) => c.name === selectedName) : null;
     if (
-      !map || !selectedCity ||
+      !map ||
+      !selectedCity ||
       selectedCity.lat == null ||
       selectedCity.lng == null ||
       (!force && centeredName === selectedCity.name)
@@ -234,7 +235,7 @@
     color: var(--ink);
     border: 1px solid var(--line-strong);
     box-shadow: var(--elevation-card);
-    font-size: 0.78rem;
+    font-size: 0.875rem;
   }
   .leaflet-theme :global(.leaflet-tooltip-top::before) {
     border-top-color: var(--line-strong);

@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Budget, City } from '$lib/types';
-  import { money } from '$lib/format';
+  import { money, rentMetricLabel, sentenceLabel } from '$lib/format';
   import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
 
   let {
@@ -28,6 +28,7 @@
   let rentShare = $derived(budget.takeHomeMonthly > 0 ? (rent / budget.takeHomeMonthly) * 100 : 0);
   let rentPct = $derived(Math.min(100, pct(rent, budget.takeHomeMonthly)));
   let leftPct = $derived(pct(remaining, budget.takeHomeMonthly));
+  let rentLabel = $derived(sentenceLabel(rentMetricLabel(city.rentMetric, '1BR')));
 </script>
 
 <!-- Local snippets rather than extra components: the segment and swatch are used
@@ -93,7 +94,7 @@
   </div>
 
   {#if city.r1 != null}
-    <div class="mb-1 text-xs text-muted">Take-home split</div>
+    <div class="mb-1 text-xs text-muted">Estimated take-home split</div>
     <div class="mb-2 flex h-8 w-full origin-left animate-grow-x overflow-hidden rounded-lg">
       {@render segment(
         rentPct,
@@ -112,7 +113,7 @@
       {/if}
     </div>
     <p class="mt-1 text-sm text-ink">
-      Median 1BR is
+      The {rentLabel} is
       <strong class="font-bold {rentShare > 30 ? 'text-red' : 'text-green'}">
         {rentShare.toFixed(0)}%
       </strong>

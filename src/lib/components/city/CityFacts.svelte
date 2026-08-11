@@ -69,37 +69,67 @@
     </p>
   {/if}
 
-  {#if snapshotFacts.length}
-    <SectionHeading title="City snapshot" class="mt-7 mb-3.5">
-      {#if city.citySnapshot}
-        <a
-          href={ACS_DATA_META.dataUrl}
-          target="_blank"
-          rel="noopener"
-          class="text-xs font-medium text-accent underline decoration-1 underline-offset-2 hover:text-accent-deep"
-        >
-          {ACS_DATA_META.label} ↗
-        </a>
-      {/if}
-    </SectionHeading>
-    <!-- Five across on a wide results column, two across (last cell full width)
-         once the column itself gets narrow — a container query, so it tracks the
-         column rather than the viewport. -->
-    <StatGrid
-      stats={snapshotFacts}
-      class="grid-cols-5 @max-2xl:grid-cols-2 @max-2xl:[&>*:last-child]:col-span-full"
-    />
-    {#if city.citySnapshot}
-      <p class="mt-3.5 text-xs text-muted">{ACS_DATA_META.geography} · U.S. Census Bureau</p>
-    {/if}
-  {/if}
+  <details class="mt-7 border-t border-line pt-5">
+    <summary
+      class="flex cursor-pointer list-none items-center justify-between gap-4 text-lg font-semibold tracking-tight text-ink [&::-webkit-details-marker]:hidden"
+    >
+      <span>Explore city context</span>
+      <span class="flex items-center gap-2 text-xs font-medium text-muted">
+        {#if city.citySnapshot}ACS 2020–2024{:else}Background reading{/if}
+        <svg class="size-4" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path
+            d="m4 6 4 4 4-4"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </span>
+    </summary>
 
-  <a
-    href={wikiUrl}
-    target="_blank"
-    rel="noopener"
-    class="mt-4 inline-block text-sm font-semibold text-accent hover:text-accent-deep hover:underline"
-  >
-    Read about {city.city} on Wikipedia ↗
-  </a>
+    <div class="mt-5">
+      {#if snapshotFacts.length}
+        <SectionHeading title="City snapshot" class="mb-3.5">
+          {#if city.citySnapshot}
+            <a
+              href={ACS_DATA_META.dataUrl}
+              target="_blank"
+              rel="noopener"
+              class="text-xs font-medium text-accent underline decoration-1 underline-offset-2 hover:text-accent-deep"
+            >
+              {ACS_DATA_META.label} ↗
+            </a>
+          {/if}
+        </SectionHeading>
+        <!-- Five across on a wide results column, two across (last cell full width)
+             once the column itself gets narrow — a container query, so it tracks the
+             column rather than the viewport. -->
+        <StatGrid
+          stats={snapshotFacts}
+          class="grid-cols-5 @max-2xl:grid-cols-2 @max-2xl:[&>*:last-child]:col-span-full"
+        />
+        {#if city.citySnapshot}
+          <p class="mt-3.5 text-xs text-muted">{ACS_DATA_META.geography} · U.S. Census Bureau</p>
+        {/if}
+      {/if}
+
+      <a
+        href={wikiUrl}
+        target="_blank"
+        rel="noopener"
+        class="{snapshotFacts.length
+          ? 'mt-5'
+          : ''} inline-block text-sm font-semibold text-accent hover:text-accent-deep hover:underline"
+      >
+        Read about {city.city} on Wikipedia ↗
+      </a>
+    </div>
+  </details>
 </section>
+
+<style>
+  details[open] summary svg {
+    transform: rotate(180deg);
+  }
+</style>

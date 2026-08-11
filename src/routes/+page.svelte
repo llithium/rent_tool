@@ -11,6 +11,7 @@
   import CityHeadline from '$lib/components/city/CityHeadline.svelte';
   import Verdict from '$lib/components/city/Verdict.svelte';
   import CityFacts from '$lib/components/city/CityFacts.svelte';
+  import EstimateNote from '$lib/components/city/EstimateNote.svelte';
   import SearchLinks from '$lib/components/city/SearchLinks.svelte';
   import NearbySuburbs from '$lib/components/city/NearbySuburbs.svelte';
   import RentTrendChart from '$lib/components/city/RentTrendChart.svelte';
@@ -72,7 +73,10 @@
   data-hydrated={urlSync.hydrated ? 'true' : 'false'}
   class="mx-auto max-w-7xl px-4 pt-4 pb-20 md:px-6 md:pt-6 md:pb-24"
 >
-  <AppHeader actionHref="/compare" actionLabel="Compare" />
+  <AppHeader
+    actionHref="/compare"
+    actionLabel={app.compareNames.length ? `Compare (${app.compareNames.length})` : 'Compare'}
+  />
 
   <div class="mt-8 grid items-start gap-8 lg:grid-cols-[22rem_minmax(0,1fr)] lg:gap-12">
     <CitySidebar
@@ -111,12 +115,13 @@
               href="#plan-controls"
               class="mt-3 inline-flex self-start rounded-lg px-2 py-1 text-sm font-semibold text-accent no-underline hover:bg-accent-soft hover:text-accent-deep lg:hidden"
             >
-              Edit city or salary ↑
+              Edit city or salary
             </a>
 
             {#if selected.r1 != null}
               <Verdict {budget} city={selected} class="mt-3.5" />
             {/if}
+            <EstimateNote city={selected} class="mt-3 max-w-[74ch]" />
           </div>
         {/key}
         <CityFacts

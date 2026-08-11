@@ -57,7 +57,7 @@
     background: var(--accent);
     border: 3px solid var(--card);
     box-shadow: var(--elevation-card);
-    transition: transform 700ms cubic-bezier(0.32, 0.72, 0, 1);
+    transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
   }
   input:hover::-webkit-slider-thumb,
   input:active::-webkit-slider-thumb {
@@ -70,7 +70,7 @@
     background: var(--accent);
     border: 3px solid var(--card);
     box-shadow: var(--elevation-card);
-    transition: transform 700ms cubic-bezier(0.32, 0.72, 0, 1);
+    transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
   }
   input:hover::-moz-range-thumb,
   input:active::-moz-range-thumb {
