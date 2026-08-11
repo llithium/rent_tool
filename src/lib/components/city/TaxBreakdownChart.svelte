@@ -52,9 +52,13 @@
   <SectionHeading title="Where the money goes" />
 
   <div class="mb-1 text-xs text-muted">
-    Gross monthly {money(budget.grossMonthly)}{taxAmt > 0 ? ` · tax ${money(taxAmt)}/mo` : ''}
+    Gross monthly {money(budget.grossMonthly)}{taxAmt > 0 ? ` · taxes ${money(taxAmt)}` : ''}
   </div>
-  <div class="mb-2 flex h-8 w-full origin-left animate-grow-x overflow-hidden rounded-lg">
+  <div
+    role="img"
+    aria-label={`Gross monthly ${money(budget.grossMonthly)}: ${money(taxAmt)} taxes, ${money(budget.takeHomeMonthly)} take-home`}
+    class="mb-2 flex h-8 w-full origin-left animate-grow-x overflow-hidden rounded-lg"
+  >
     {#if budget.federalMonthly > 0}
       {@render segment(fedPct, `Federal ${money(budget.federalMonthly)}`, 13, 'bg-red text-white')}
     {/if}
@@ -85,17 +89,27 @@
     )}
   </div>
   <div class="mb-4 flex flex-wrap gap-x-3.5 gap-y-1 text-xs text-muted">
-    {@render swatch(`Federal ${money(budget.federalMonthly)}`, 'bg-red')}
-    {@render swatch(`FICA ${money(budget.ficaMonthly)}`, 'bg-amber')}
-    {@render swatch(`State ${money(budget.stateMonthly)}`, 'bg-tax-state')}
-    {#if budget.localTaxModeled}
+    {#if budget.federalMonthly > 0}
+      {@render swatch(`Federal ${money(budget.federalMonthly)}`, 'bg-red')}
+    {/if}
+    {#if budget.ficaMonthly > 0}
+      {@render swatch(`FICA ${money(budget.ficaMonthly)}`, 'bg-amber')}
+    {/if}
+    {#if budget.stateMonthly > 0}
+      {@render swatch(`State ${money(budget.stateMonthly)}`, 'bg-tax-state')}
+    {/if}
+    {#if budget.localTaxModeled && budget.localMonthly > 0}
       {@render swatch(`Local ${money(budget.localMonthly)}`, 'bg-tax-local')}
     {/if}
   </div>
 
   {#if city.r1 != null}
-    <div class="mb-1 text-xs text-muted">Estimated take-home split</div>
-    <div class="mb-2 flex h-8 w-full origin-left animate-grow-x overflow-hidden rounded-lg">
+    <div class="mb-1 text-xs text-muted">Take-home split</div>
+    <div
+      role="img"
+      aria-label={`Take-home split: ${money(rent)} rent, ${money(remaining)} left`}
+      class="mb-2 flex h-8 w-full origin-left animate-grow-x overflow-hidden rounded-lg"
+    >
       {@render segment(
         rentPct,
         rentPct >= 30 ? `Rent ${money(rent)}` : money(rent),
@@ -104,12 +118,6 @@
       )}
       {#if remaining > 0}
         {@render segment(leftPct, `Left ${money(remaining)}`, 16, 'bg-surplus text-ink')}
-      {/if}
-    </div>
-    <div class="mb-1 flex flex-wrap gap-x-3.5 gap-y-1 text-xs text-muted">
-      {@render swatch(`Rent ${money(rent)}`, rentShare > 100 ? 'bg-red' : 'bg-accent')}
-      {#if remaining > 0}
-        {@render swatch(`Left ${money(remaining)}`, 'bg-surplus border border-line')}
       {/if}
     </div>
     <p class="mt-1 text-sm text-ink">
@@ -121,12 +129,16 @@
     </p>
   {/if}
 
-  {#if budget.stateRate === 0}
+  {#if budget.stateRate === 0 || !budget.localTaxModeled}
     <p class="mt-1 text-xs text-muted">
-      No state income tax on wages here — but federal tax and FICA still apply.
+      {#if budget.stateRate === 0}
+        <span class="mr-1"
+          >No state income tax on wages here — but federal tax and FICA still apply.</span
+        >
+      {/if}
+      {#if !budget.localTaxModeled}
+        Local wage taxes, if any, are not included for this city.
+      {/if}
     </p>
-  {/if}
-  {#if !budget.localTaxModeled}
-    <p class="mt-1 text-xs text-muted">Local wage taxes, if any, are not included for this city.</p>
   {/if}
 </section>
