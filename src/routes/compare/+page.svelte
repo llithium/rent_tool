@@ -146,9 +146,7 @@
       {#if atCapacity}
         <div class="rounded-xl border border-line-strong bg-card-2 px-4 py-3">
           <p class="text-sm font-semibold text-ink">Five cities are ready to compare.</p>
-          <p class="mt-1 text-xs leading-5 text-muted">
-            Remove one below to make room for another city.
-          </p>
+          <p class="mt-1 text-xs/5 text-muted">Remove one below to make room for another city.</p>
         </div>
       {:else}
         <CitySearch onselect={addCity} />

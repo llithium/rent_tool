@@ -2,8 +2,7 @@ import adapter from '@sveltejs/adapter-vercel';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 
 // Dev-only allowance so Impeccable live mode can load its local picker.
-const __impeccableLiveDev =
-  process.env.NODE_ENV === 'development' ? ['http://localhost:8400'] : [];
+const __impeccableLiveDev = process.env.NODE_ENV === 'development' ? ['http://localhost:8400'] : [];
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {

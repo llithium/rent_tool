@@ -15,7 +15,7 @@
     class="absolute inset-x-0 h-1 overflow-hidden rounded-full bg-line-strong"
   >
     <span
-      class="motion-fill block h-full w-full origin-left rounded-full bg-accent"
+      class="motion-fill block size-full origin-left rounded-full bg-accent"
       style:--motion-fill={fill / 100}
     ></span>
   </div>

@@ -2,78 +2,78 @@
 name: Rent Tool
 description: A clear, city-aware rent-planning tool for people evaluating a salary offer and move.
 colors:
-  accent: "#b25027"
-  accent-ink: "#ffffff"
-  accent-soft: "#f6e7df"
-  accent-deep: "#8f3e1c"
-  green: "#147b3b"
-  green-soft: "#e4f2e8"
-  red: "#b7352d"
-  red-soft: "#f7e4e1"
-  amber: "#ad7d22"
-  canvas: "#fafafa"
-  card: "#ffffff"
-  card-2: "#f8f6f4"
-  ink: "#1f1e1c"
-  muted: "#716a64"
-  faint: "#99928c"
-  line: "#ebe6e2"
-  line-strong: "#ded7d1"
+  accent: '#b25027'
+  accent-ink: '#ffffff'
+  accent-soft: '#f6e7df'
+  accent-deep: '#8f3e1c'
+  green: '#147b3b'
+  green-soft: '#e4f2e8'
+  red: '#b7352d'
+  red-soft: '#f7e4e1'
+  amber: '#ad7d22'
+  canvas: '#fafafa'
+  card: '#ffffff'
+  card-2: '#f8f6f4'
+  ink: '#1f1e1c'
+  muted: '#716a64'
+  faint: '#99928c'
+  line: '#ebe6e2'
+  line-strong: '#ded7d1'
 typography:
   display:
-    fontFamily: "Geist, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "3rem"
+    fontFamily: 'Geist, ui-sans-serif, system-ui, sans-serif'
+    fontSize: '3rem'
     fontWeight: 600
     lineHeight: 1
-    letterSpacing: "tight"
+    letterSpacing: 'tight'
   headline:
-    fontFamily: "Geist, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "1.875rem"
+    fontFamily: 'Geist, ui-sans-serif, system-ui, sans-serif'
+    fontSize: '1.875rem'
     fontWeight: 600
-    letterSpacing: "tight"
+    letterSpacing: 'tight'
   body:
-    fontFamily: "Geist, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "1rem"
+    fontFamily: 'Geist, ui-sans-serif, system-ui, sans-serif'
+    fontSize: '1rem'
     fontWeight: 400
     lineHeight: 1.5
   label:
-    fontFamily: "Geist, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "0.875rem"
+    fontFamily: 'Geist, ui-sans-serif, system-ui, sans-serif'
+    fontSize: '0.875rem'
     fontWeight: 600
 rounded:
-  sm: "0.375rem"
-  md: "0.5rem"
-  lg: "0.75rem"
-  xl: "1rem"
+  sm: '0.375rem'
+  md: '0.5rem'
+  lg: '0.75rem'
+  xl: '1rem'
 spacing:
-  2: "0.5rem"
-  3: "0.75rem"
-  4: "1rem"
-  6: "1.5rem"
-  8: "2rem"
-  12: "3rem"
+  2: '0.5rem'
+  3: '0.75rem'
+  4: '1rem'
+  6: '1.5rem'
+  8: '2rem'
+  12: '3rem'
 components:
   button-primary:
-    backgroundColor: "{colors.accent}"
-    textColor: "{colors.accent-ink}"
-    typography: "{typography.body}"
-    rounded: "{rounded.lg}"
-    padding: "0.5rem 0.75rem"
+    backgroundColor: '{colors.accent}'
+    textColor: '{colors.accent-ink}'
+    typography: '{typography.body}'
+    rounded: '{rounded.lg}'
+    padding: '0.5rem 0.75rem'
   button-primary-hover:
-    backgroundColor: "{colors.accent-deep}"
-    textColor: "{colors.accent-ink}"
-    rounded: "{rounded.lg}"
+    backgroundColor: '{colors.accent-deep}'
+    textColor: '{colors.accent-ink}'
+    rounded: '{rounded.lg}'
   input-search:
-    backgroundColor: "{colors.card-2}"
-    textColor: "{colors.ink}"
-    typography: "{typography.body}"
-    rounded: "{rounded.xl}"
-    padding: "0.75rem 0.75rem"
+    backgroundColor: '{colors.card-2}'
+    textColor: '{colors.ink}'
+    typography: '{typography.body}'
+    rounded: '{rounded.xl}'
+    padding: '0.75rem 0.75rem'
   card-control:
-    backgroundColor: "{colors.card}"
-    textColor: "{colors.ink}"
-    rounded: "{rounded.xl}"
-    padding: "1.5rem"
+    backgroundColor: '{colors.card}'
+    textColor: '{colors.ink}'
+    rounded: '{rounded.xl}'
+    padding: '1.5rem'
 ---
 
 # Design System: Rent Tool

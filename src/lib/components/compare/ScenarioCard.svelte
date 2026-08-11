@@ -78,7 +78,7 @@
     {result.label}
   </div>
   {#if row.city.r1 == null}
-    <p class="mt-2 text-xs leading-5 text-muted">
+    <p class="mt-2 text-xs/5 text-muted">
       We could not match a current 1BR estimate for this city. Open the city name above for
       available rent context and alternatives.
     </p>

@@ -44,8 +44,8 @@
     </div>
 
     <p class="mt-8 max-w-2xl text-sm text-muted">
-      Sources and reporting periods appear beside every result. Rent Tool is a planning aid, not
-      tax advice.
+      Sources and reporting periods appear beside every result. Rent Tool is a planning aid, not tax
+      advice.
     </p>
   </section>
 </article>

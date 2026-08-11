@@ -95,6 +95,8 @@ test('keeps the accepted city explicit while a different city is being typed', a
 });
 
 test('credits the bundled Apartment List estimates', async ({ page }) => {
+  await selectCity(page, 'Tampa', 'Tampa, FL');
+  await page.getByLabel('Annual salary', { exact: true }).fill('80000');
   const source = page.getByRole('link', { name: 'Apartment List Rent Estimates' });
   await expect(source).toHaveAttribute(
     'href',
@@ -198,27 +200,26 @@ test('keeps each selected city with its salary when opening the detailed compari
     'color',
     'rgb(20, 123, 59)'
   );
-  const oneBedroomRow = page.getByRole('row', {
-    name: '1BR rent $1,422/mo $1,216/mo',
-    exact: true
-  });
+  const oneBedroomRow = page.getByRole('row').filter({ hasText: /^1BR rent/ });
+  await expect(oneBedroomRow).toHaveCount(1);
   await expect(oneBedroomRow.locator('td[data-tone="best"]')).toContainText('$1,216/mo');
   await expect(oneBedroomRow.locator('td[data-tone="worst"]')).toContainText('$1,422/mo');
 
   await page.setViewportSize({ width: 734, height: 969 });
-  const highlightTops = await page.evaluate(() =>
-    [...document.querySelectorAll('[data-testid="highlights"] > div')].map((element) =>
-      Math.round(element.getBoundingClientRect().top)
-    )
-  );
-  expect(new Set(highlightTops).size).toBe(1);
-
-  await page.setViewportSize({ width: 390, height: 844 });
-  const highlightWidths = await page.locator('[data-testid="highlights"]').evaluate((element) => ({
+  const criterion = page.getByLabel('Decision criterion');
+  await expect(criterion).toBeVisible();
+  const tabletCriterionWidths = await criterion.evaluate((element) => ({
     client: element.clientWidth,
     scroll: element.scrollWidth
   }));
-  expect(highlightWidths.scroll).toBe(highlightWidths.client);
+  expect(tabletCriterionWidths.scroll).toBe(tabletCriterionWidths.client);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  const mobileCriterionWidths = await criterion.evaluate((element) => ({
+    client: element.clientWidth,
+    scroll: element.scrollWidth
+  }));
+  expect(mobileCriterionWidths.scroll).toBe(mobileCriterionWidths.client);
 
   const denverScenario = page.locator('[data-testid="scenario"]').filter({ hasText: 'Denver, CO' });
   await expect(denverScenario).toHaveCount(1);

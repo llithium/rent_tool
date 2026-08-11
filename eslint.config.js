@@ -8,7 +8,14 @@ import svelteConfig from './svelte.config.js';
 
 export default ts.config(
   {
-    ignores: ['.svelte-kit/', 'build/', '.vercel/', 'node_modules/', 'src/lib/data/*.json']
+    ignores: [
+      '.agents/',
+      '.svelte-kit/',
+      'build/',
+      '.vercel/',
+      'node_modules/',
+      'src/lib/data/*.json'
+    ]
   },
   js.configs.recommended,
   ts.configs.recommended,
@@ -61,7 +68,7 @@ export default ts.config(
         {
           // The map container is tagged so RentMap's scoped <style> can reach
           // Leaflet's own DOM, which never passes through our markup.
-          ignore: ['^leaflet-']
+          ignore: ['^leaflet-', '^motion-']
         }
       ]
       // enforce-consistent-class-order / enforce-consistent-line-wrapping are

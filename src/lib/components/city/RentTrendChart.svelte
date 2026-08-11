@@ -58,9 +58,7 @@
              — an unfilled track still has to read as a bar. -->
         <div class="h-3 overflow-hidden rounded-full bg-line">
           <div
-            class="motion-fill h-full w-full origin-left animate-grow-x rounded-full {barTone(
-              b
-            )}"
+            class="motion-fill size-full origin-left animate-grow-x rounded-full {barTone(b)}"
             style:--motion-fill={Math.max(0.03, b.value / max)}
           ></div>
         </div>
