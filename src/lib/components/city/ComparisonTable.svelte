@@ -7,8 +7,14 @@
   let {
     cities,
     maxRent,
+    onselect,
     class: className = ''
-  }: { cities: City[]; maxRent: number; class?: string } = $props();
+  }: {
+    cities: City[];
+    maxRent: number;
+    onselect: (name: string) => void;
+    class?: string;
+  } = $props();
 
   function cushion(c: City): number | null {
     return c.r1 != null ? maxRent - c.r1 : null;
@@ -62,7 +68,7 @@
           >
             <td class="whitespace-nowrap">
               <button
-                onclick={() => app.select(c.name)}
+                onclick={() => onselect(c.name)}
                 class="cursor-pointer border-0 bg-transparent p-0 text-base font-semibold tracking-tight text-accent"
               >
                 {c.name}

@@ -10,12 +10,14 @@
     cities,
     maxRent,
     selectedName,
+    focusRequest,
     onselect,
     class: className = ''
   }: {
     cities: City[];
     maxRent: number | null;
     selectedName: string | null;
+    focusRequest: number;
     onselect: (name: string) => void;
     class?: string;
   } = $props();
@@ -26,12 +28,29 @@
   let L: typeof import('leaflet');
   let ready = $state(false);
   let centeredName: string | null = null;
+  let handledFocusRequest = 0;
 
   const markers = new Map<string, CircleMarker>();
 
   function colorFor(c: City): string {
     if (c.r1 == null || maxRent == null) return '#99928c';
     return c.r1 <= maxRent ? '#147b3b' : '#b7352d';
+  }
+
+  function recenterOnSelectedCity(force = false) {
+    const selectedCity = selectedName ? cities.find((c) => c.name === selectedName) : null;
+    if (
+      !map || !selectedCity ||
+      selectedCity.lat == null ||
+      selectedCity.lng == null ||
+      (!force && centeredName === selectedCity.name)
+    ) {
+      if (!selectedCity) centeredName = null;
+      return;
+    }
+
+    map.setView([selectedCity.lat, selectedCity.lng], 8, { animate: false });
+    centeredName = selectedCity.name;
   }
 
   function draw() {
@@ -96,18 +115,6 @@
       markers.set(c.name, marker);
     }
 
-    const selectedCity = selectedName ? cities.find((c) => c.name === selectedName) : null;
-    if (
-      selectedCity?.lat != null &&
-      selectedCity.lng != null &&
-      centeredName !== selectedCity.name
-    ) {
-      map?.setView([selectedCity.lat, selectedCity.lng], 8, { animate: false });
-      centeredName = selectedCity.name;
-    } else if (!selectedCity) {
-      centeredName = null;
-    }
-
     if (hadFocus) {
       // Same marker if it still exists, else the selected one, else the container.
       // preventScroll, or the focus call scrolls the overflow-hidden container
@@ -158,13 +165,33 @@
     map?.remove();
   });
 
-  // Redraw when data or budget changes.
+  // Redraw markers when data, budget, or selection changes. Recentring is
+  // deliberately separate so clicking a comparison row cannot be swallowed by
+  // a marker redraw.
   $effect(() => {
     // touch reactive deps
     void cities;
     void maxRent;
     void selectedName;
     draw();
+  });
+
+  // A newly selected comparison city is a navigation action, so move the map
+  // to it even when the marker collection itself has not changed.
+  $effect(() => {
+    void ready;
+    void cities;
+    void selectedName;
+    recenterOnSelectedCity();
+  });
+
+  // Comparison-table clicks carry an explicit focus request. This also recentres
+  // a city already selected after the user has panned the map elsewhere.
+  $effect(() => {
+    void cities;
+    if (!ready || focusRequest === handledFocusRequest) return;
+    handledFocusRequest = focusRequest;
+    recenterOnSelectedCity(true);
   });
 </script>
 

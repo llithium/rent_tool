@@ -269,6 +269,34 @@ test('exposes map markers to the keyboard', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'New York, NY' })).toBeVisible();
 });
 
+test('recenters the map when a comparison city is selected from the table', async ({ page }) => {
+  await page.evaluate(() => localStorage.clear());
+  await page.goto('/?salary=69000&city=Lansing%2C+MI&compare=Lansing%2C+MI&compare=Gastonia%2C+NC');
+  await waitForHydration(page);
+
+  await page.getByRole('button', { name: 'Gastonia, NC', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Gastonia, NC' })).toBeVisible();
+
+  const selectedMarker = page.getByRole('button', {
+    name: 'Gastonia, NC, 1 bedroom $983, fits budget'
+  });
+  await expect(selectedMarker).toBeVisible();
+  const position = await selectedMarker.evaluate((marker) => {
+    const mapElement = document.querySelector('.leaflet-container');
+    if (!mapElement) return null;
+    const markerRect = marker.getBoundingClientRect();
+    const mapRect = mapElement.getBoundingClientRect();
+    return {
+      x: markerRect.left + markerRect.width / 2 - (mapRect.left + mapRect.width / 2),
+      y: markerRect.top + markerRect.height / 2 - (mapRect.top + mapRect.height / 2)
+    };
+  });
+  expect(position).not.toBeNull();
+  if (!position) throw new Error('Map is missing.');
+  expect(Math.abs(position.x)).toBeLessThan(4);
+  expect(Math.abs(position.y)).toBeLessThan(4);
+});
+
 test('labels HUD data as Fair Market Rent', async ({ page }) => {
   await page.route('**/api/city-suggest**', (route) =>
     route.fulfill({

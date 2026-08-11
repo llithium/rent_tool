@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { nearbyPlaces, placeAt } from './data/places';
+import { coordinatesForPlace, nearbyPlaces, placeAt } from './data/places';
 
 const CHARLOTTE = { lat: 35.2271, lng: -80.8431 };
 
@@ -40,5 +40,11 @@ describe('placeAt', () => {
   it('returns null in the middle of nowhere', () => {
     // Pacific Ocean west of the CA coast.
     expect(placeAt(35, -140)).toBeNull();
+  });
+});
+
+describe('coordinatesForPlace', () => {
+  it('finds an exact city/state coordinate for a bundled rent city', () => {
+    expect(coordinatesForPlace('Lansing', 'MI')).toEqual([42.7142, -84.5601]);
   });
 });

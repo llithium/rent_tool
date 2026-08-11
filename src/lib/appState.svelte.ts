@@ -117,7 +117,27 @@ class AppState {
   select(name: string) {
     this.selectedName = name;
     this.persist();
+    void this.ensureCoordinates(name);
     void this.ensurePopulation(name);
+  }
+
+  private coordinateLookups = new Set<string>();
+
+  /** Hydrate map coordinates for a bundled rent city that is not in the curated
+   * coordinate list. The place dataset is loaded only when this fallback is needed. */
+  private async ensureCoordinates(name: string) {
+    const city = this.cityByName(name);
+    if (!city || city.lat != null || city.lng != null) return;
+    const key = name.toLowerCase();
+    if (this.coordinateLookups.has(key)) return;
+    this.coordinateLookups.add(key);
+    try {
+      const { coordinatesForPlace } = await import('$lib/data/places');
+      const coords = coordinatesForPlace(city.city, city.state);
+      if (coords) this.patchCity(name, { lat: coords[0], lng: coords[1] });
+    } finally {
+      this.coordinateLookups.delete(key);
+    }
   }
 
   private popLookups = new Set<string>();
@@ -313,6 +333,7 @@ class AppState {
     if (cityName && cityName.length <= 100) {
       if (this.cityByName(cityName)) {
         this.selectedName = cityName;
+        void this.ensureCoordinates(cityName);
         void this.ensurePopulation(cityName);
         selectedCity = true;
       } else if (this.resolveOffList(cityName, search)) {
@@ -372,6 +393,7 @@ class AppState {
     if (cityName && cityName.length <= 100) {
       if (this.cityByName(cityName)) {
         this.selectedName = cityName;
+        void this.ensureCoordinates(cityName);
         void this.ensurePopulation(cityName);
       } else if (!this.resolveOffList(cityName, search)) {
         this.selectedName = null;
@@ -413,6 +435,7 @@ class AppState {
       }
       if (typeof s.selected === 'string' && this.cityByName(s.selected)) {
         this.selectedName = s.selected;
+        void this.ensureCoordinates(s.selected);
         void this.ensurePopulation(s.selected);
       }
       if (Array.isArray(s.compare)) {

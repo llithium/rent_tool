@@ -42,7 +42,7 @@
   );
 </script>
 
-<section class="mt-8 border-y border-line pt-6" aria-labelledby="decision-heading">
+<section class="mt-8 pt-6" aria-labelledby="decision-heading">
   <div class="flex flex-col justify-between gap-5 md:flex-row md:items-end">
     <div class="max-w-xl">
       <h2 id="decision-heading" class="text-lg font-semibold tracking-tight">Decision brief</h2>

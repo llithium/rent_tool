@@ -14,9 +14,8 @@
 </script>
 
 <div>
-  <div class="mb-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+  <div class="mb-3">
     <p class="text-sm font-semibold text-ink">Affordability first</p>
-    <p class="text-xs text-muted">Best and highest/lowest labels compare only these cities.</p>
   </div>
   <div class="overflow-x-auto">
     <!-- Cell padding and rules are uniform across the table, so they ride on the

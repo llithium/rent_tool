@@ -7,6 +7,23 @@ import RAW from './us-places.json';
  * towns, aggregated urban-area for large anchor cities. */
 type PlaceRow = [string, string, number, number, number];
 const PLACES = RAW as PlaceRow[];
+const PLACE_BY_NAME = new Map<string, PlaceRow>();
+
+function placeKey(city: string, state: string): string {
+  return `${city
+    .trim()
+    .toLowerCase()
+    .replace(/[.-]/g, ' ')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+    .replace(/\s+/g, ' ')}|${state.trim().toUpperCase()}`;
+}
+
+for (const row of PLACES) {
+  const key = placeKey(row[0], row[1]);
+  const current = PLACE_BY_NAME.get(key);
+  if (!current || row[4] > current[4]) PLACE_BY_NAME.set(key, row);
+}
 
 export interface Place {
   city: string;
@@ -19,6 +36,12 @@ export interface Place {
 
 function toPlace(row: PlaceRow, miles: number): Place {
   return { city: row[0], state: row[1], lat: row[2], lng: row[3], pop: row[4], miles };
+}
+
+/** Coordinates for an exact city/state match in the bundled SimpleMaps data. */
+export function coordinatesForPlace(city: string, state: string): [number, number] | null {
+  const place = PLACE_BY_NAME.get(placeKey(city, state));
+  return place ? [place[2], place[3]] : null;
 }
 
 /** Places within `radiusMiles` of a point, largest population first. The origin

@@ -33,9 +33,15 @@
     app.salary && app.salary > 0 ? computeBudget(app.salary, selected ?? undefined) : null
   );
   let mappableCities = $derived(app.cities.filter((c) => c.lat != null && c.lng != null));
+  let mapFocusRequest = $state(0);
 
   async function onCitySelect(suggestion: CitySuggestion) {
     await app.resolveSuggestion(suggestion);
+  }
+
+  function selectComparisonCity(name: string) {
+    app.select(name);
+    mapFocusRequest += 1;
   }
 
   onMount(() => urlSync.start(page.url.searchParams, () => salary.reseed(app.salary)));
@@ -147,6 +153,7 @@
           <ComparisonTable
             cities={app.compareCities}
             maxRent={budget.maxRent}
+            onselect={selectComparisonCity}
             class="mt-7 animate-rise border-t border-line pt-7 [animation-delay:300ms]"
           />
         {/if}
@@ -155,6 +162,7 @@
           cities={mappableCities}
           maxRent={budget.maxRent}
           selectedName={app.selectedName}
+          focusRequest={mapFocusRequest}
           onselect={(name) => app.select(name)}
           class="mt-7 animate-rise border-t border-line pt-7 [animation-delay:300ms]"
         />

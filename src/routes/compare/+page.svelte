@@ -4,13 +4,10 @@
   import { computeBudget } from '$lib/budget';
   import { cityHref, type CompareRow } from '$lib/compare/metrics';
   import { createCompareSalaries } from '$lib/compare/salaries.svelte';
-  import { money } from '$lib/format';
-  import { MAX_SALARY, parseSalaryInput, sanitizeSalaryInput } from '$lib/salary';
   import type { CitySuggestion } from '$lib/types';
   import Brand from '$lib/components/ui/Brand.svelte';
   import ThemeToggle from '$lib/components/ui/ThemeToggle.svelte';
   import CitySearch from '$lib/components/ui/CitySearch.svelte';
-  import SalaryInput from '$lib/components/ui/SalaryInput.svelte';
   import ScenarioCard from '$lib/components/compare/ScenarioCard.svelte';
   import CompareHighlights from '$lib/components/compare/CompareHighlights.svelte';
   import CompareMetricsTable from '$lib/components/compare/CompareMetricsTable.svelte';
@@ -18,8 +15,6 @@
   const salaries = createCompareSalaries();
 
   let hydrated = $state(false);
-  let sharedSalaryText = $state('');
-  let sharedSalaryError = $state('');
   let cityMessage = $state('');
 
   let cityViewHref = $derived.by(() => {
@@ -58,34 +53,6 @@
     cityMessage = `${name} added to the comparison.`;
   }
 
-  function onSharedSalaryInput(event: Event) {
-    const digits = sanitizeSalaryInput((event.target as HTMLInputElement).value);
-    const value = parseSalaryInput(digits) ?? 0;
-    sharedSalaryText = digits ? Number.parseInt(digits, 10).toLocaleString() : '';
-    sharedSalaryError = !digits
-      ? 'Enter an annual salary.'
-      : value > MAX_SALARY
-        ? 'Use $10,000,000 or less.'
-        : '';
-  }
-
-  function applySharedSalary() {
-    const salary = parseSalaryInput(sharedSalaryText);
-    if (salary == null || salary <= 0) {
-      sharedSalaryError = 'Enter an annual salary.';
-      return;
-    }
-    if (salary > MAX_SALARY) {
-      sharedSalaryError = 'Use $10,000,000 or less.';
-      return;
-    }
-    app.salary = salary;
-    salaries.setAll(app.compareNames, salary);
-    sharedSalaryText = salary.toLocaleString();
-    sharedSalaryError = '';
-    cityMessage = `Applied ${money(salary)} to all ${app.compareNames.length} cities.`;
-  }
-
   function clearComparison() {
     app.clearCompare();
     cityMessage = 'Comparison cleared. Add a city to begin a new plan.';
@@ -101,7 +68,6 @@
       app.compareCities.map((city) => city.name),
       app.salary
     );
-    sharedSalaryText = (app.salary ?? 80_000).toLocaleString();
     hydrated = true;
   });
 </script>
@@ -158,39 +124,6 @@
   </section>
 
   {#if rows.length}
-    <section
-      class="mt-6 grid gap-5 border-b border-line pb-6 md:grid-cols-[minmax(0,1fr)_auto] md:items-end"
-      aria-labelledby="shared-salary-heading"
-    >
-      <div class="max-w-xl">
-        <h2 id="shared-salary-heading" class="text-lg font-semibold tracking-tight">
-          Start with one salary
-        </h2>
-        <p class="mt-1 text-sm text-muted">
-          Apply a baseline to every city, then change a city’s salary below only when you are
-          comparing different offers.
-        </p>
-      </div>
-      <div class="grid gap-3 sm:grid-cols-[minmax(11rem,1fr)_auto] sm:items-end">
-        <SalaryInput
-          id="compare-shared-salary"
-          label="Shared annual salary"
-          ariaLabel="Shared annual salary"
-          size="md"
-          value={sharedSalaryText}
-          error={sharedSalaryError}
-          oninput={onSharedSalaryInput}
-        />
-        <button
-          type="button"
-          onclick={applySharedSalary}
-          class="cursor-pointer rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-accent-ink transition-colors hover:bg-accent-deep"
-        >
-          Apply to all
-        </button>
-      </div>
-    </section>
-
     <div class="mt-5 flex justify-end">
       <button
         type="button"
