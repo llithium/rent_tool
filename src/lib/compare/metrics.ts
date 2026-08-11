@@ -49,6 +49,12 @@ export const COMPARE_METRICS: readonly CompareMetric[] = [
   { key: 'vacancy', label: 'Rental vacancy', direction: 'high' }
 ];
 
+/** The values that answer the affordability decision before city context. */
+export const AFFORDABILITY_METRICS = COMPARE_METRICS.slice(0, 8);
+
+/** Secondary city facts, available after the core rent decision is understood. */
+export const CITY_CONTEXT_METRICS = COMPARE_METRICS.slice(8);
+
 function pct(value: number): string {
   return `${Math.round(value * 100)}%`;
 }
@@ -112,6 +118,19 @@ export function metricTone(
   if (value === (direction === 'high' ? high : low)) return 'best';
   if (value === (direction === 'high' ? low : high)) return 'worst';
   return null;
+}
+
+/** A direct, text-based counterpart to the best/worst visual treatment. */
+export function metricToneLabel(
+  key: MetricKey,
+  direction: 'high' | 'low',
+  tone: Exclude<MetricTone, null>
+): string {
+  if (tone === 'worst') return direction === 'high' ? 'Lowest' : 'Highest';
+  if (key === 'after') return 'Most left';
+  if (key === 'rent1' || key === 'rent2' || key === 'needed' || key === 'commute') return 'Lowest';
+  if (key === 'tax' || key === 'trend') return 'Lowest';
+  return 'Highest';
 }
 
 export function fitStatus(row: CompareRow): { label: string; tone: 'good' | 'bad' | null } {

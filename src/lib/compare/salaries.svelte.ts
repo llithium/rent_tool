@@ -103,6 +103,14 @@ export function createCompareSalaries() {
       if (text[name]) return;
       text = { ...text, [name]: (fallback ?? DEFAULT_SALARY).toLocaleString() };
       persist();
+    },
+
+    /** Reset every current scenario to one shared offer or income baseline. */
+    setAll(names: string[], salary: number) {
+      const formatted = Math.round(salary).toLocaleString();
+      text = Object.fromEntries(names.map((name) => [name, formatted]));
+      errors = {};
+      persist();
     }
   };
 }

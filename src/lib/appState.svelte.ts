@@ -150,6 +150,11 @@ class AppState {
     this.persist();
   }
 
+  clearCompare() {
+    this.compareNames = [];
+    this.persist();
+  }
+
   isComparing(name: string): boolean {
     return this.compareNames.includes(name);
   }

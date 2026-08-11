@@ -4,10 +4,13 @@
   import { computeBudget } from '$lib/budget';
   import { cityHref, type CompareRow } from '$lib/compare/metrics';
   import { createCompareSalaries } from '$lib/compare/salaries.svelte';
+  import { money } from '$lib/format';
+  import { MAX_SALARY, parseSalaryInput, sanitizeSalaryInput } from '$lib/salary';
   import type { CitySuggestion } from '$lib/types';
   import Brand from '$lib/components/ui/Brand.svelte';
   import ThemeToggle from '$lib/components/ui/ThemeToggle.svelte';
   import CitySearch from '$lib/components/ui/CitySearch.svelte';
+  import SalaryInput from '$lib/components/ui/SalaryInput.svelte';
   import ScenarioCard from '$lib/components/compare/ScenarioCard.svelte';
   import CompareHighlights from '$lib/components/compare/CompareHighlights.svelte';
   import CompareMetricsTable from '$lib/components/compare/CompareMetricsTable.svelte';
@@ -15,6 +18,9 @@
   const salaries = createCompareSalaries();
 
   let hydrated = $state(false);
+  let sharedSalaryText = $state('');
+  let sharedSalaryError = $state('');
+  let cityMessage = $state('');
 
   let cityViewHref = $derived.by(() => {
     const search = app.buildSearch();
@@ -35,10 +41,54 @@
     })
   );
 
+  let atCapacity = $derived(app.compareNames.length >= 5);
+
   async function addCity(suggestion: CitySuggestion) {
     const name = await app.resolveSuggestion(suggestion);
-    if (!app.isComparing(name) && app.compareNames.length < 5) app.toggleCompare(name);
+    if (app.isComparing(name)) {
+      cityMessage = `${name} is already in this comparison.`;
+      return;
+    }
+    if (app.compareNames.length >= 5) {
+      cityMessage = 'Your comparison already has five cities. Remove one to add another.';
+      return;
+    }
+    app.toggleCompare(name);
     salaries.ensure(name, app.salary);
+    cityMessage = `${name} added to the comparison.`;
+  }
+
+  function onSharedSalaryInput(event: Event) {
+    const digits = sanitizeSalaryInput((event.target as HTMLInputElement).value);
+    const value = parseSalaryInput(digits) ?? 0;
+    sharedSalaryText = digits ? Number.parseInt(digits, 10).toLocaleString() : '';
+    sharedSalaryError = !digits
+      ? 'Enter an annual salary.'
+      : value > MAX_SALARY
+        ? 'Use $10,000,000 or less.'
+        : '';
+  }
+
+  function applySharedSalary() {
+    const salary = parseSalaryInput(sharedSalaryText);
+    if (salary == null || salary <= 0) {
+      sharedSalaryError = 'Enter an annual salary.';
+      return;
+    }
+    if (salary > MAX_SALARY) {
+      sharedSalaryError = 'Use $10,000,000 or less.';
+      return;
+    }
+    app.salary = salary;
+    salaries.setAll(app.compareNames, salary);
+    sharedSalaryText = salary.toLocaleString();
+    sharedSalaryError = '';
+    cityMessage = `Applied ${money(salary)} to all ${app.compareNames.length} cities.`;
+  }
+
+  function clearComparison() {
+    app.clearCompare();
+    cityMessage = 'Comparison cleared. Add a city to begin a new plan.';
   }
 
   onMount(() => {
@@ -51,6 +101,7 @@
       app.compareCities.map((city) => city.name),
       app.salary
     );
+    sharedSalaryText = (app.salary ?? 80_000).toLocaleString();
     hydrated = true;
   });
 </script>
@@ -86,16 +137,74 @@
   >
     <div>
       <h1 class="text-3xl font-semibold tracking-tight text-ink">Side by side planner</h1>
+      <p class="mt-2 max-w-2xl text-muted">
+        Compare what each city leaves you after a typical one-bedroom rent, then inspect the
+        trade-offs.
+      </p>
     </div>
     <div class="w-full lg:justify-self-end">
-      <CitySearch onselect={addCity} />
-      <p class="mt-2 text-xs text-muted">{app.compareNames.length} of 5 cities added</p>
+      {#if atCapacity}
+        <div class="rounded-xl border border-line-strong bg-card-2 px-4 py-3">
+          <p class="text-sm font-semibold text-ink">Five cities are ready to compare.</p>
+          <p class="mt-1 text-xs leading-5 text-muted">
+            Remove one below to make room for another city.
+          </p>
+        </div>
+      {:else}
+        <CitySearch onselect={addCity} />
+      {/if}
+      <p aria-live="polite" class="mt-2 min-h-5 text-xs text-muted">
+        {cityMessage || `${app.compareNames.length} of 5 cities added`}
+      </p>
     </div>
   </section>
 
   {#if rows.length}
     <section
-      class="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-6"
+      class="mt-6 grid gap-5 border-b border-line pb-6 md:grid-cols-[minmax(0,1fr)_auto] md:items-end"
+      aria-labelledby="shared-salary-heading"
+    >
+      <div class="max-w-xl">
+        <h2 id="shared-salary-heading" class="text-lg font-semibold tracking-tight">
+          Start with one salary
+        </h2>
+        <p class="mt-1 text-sm text-muted">
+          Apply a baseline to every city, then change a city’s salary below only when you are
+          comparing different offers.
+        </p>
+      </div>
+      <div class="grid gap-3 sm:grid-cols-[minmax(11rem,1fr)_auto] sm:items-end">
+        <SalaryInput
+          id="compare-shared-salary"
+          label="Shared annual salary"
+          ariaLabel="Shared annual salary"
+          size="md"
+          value={sharedSalaryText}
+          error={sharedSalaryError}
+          oninput={onSharedSalaryInput}
+        />
+        <button
+          type="button"
+          onclick={applySharedSalary}
+          class="cursor-pointer rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-accent-ink transition-colors hover:bg-accent-deep"
+        >
+          Apply to all
+        </button>
+      </div>
+    </section>
+
+    <div class="mt-5 flex justify-end">
+      <button
+        type="button"
+        onclick={clearComparison}
+        class="cursor-pointer text-sm font-semibold text-accent underline-offset-4 hover:text-accent-deep hover:underline"
+      >
+        Clear comparison
+      </button>
+    </div>
+
+    <section
+      class="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-6"
       aria-label="Comparison scenarios"
     >
       {#each rows as row (row.city.name)}
@@ -123,12 +232,21 @@
       <CompareMetricsTable {rows} compareNames={app.compareNames} />
     </section>
   {:else if hydrated}
-    <section class="mt-12 border-b border-line px-5 py-16 text-center md:py-20">
-      <h2 class="text-3xl font-semibold tracking-tight">Add your first city</h2>
-      <p class="mx-auto mt-2 max-w-130 text-muted">
-        Search above to start a comparison. You can add up to five cities and use a separate salary
-        for each one.
-      </p>
+    <section class="mt-12 border-b border-line py-16 md:py-20" aria-labelledby="empty-heading">
+      <div class="max-w-2xl">
+        <h2 id="empty-heading" class="text-3xl font-semibold tracking-tight">
+          Compare two places before you choose
+        </h2>
+        <p class="mt-3 text-muted">
+          Start with the city tied to your offer or current home. Add another place to see which one
+          gives your plan more room after rent.
+        </p>
+        <ul class="mt-6 space-y-2 text-sm text-muted">
+          <li>Pick the city you are considering.</li>
+          <li>Add the place you want to weigh against it.</li>
+          <li>Use the decision brief to choose the trade-off that matters most.</li>
+        </ul>
+      </div>
     </section>
   {/if}
 

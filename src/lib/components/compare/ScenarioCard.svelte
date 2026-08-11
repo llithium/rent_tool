@@ -43,7 +43,7 @@
 
   <SalaryInput
     id={`salary-${row.city.name.replace(/[^a-z0-9]+/gi, '-')}`}
-    label="Annual salary"
+    label="Salary for this city"
     ariaLabel={`Annual salary in ${row.city.name}`}
     size="md"
     value={salaries.displayed(row.city.name, sharedSalary)}
@@ -77,4 +77,10 @@
   >
     {result.label}
   </div>
+  {#if row.city.r1 == null}
+    <p class="mt-2 text-xs leading-5 text-muted">
+      We could not match a current 1BR estimate for this city. Open the city name above for
+      available rent context and alternatives.
+    </p>
+  {/if}
 </article>
