@@ -11,7 +11,7 @@
   }
 </script>
 
-<article aria-label="Start a rent plan" class="min-w-0 lg:pt-16">
+<article aria-label="Start a rent plan" class="min-w-0">
   <section class="rounded-2xl bg-card-2 p-8 md:p-12">
     <h1 class="max-w-2xl text-4xl font-semibold tracking-tight text-ink md:text-5xl">
       Start with the city and the offer.

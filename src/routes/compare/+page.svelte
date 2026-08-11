@@ -5,8 +5,7 @@
   import { cityHref, type CompareRow } from '$lib/compare/metrics';
   import { createCompareSalaries } from '$lib/compare/salaries.svelte';
   import type { CitySuggestion } from '$lib/types';
-  import Brand from '$lib/components/ui/Brand.svelte';
-  import ThemeToggle from '$lib/components/ui/ThemeToggle.svelte';
+  import AppHeader from '$lib/components/ui/AppHeader.svelte';
   import CitySearch from '$lib/components/ui/CitySearch.svelte';
   import ScenarioCard from '$lib/components/compare/ScenarioCard.svelte';
   import CompareHighlights from '$lib/components/compare/CompareHighlights.svelte';
@@ -85,21 +84,10 @@
   data-hydrated={hydrated ? 'true' : 'false'}
   class="mx-auto max-w-7xl px-4 pt-4 pb-20 md:px-6 md:pt-6 md:pb-24"
 >
-  <header class="flex items-center justify-between gap-4">
-    <Brand href={cityViewHref} />
-    <nav aria-label="Primary" class="flex items-center gap-2">
-      <a
-        href={cityViewHref}
-        class="rounded-lg px-3 py-2 text-sm font-semibold text-accent no-underline transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-accent-soft hover:text-accent-deep active:scale-98"
-      >
-        City view
-      </a>
-      <ThemeToggle />
-    </nav>
-  </header>
+  <AppHeader brandHref={cityViewHref} actionHref={cityViewHref} actionLabel="City view" />
 
   <section
-    class="mt-10 grid gap-6 border-b border-line pb-8 lg:mt-12 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-end lg:gap-12"
+    class="mt-8 grid gap-6 border-b border-line pb-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-end lg:gap-12"
   >
     <div>
       <h1 class="text-3xl font-semibold tracking-tight text-ink">Side by side planner</h1>

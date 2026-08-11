@@ -19,6 +19,7 @@
   import RentMap from '$lib/components/city/RentMap.svelte';
   import SourcesFooter from '$lib/components/city/SourcesFooter.svelte';
   import LandingContent from '$lib/components/landing/LandingContent.svelte';
+  import AppHeader from '$lib/components/ui/AppHeader.svelte';
 
   const urlSync = createUrlSync();
 
@@ -71,7 +72,9 @@
   data-hydrated={urlSync.hydrated ? 'true' : 'false'}
   class="mx-auto max-w-7xl px-4 pt-4 pb-20 md:px-6 md:pt-6 md:pb-24"
 >
-  <div class="grid items-start gap-8 lg:grid-cols-[22rem_minmax(0,1fr)] lg:gap-12">
+  <AppHeader actionHref="/compare" actionLabel="Compare" />
+
+  <div class="mt-8 grid items-start gap-8 lg:grid-cols-[22rem_minmax(0,1fr)] lg:gap-12">
     <CitySidebar
       {salary}
       {selected}
@@ -85,7 +88,7 @@
          one carries its own rhythm and entrance delay. Because Svelte keeps these
          children mounted across city/salary changes, the cascade plays once — on
          the empty → results transition. -->
-    <div data-testid="results" class="flex min-w-0 flex-col lg:pt-14">
+    <div data-testid="results" class="flex min-w-0 flex-col">
       {#if !urlSync.hydrated}
         <section
           aria-busy="true"
