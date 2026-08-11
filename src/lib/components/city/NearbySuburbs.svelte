@@ -15,6 +15,41 @@
 
   let places = $state<NearbyPlace[]>([]);
   let loading = $state(false);
+  let expanded = $state(false);
+  let status = $state('');
+  let visiblePlaces = $derived(expanded ? places : places.slice(0, 4));
+  let compareFull = $derived(app.compareNames.length >= 5);
+  let comparisonLookupInProgress = $derived(app.pendingName != null);
+
+  async function toggleComparison(place: NearbyPlace) {
+    const known = app.cityByName(place.label);
+    if (known && app.isComparing(known.name)) {
+      app.toggleCompare(known.name);
+      status = `${known.name} removed from your comparison.`;
+      return;
+    }
+
+    status = `Looking up rent for ${place.label}. Your ${city.name} plan stays open.`;
+    const name = await app.resolveSuggestion(place, { select: false });
+    const resolved = app.cityByName(name);
+    if (!resolved) return;
+
+    if (app.compareNames.length >= 5) {
+      status = `Comparison is full. Remove a city before adding ${name}.`;
+      return;
+    }
+
+    app.toggleCompare(name);
+    if (!app.isComparing(name)) {
+      status = `Comparison is full. Remove a city before adding ${name}.`;
+      return;
+    }
+
+    status =
+      resolved.r1 != null
+        ? `${name} added to comparison. Your ${city.name} plan is still selected.`
+        : `${name} added to comparison. Rent data is not available yet.`;
+  }
 
   // Refetch whenever the selected city (or its coords) changes; abort stale requests.
   $effect(() => {
@@ -32,6 +67,7 @@
     fetchNearby(lat, lng, cityName, state, controller.signal).then((res) => {
       if (controller.signal.aborted) return;
       places = res;
+      expanded = false;
       loading = false;
     });
     return () => controller.abort();
@@ -40,45 +76,74 @@
 
 {#if city.lat != null && city.lng != null && (loading || places.length)}
   <section class={className}>
-    <SectionHeading title="Nearby suburbs and towns">
+    <SectionHeading title="Explore nearby rent options">
       <span class="text-xs font-medium text-muted">SimpleMaps</span>
     </SectionHeading>
     <p class="mb-3.5 max-w-[66ch] text-sm/normal text-muted">
-      Within ~25 miles of {city.city}, largest population first. Click a place to load its rent.
+      Keep {city.city} as your active plan while you add a nearby place to compare. Distances are straight-line,
+      within roughly 25 miles.
     </p>
+    <p aria-live="polite" class="sr-only">{status}</p>
 
     {#if !places.length}
-      <p class="text-sm text-muted">Finding nearby places…</p>
-    {:else}
-      <div class="flex flex-wrap gap-3">
-        {#each places as p (p.label)}
-          {@const pending = app.pendingName === p.label}
-          <button
-            disabled={pending}
-            onclick={() => app.resolveSuggestion(p)}
-            class="group inline-flex items-baseline gap-2 rounded-xl border bg-card-2 px-4 py-2 text-sm font-semibold transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-px hover:border-accent hover:bg-accent-soft hover:text-accent hover:shadow-card active:scale-98 {pending
-              ? 'cursor-default border-accent text-accent'
-              : 'cursor-pointer border-line-strong text-ink'}"
-          >
-            <span>{p.city}, {p.state}</span>
-            {#if pending}
-              <span
-                aria-hidden="true"
-                class="size-3 animate-spin rounded-full border-2 border-accent/30 border-t-accent"
-              ></span>
-            {:else}
-              {#if p.pop != null}
-                <span class="text-xs font-medium text-muted tabular-nums group-hover:text-accent">
-                  {fmtPop(p.pop)} pop
-                </span>
-              {/if}
-              <span class="text-xs font-medium text-muted tabular-nums group-hover:text-accent">
-                {p.miles} mi
-              </span>
-            {/if}
-          </button>
-        {/each}
+      <div class="flex items-center gap-3 text-sm text-muted" aria-live="polite">
+        <span class="size-3 animate-spin rounded-full border-2 border-accent/30 border-t-accent"
+        ></span>
+        Finding nearby places…
       </div>
+    {:else}
+      <ol class="border-y border-line">
+        {#each visiblePlaces as p (p.label)}
+          {@const pending = app.pendingName === p.label}
+          {@const compared = app.isComparing(p.label)}
+          <li
+            class="grid gap-3 border-b border-line px-0 py-4 last:border-b-0 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-6"
+          >
+            <div>
+              <p class="font-semibold tracking-tight text-ink">{p.city}, {p.state}</p>
+              <p class="mt-1 text-xs text-muted tabular-nums">
+                {#if p.pop != null}{fmtPop(p.pop)} population ·
+                {/if}{p.miles} mi away
+              </p>
+            </div>
+            <button
+              disabled={pending || (!compared && (compareFull || comparisonLookupInProgress))}
+              onclick={() => toggleComparison(p)}
+              class="inline-flex min-h-10 items-center justify-center gap-2 self-start rounded-lg border px-3 py-2 text-sm font-semibold transition duration-200 sm:self-auto {pending
+                ? 'cursor-default border-accent bg-accent-soft text-accent'
+                : compared
+                  ? 'cursor-pointer border-line-strong bg-card-2 text-ink hover:border-red hover:text-red'
+                  : compareFull || comparisonLookupInProgress
+                    ? 'cursor-not-allowed border-line bg-card-2 text-faint'
+                    : 'cursor-pointer border-line-strong text-ink hover:border-accent hover:bg-accent-soft hover:text-accent'}"
+            >
+              {#if pending}
+                <span
+                  class="size-3 animate-spin rounded-full border-2 border-accent/30 border-t-accent"
+                ></span>
+                Checking rent
+              {:else if compared}
+                Remove comparison
+              {:else if compareFull}
+                Comparison full
+              {:else if comparisonLookupInProgress}
+                Checking another place
+              {:else}
+                Compare rent
+              {/if}
+            </button>
+          </li>
+        {/each}
+      </ol>
+
+      {#if places.length > 4}
+        <button
+          onclick={() => (expanded = !expanded)}
+          class="mt-3 cursor-pointer rounded-lg px-2 py-1 text-sm font-semibold text-accent hover:bg-accent-soft hover:text-accent-deep"
+        >
+          {expanded ? 'Show fewer places' : `Show ${places.length - 4} more places`}
+        </button>
+      {/if}
     {/if}
   </section>
 {/if}

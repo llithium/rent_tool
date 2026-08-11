@@ -14,24 +14,71 @@
     const parts = parseCity(city.name);
     return parts ? buildSearchLinks(parts, maxRent) : [];
   });
+  let recommended = $derived(links.find((link) => link.label.startsWith('Zillow')));
+  let alternatives = $derived(links.filter((link) => link !== recommended));
 </script>
 
 <section class={className}>
-  <SectionHeading title="Find apartments under {money(maxRent)}" />
-  <div class="flex flex-wrap gap-3">
-    {#each links as link (link.label)}
+  <SectionHeading title="Start your apartment search" />
+
+  <div class="border-y border-line py-5 sm:py-6">
+    <div class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:gap-8">
+      <div>
+        <p class="text-lg font-semibold tracking-tight text-ink">
+          Search listings that fit your {money(maxRent)} monthly target.
+        </p>
+        <p class="mt-1.5 max-w-[58ch] text-sm/normal text-muted">
+          We pass your exact rent cap to Zillow. Other marketplaces are here if you want a wider
+          look; each link states whether it carries a rent cap with it.
+        </p>
+      </div>
+
+      {#if recommended}
+        <a
+          href={recommended.url}
+          target="_blank"
+          rel="noopener"
+          class="group inline-flex min-h-12 items-center justify-center gap-3 rounded-xl bg-accent px-5 py-3 text-sm font-semibold text-accent-ink no-underline shadow-card transition duration-200 hover:-translate-y-px hover:bg-accent-deep hover:shadow-pop active:translate-y-0 active:shadow-card"
+        >
+          <span>Search Zillow under {money(maxRent)}</span>
+          <svg class="size-4 shrink-0" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path
+              d="M3.25 12.75 12.75 3.25M6 3.25h6.75V10"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span class="sr-only">(opens in a new tab)</span>
+        </a>
+      {/if}
+    </div>
+  </div>
+
+  <div class="mt-4 grid border-t border-line sm:grid-cols-3">
+    {#each alternatives as link (link.label)}
       <a
         href={link.url}
         target="_blank"
         rel="noopener"
-        class="inline-block rounded-xl border border-line-strong bg-card-2 px-4 py-3 text-sm font-semibold text-ink no-underline transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-px hover:border-accent hover:bg-accent-soft hover:text-accent hover:shadow-card active:scale-98"
+        class="group flex min-h-22 flex-col justify-between gap-2 border-b border-line px-0 py-4 text-sm no-underline hover:text-accent sm:border-r sm:px-4 sm:first:pl-0 sm:last:border-r-0 sm:last:pr-0"
       >
-        {link.label}
+        <span class="font-semibold text-ink group-hover:text-accent"
+          >{link.label.split(' · ')[0]}</span
+        >
+        <span class="text-xs/normal text-muted group-hover:text-accent">
+          {#if link.prefiltered}
+            Shows listings {link.label.split(' · ')[1]}
+          {:else}
+            Browse listings — set your max rent
+          {/if}
+        </span>
       </a>
     {/each}
   </div>
   <p class="mt-3 max-w-[66ch] text-xs/normal text-muted">
-    Pre-filtered to your max rent where the site supports it. Figures are estimates — verify before
-    signing anything.
+    Apartment budgets are planning estimates. Confirm the rent, fees, and availability before you
+    apply.
   </p>
 </section>

@@ -182,7 +182,11 @@ class AppState {
   /** Resolve a city from an autocomplete suggestion: add it if new, then fill rent
    * from the bundled HUD table if it isn't a seed city. Returns the canonical name.
    * Nearby-place picks carry an OSM population — used as an instant prefill. */
-  async resolveSuggestion(sug: CitySuggestion & { pop?: number | null }): Promise<string> {
+  async resolveSuggestion(
+    sug: CitySuggestion & { pop?: number | null },
+    options: { select?: boolean } = {}
+  ): Promise<string> {
+    const selectOnResolve = options.select ?? true;
     const prefillPop = sug.pop != null && sug.pop > 0 ? popText(sug.pop) : '';
     const seed = findSeedCity(sug.label);
     const target = seed ? { ...sug, label: seed.name, city: seed.city, state: seed.state } : sug;
@@ -194,7 +198,7 @@ class AppState {
       if (seed.lat == null) this.patchCity(seed.name, { lat: target.lat, lng: target.lng });
       if (!seed.pop && prefillPop) this.patchCity(seed.name, { pop: prefillPop });
       if (seed.r1 != null) {
-        this.select(seed.name);
+        if (selectOnResolve) this.select(seed.name);
         return seed.name;
       }
     }
@@ -232,7 +236,7 @@ class AppState {
     // The clicked place shows a loading affordance via pendingName in the meantime.
     // If the city already has rent (revisited), skip the wait and select now.
     if (existing?.r1 != null) {
-      this.select(target.label);
+      if (selectOnResolve) this.select(target.label);
       return target.label;
     }
 
@@ -260,7 +264,7 @@ class AppState {
         this.looking = false;
         this.pendingName = null;
         this.lookupController = null;
-        this.select(target.label); // atomic swap now that rent is in
+        if (selectOnResolve) this.select(target.label); // atomic swap now that rent is in
         this.persist();
       }
     }
