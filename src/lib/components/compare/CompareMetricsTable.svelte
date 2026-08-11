@@ -15,7 +15,7 @@
 
 <div>
   <div class="mb-3">
-    <p class="text-sm font-semibold text-ink">Affordability first</p>
+    <p class="text-label text-ink">Affordability first</p>
   </div>
   <div class="overflow-x-auto">
     <!-- Cell padding and rules are uniform across the table, so they ride on the
@@ -74,7 +74,7 @@
                       : 'right-1.5'}"
                   ></span>
                   <span
-                    class="mt-1 block text-xs font-semibold {tone === 'best'
+                    class="mt-1 block text-meta font-semibold {tone === 'best'
                       ? 'text-green'
                       : 'text-red'}"
                   >
@@ -128,7 +128,7 @@
                         : 'right-1.5'}"
                     ></span>
                     <span
-                      class="mt-1 block text-xs font-semibold {tone === 'best'
+                      class="mt-1 block text-meta font-semibold {tone === 'best'
                         ? 'text-green'
                         : 'text-red'}"
                     >

@@ -77,9 +77,9 @@
 {#if city.lat != null && city.lng != null && (loading || places.length)}
   <section class={className}>
     <SectionHeading title="Explore nearby rent options">
-      <span class="text-xs font-medium text-muted">SimpleMaps</span>
+      <span class="text-meta text-muted">SimpleMaps</span>
     </SectionHeading>
-    <p class="mb-3.5 max-w-[66ch] text-sm/normal text-muted">
+    <p class="mb-3.5 max-w-[66ch] text-sm/relaxed text-muted">
       Keep {city.city} as your active plan while you add a nearby place to compare. Distances are straight-line,
       within roughly 25 miles.
     </p>
@@ -101,7 +101,7 @@
           >
             <div>
               <p class="font-semibold tracking-tight text-ink">{p.city}, {p.state}</p>
-              <p class="mt-1 text-xs text-muted tabular-nums">
+              <p class="mt-1 text-meta text-muted tabular-nums">
                 {#if p.pop != null}{fmtPop(p.pop)} population ·
                 {/if}{p.miles} mi away
               </p>

@@ -30,7 +30,7 @@
 </script>
 
 <div class={className}>
-  <label for={id} class="mb-2 block text-sm font-medium text-muted">
+  <label for={id} class="mb-2 block text-label text-muted">
     {label}
   </label>
   <div
@@ -50,7 +50,7 @@
       {oninput}
       {onblur}
       {onkeydown}
-      class="w-full min-w-0 flex-1 border-0 bg-transparent py-0.5 font-bold tracking-tight text-ink tabular-nums outline-none placeholder:text-faint {size ===
+      class="w-full min-w-0 flex-1 border-0 bg-transparent py-0.5 font-semibold tracking-tight text-ink tabular-nums outline-none placeholder:text-faint {size ===
       'lg'
         ? 'text-3xl'
         : 'text-2xl'}"
@@ -58,6 +58,6 @@
     />
   </div>
   {#if error}
-    <span id={`${id}-error`} class="mt-2 block text-xs text-red">{error}</span>
+    <span id={`${id}-error`} class="mt-2 block text-meta text-red">{error}</span>
   {/if}
 </div>

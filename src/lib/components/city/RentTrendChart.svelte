@@ -45,7 +45,7 @@
   <SectionHeading title="Rent vs your budget">
     {#if city.yoy != null}
       <span
-        class="text-xs font-semibold whitespace-nowrap {city.yoy > 0
+        class="text-meta font-semibold whitespace-nowrap {city.yoy > 0
           ? 'text-red'
           : city.yoy < 0
             ? 'text-green'
@@ -59,7 +59,7 @@
   <div class="flex flex-col gap-3.5">
     {#each bars as b (b.label)}
       <div>
-        <div class="mb-1 flex justify-between text-sm">
+        <div class="mb-1 flex justify-between text-label">
           <span class="text-muted">{b.label}</span>
           <span class="font-semibold tracking-tight tabular-nums">{money(b.value)}</span>
         </div>

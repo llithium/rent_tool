@@ -113,7 +113,7 @@
             <CityHeadline city={selected} />
             <a
               href="#plan-controls"
-              class="mt-3 inline-flex self-start rounded-lg px-2 py-1 text-sm font-semibold text-accent no-underline hover:bg-accent-soft hover:text-accent-deep lg:hidden"
+              class="mt-3 inline-flex self-start rounded-lg px-2 py-1 text-label text-accent no-underline hover:bg-accent-soft hover:text-accent-deep lg:hidden"
             >
               Edit city or salary
             </a>

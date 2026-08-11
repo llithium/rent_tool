@@ -45,8 +45,8 @@
 <section class="mt-8 pt-6" aria-labelledby="decision-heading">
   <div class="flex flex-col justify-between gap-5 md:flex-row md:items-end">
     <div class="max-w-xl">
-      <h2 id="decision-heading" class="text-lg font-semibold tracking-tight">Decision brief</h2>
-      <p class="mt-1 text-sm text-muted">
+      <h2 id="decision-heading" class="text-title">Decision brief</h2>
+      <p class="mt-1 text-sm/relaxed text-muted">
         Choose what matters most for this move. The result uses the salaries shown in each scenario.
       </p>
     </div>
@@ -92,21 +92,19 @@
       class="motion-copy mt-6 flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6"
     >
       <div>
-        <span class="block text-xs font-semibold tracking-wide text-muted uppercase">{title}</span>
+        <span class="block text-label tracking-wide text-muted uppercase">{title}</span>
         {#if decision}
           <a
             href={cityHref(decision, compareNames)}
-            class="mt-1 inline-block text-2xl font-semibold tracking-tight text-ink decoration-accent underline-offset-4 hover:text-accent"
+            class="mt-1 inline-block text-data text-ink decoration-accent underline-offset-4 hover:text-accent"
           >
             {decision.city.name}
           </a>
         {:else}
-          <strong class="mt-1 block text-2xl font-semibold tracking-tight text-ink"
-            >Not enough data yet</strong
-          >
+          <strong class="mt-1 block text-data text-ink">Not enough data yet</strong>
         {/if}
       </div>
-      <p class="max-w-sm text-sm text-muted tabular-nums sm:text-right">{detail}</p>
+      <p class="max-w-sm text-sm/relaxed text-muted tabular-nums sm:text-right">{detail}</p>
     </div>
   {/key}
 </section>

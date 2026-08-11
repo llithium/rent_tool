@@ -24,10 +24,10 @@
   <div class="border-y border-line py-5 sm:py-6">
     <div class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:gap-8">
       <div>
-        <h3 class="text-lg font-semibold tracking-tight text-ink">
+        <h3 class="text-title text-ink">
           Search listings under {money(maxRent)}
         </h3>
-        <p class="mt-1.5 max-w-[58ch] text-sm/normal text-muted">
+        <p class="mt-1.5 max-w-[58ch] text-sm/relaxed text-muted">
           We pass your exact rent cap to Zillow. Other marketplaces are here if you want a wider
           look; each link states whether it carries a rent cap with it.
         </p>
@@ -58,10 +58,10 @@
 
   <details class="mt-5 border-t border-line pt-4">
     <summary
-      class="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold text-ink [&::-webkit-details-marker]:hidden"
+      class="flex cursor-pointer list-none items-center justify-between gap-4 text-label text-ink [&::-webkit-details-marker]:hidden"
     >
       <span>Browse other marketplaces</span>
-      <span class="flex items-center gap-2 text-xs font-medium text-muted">
+      <span class="flex items-center gap-2 text-meta text-muted">
         {alternatives.length} more options
         <svg class="size-4" viewBox="0 0 16 16" fill="none" aria-hidden="true">
           <path
@@ -85,7 +85,7 @@
           <span class="font-semibold text-ink group-hover:text-accent"
             >{link.label.split(' · ')[0]}</span
           >
-          <span class="text-xs/normal text-muted group-hover:text-accent">
+          <span class="text-meta text-muted group-hover:text-accent">
             {#if link.prefiltered}
               Shows listings {link.label.split(' · ')[1]}
             {:else}
@@ -96,7 +96,7 @@
       {/each}
     </div>
   </details>
-  <p class="mt-3 max-w-[66ch] text-xs/normal text-muted">
+  <p class="mt-3 max-w-[66ch] text-sm/relaxed text-muted">
     Apartment budgets are planning estimates. Confirm the rent, fees, and availability before you
     apply.
   </p>

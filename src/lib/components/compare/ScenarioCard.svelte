@@ -30,10 +30,10 @@
 >
   <div class="flex min-h-12 items-start justify-between gap-2">
     <div>
-      <h2 class="text-base tracking-tight">
+      <h2 class="text-title">
         <a {href} class="text-ink no-underline hover:text-inherit">{row.city.name}</a>
       </h2>
-      <p class="mt-0.5 text-xs text-muted">{rentMetricLabel(row.city.rentMetric)}</p>
+      <p class="mt-0.5 text-meta text-muted">{rentMetricLabel(row.city.rentMetric)}</p>
     </div>
     <button
       onclick={onremove}
@@ -65,15 +65,15 @@
 
   <div class="mt-6 grid grid-cols-2 gap-4 border-t border-line pt-4">
     <div class="min-w-0">
-      <span class="block text-xs text-muted">1BR rent</span>
-      <strong class="mt-0.5 block text-base tabular-nums">
+      <span class="block text-meta text-muted">1BR rent</span>
+      <strong class="mt-0.5 block text-data tabular-nums">
         {money(row.city.r1)}<small class="text-xs font-medium text-muted">/mo</small>
       </strong>
     </div>
     <div class="min-w-0">
-      <span class="block text-xs text-muted">Rent budget</span>
+      <span class="block text-meta text-muted">Rent budget</span>
       {#key row.budget.maxRent}
-        <strong class="motion-value mt-0.5 block text-base tabular-nums">
+        <strong class="motion-value mt-0.5 block text-data tabular-nums">
           {money(row.budget.maxRent)}<small class="text-xs font-medium text-muted">/mo</small>
         </strong>
       {/key}
@@ -92,7 +92,7 @@
     {/key}
   </div>
   {#if row.city.r1 == null}
-    <p class="mt-2 text-xs/5 text-muted">
+    <p class="mt-2 text-meta text-muted">
       We could not match a current 1BR estimate for this city. Open the city name above for
       available rent context and alternatives.
     </p>

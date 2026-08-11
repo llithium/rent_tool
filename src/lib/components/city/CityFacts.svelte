@@ -52,9 +52,9 @@
 
 <section class="@container {className}">
   {#if looking}
-    <p class="mb-4 text-sm text-muted">Looking up rent data for this city…</p>
+    <p class="mb-4 text-sm/relaxed text-muted">Looking up rent data for this city…</p>
   {:else if city.r1 == null}
-    <p class="mb-4 text-sm text-muted">
+    <p class="mb-4 text-sm/relaxed text-muted">
       No rent figure available for this city — the search links below still work.
     </p>
   {/if}
@@ -64,17 +64,17 @@
   {/if}
 
   {#if city.rentArea || city.rentYear}
-    <p class="mt-3.5 text-xs text-muted">
+    <p class="mt-3.5 text-meta text-muted">
       {city.rentArea}{city.rentYear ? ` · ${city.rentYear}` : ''}
     </p>
   {/if}
 
   <details class="mt-7 border-t border-line pt-5">
     <summary
-      class="flex cursor-pointer list-none items-center justify-between gap-4 text-lg font-semibold tracking-tight text-ink [&::-webkit-details-marker]:hidden"
+      class="flex cursor-pointer list-none items-center justify-between gap-4 text-title text-ink [&::-webkit-details-marker]:hidden"
     >
       <span>Explore city context</span>
-      <span class="flex items-center gap-2 text-xs font-medium text-muted">
+      <span class="flex items-center gap-2 text-meta text-muted">
         {#if city.citySnapshot}ACS 2020–2024{:else}Background reading{/if}
         <svg
           class="size-4 transition-transform duration-200"
@@ -101,7 +101,7 @@
               href={ACS_DATA_META.dataUrl}
               target="_blank"
               rel="noopener"
-              class="text-xs font-medium text-accent underline decoration-1 underline-offset-2 hover:text-accent-deep"
+              class="text-meta text-accent underline decoration-1 underline-offset-2 hover:text-accent-deep"
             >
               {ACS_DATA_META.label} ↗
             </a>
@@ -115,7 +115,7 @@
           class="grid-cols-5 @max-2xl:grid-cols-2 @max-2xl:[&>*:last-child]:col-span-full"
         />
         {#if city.citySnapshot}
-          <p class="mt-3.5 text-xs text-muted">{ACS_DATA_META.geography} · U.S. Census Bureau</p>
+          <p class="mt-3.5 text-meta text-muted">{ACS_DATA_META.geography} · U.S. Census Bureau</p>
         {/if}
       {/if}
 
@@ -125,7 +125,7 @@
         rel="noopener"
         class="{snapshotFacts.length
           ? 'mt-5'
-          : ''} inline-block text-sm font-semibold text-accent hover:text-accent-deep hover:underline"
+          : ''} inline-block text-label text-accent hover:text-accent-deep hover:underline"
       >
         Read about {city.city} on Wikipedia ↗
       </a>

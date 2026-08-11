@@ -8,11 +8,11 @@
 
 <main id="main-content" class="grid min-h-dvh place-items-center px-4 py-20">
   <section class="max-w-xl rounded-2xl bg-card-2 p-8 md:p-12">
-    <p class="text-sm font-semibold text-accent tabular-nums">{page.status}</p>
-    <h1 class="mt-4 text-4xl font-semibold tracking-tight">
+    <p class="text-label text-accent tabular-nums">{page.status}</p>
+    <h1 class="mt-4 text-headline">
       {page.status === 404 ? 'This page is not on the map.' : 'This page is unavailable.'}
     </h1>
-    <p class="mt-4 text-base text-muted">
+    <p class="mt-4 text-body text-muted">
       {page.status === 404
         ? 'Return to the calculator and start with a city you are considering.'
         : 'Please return to the calculator and try again.'}

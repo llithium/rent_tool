@@ -69,6 +69,43 @@
 @theme inline {
   --font-sans: 'Geist', ui-sans-serif, system-ui, sans-serif;
 
+  /* Typography roles keep the clear-ledger hierarchy stable across the city,
+     comparison, and supporting-content surfaces. The display ramp is fluid;
+     product copy remains spatially predictable. */
+  --text-display: clamp(2.75rem, 2.25rem + 2vw, 3.75rem);
+  --text-display--line-height: 0.98;
+  --text-display--font-weight: 600;
+  --text-display--letter-spacing: -0.035em;
+
+  --text-headline: clamp(1.875rem, 1.7rem + 0.75vw, 2.25rem);
+  --text-headline--line-height: 1.08;
+  --text-headline--font-weight: 600;
+  --text-headline--letter-spacing: -0.03em;
+
+  --text-title: 1.125rem;
+  --text-title--line-height: 1.3;
+  --text-title--font-weight: 600;
+  --text-title--letter-spacing: -0.02em;
+
+  --text-body: 1rem;
+  --text-body--line-height: 1.55;
+  --text-body--font-weight: 400;
+
+  --text-label: 0.8125rem;
+  --text-label--line-height: 1.25;
+  --text-label--font-weight: 600;
+  --text-label--letter-spacing: 0.01em;
+
+  --text-meta: 0.75rem;
+  --text-meta--line-height: 1.35;
+  --text-meta--font-weight: 500;
+  --text-meta--letter-spacing: 0.005em;
+
+  --text-data: 1.25rem;
+  --text-data--line-height: 1.1;
+  --text-data--font-weight: 600;
+  --text-data--letter-spacing: -0.02em;
+
   --color-accent: var(--accent);
   --color-accent-ink: var(--accent-ink);
   --color-accent-soft: var(--accent-soft);
@@ -223,6 +260,18 @@
 }
 
 @layer base {
+  body {
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+
   h1,
   h2,
   h3,

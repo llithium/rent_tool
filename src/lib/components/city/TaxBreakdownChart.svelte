@@ -35,7 +35,7 @@
      only inside this chart, and inlining keeps every utility visible here. -->
 {#snippet segment(width: number, label: string, minLabelPct: number, tone: string)}
   <div
-    class="flex min-w-0 items-center overflow-hidden px-2 text-xs font-semibold whitespace-nowrap transition-[width] duration-400 {tone}"
+    class="flex min-w-0 items-center overflow-hidden px-2 text-meta font-semibold whitespace-nowrap transition-[width] duration-400 {tone}"
     style="width:{width}%"
   >
     {#if width >= minLabelPct}<span class="truncate">{label}</span>{/if}
@@ -51,7 +51,7 @@
 <section class={className}>
   <SectionHeading title="Where the money goes" />
 
-  <div class="mb-1 text-xs text-muted">
+  <div class="mb-1 text-meta text-muted">
     Gross monthly {money(budget.grossMonthly)}{taxAmt > 0 ? ` · taxes ${money(taxAmt)}` : ''}
   </div>
   <div
@@ -88,7 +88,7 @@
       'bg-green text-white'
     )}
   </div>
-  <div class="mb-4 flex flex-wrap gap-x-3.5 gap-y-1 text-xs text-muted">
+  <div class="mb-4 flex flex-wrap gap-x-3.5 gap-y-1 text-meta text-muted">
     {#if budget.federalMonthly > 0}
       {@render swatch(`Federal ${money(budget.federalMonthly)}`, 'bg-red')}
     {/if}
@@ -104,7 +104,7 @@
   </div>
 
   {#if city.r1 != null}
-    <div class="mb-1 text-xs text-muted">Take-home split</div>
+    <div class="mb-1 text-meta text-muted">Take-home split</div>
     <div
       role="img"
       aria-label={`Take-home split: ${money(rent)} rent, ${money(remaining)} left`}
@@ -130,7 +130,7 @@
   {/if}
 
   {#if budget.stateRate === 0 || !budget.localTaxModeled}
-    <p class="mt-1 text-xs text-muted">
+    <p class="mt-1 text-meta text-muted">
       {#if budget.stateRate === 0}
         <span class="mr-1"
           >No state income tax on wages here — but federal tax and FICA still apply.</span

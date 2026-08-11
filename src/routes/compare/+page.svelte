@@ -90,8 +90,8 @@
     class="mt-8 grid gap-6 border-b border-line pb-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-end lg:gap-12"
   >
     <div>
-      <h1 class="text-3xl font-semibold tracking-tight text-ink">Side by side planner</h1>
-      <p class="mt-2 max-w-2xl text-muted">
+      <h1 class="text-headline text-ink">Side by side planner</h1>
+      <p class="mt-2 max-w-2xl text-body text-muted">
         Compare what each city leaves you after a typical one-bedroom rent, then inspect the
         trade-offs.
       </p>
@@ -99,13 +99,13 @@
     <div class="w-full lg:justify-self-end">
       {#if atCapacity}
         <div class="rounded-xl border border-line-strong bg-card-2 px-4 py-3">
-          <p class="text-sm font-semibold text-ink">Five cities are ready to compare.</p>
-          <p class="mt-1 text-xs/5 text-muted">Remove one below to make room for another city.</p>
+          <p class="text-label text-ink">Five cities are ready to compare.</p>
+          <p class="mt-1 text-meta text-muted">Remove one below to make room for another city.</p>
         </div>
       {:else}
         <CitySearch onselect={addCity} />
       {/if}
-      <p aria-live="polite" class="mt-2 min-h-5 text-xs text-muted">
+      <p aria-live="polite" class="mt-2 min-h-5 text-meta text-muted">
         {cityMessage || `${app.compareNames.length} of 5 cities added`}
       </p>
     </div>
@@ -144,8 +144,8 @@
 
     <section class="mt-8 border-t border-line pt-6">
       <div class="mb-5 flex items-end justify-between gap-5 max-md:flex-col max-md:items-start">
-        <h2 class="text-lg font-semibold tracking-tight">Full breakdown</h2>
-        <p class="max-w-85 text-right text-xs text-muted max-md:text-left">
+        <h2 class="text-title">Full breakdown</h2>
+        <p class="max-w-85 text-right text-meta text-muted max-md:text-left">
           Taxes estimate a single filer taking the standard deduction.
         </p>
       </div>
@@ -154,14 +154,12 @@
   {:else if hydrated}
     <section class="mt-12 border-b border-line py-16 md:py-20" aria-labelledby="empty-heading">
       <div class="max-w-2xl">
-        <h2 id="empty-heading" class="text-3xl font-semibold tracking-tight">
-          Compare two places before you choose
-        </h2>
-        <p class="mt-3 text-muted">
+        <h2 id="empty-heading" class="text-headline">Compare two places before you choose</h2>
+        <p class="mt-3 text-body text-muted">
           Start with the city tied to your offer or current home. Add another place to see which one
           gives your plan more room after rent.
         </p>
-        <ul class="mt-6 space-y-2 text-sm text-muted">
+        <ul class="mt-6 space-y-2 text-sm/relaxed text-muted">
           <li>Pick the city you are considering.</li>
           <li>Add the place you want to weigh against it.</li>
           <li>Use the decision brief to choose the trade-off that matters most.</li>
@@ -170,7 +168,7 @@
     </section>
   {/if}
 
-  <footer class="mt-12 border-t border-line pt-6 text-xs text-muted">
+  <footer class="mt-12 border-t border-line pt-6 text-meta text-muted">
     Figures are estimates for planning, not tax or financial advice. Rent sources and methodology
     are shown for each city.
   </footer>

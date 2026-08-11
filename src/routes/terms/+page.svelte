@@ -5,8 +5,8 @@
 
 <main id="main-content" class="mx-auto max-w-3xl px-4 pt-12 pb-20 md:px-6 md:pt-16 md:pb-24">
   <a class="text-sm font-semibold text-accent" href="/">← Back to Rent Tool</a>
-  <h1 class="mt-8 text-4xl font-semibold tracking-tight">Terms</h1>
-  <div class="mt-8 max-w-[68ch] space-y-6 text-base text-muted">
+  <h1 class="mt-8 text-headline">Terms</h1>
+  <div class="mt-8 max-w-[68ch] space-y-6 text-body text-muted">
     <p>
       Rent Tool provides planning estimates for informational purposes. Results are not financial,
       tax, legal, or housing advice.

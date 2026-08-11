@@ -62,14 +62,11 @@
         {/if}
       </span>
       <div>
-        <h2
-          id="affordability-heading"
-          class="mb-2 text-xl font-semibold tracking-tight {good ? 'text-green' : 'text-red'}"
-        >
+        <h2 id="affordability-heading" class="mb-2 text-title {good ? 'text-green' : 'text-red'}">
           {good ? 'Fits your 30% gross-income target' : 'Above your gross-income target'}
         </h2>
         {#key `${good}-${cushion}`}
-          <div class="motion-copy max-w-2xl leading-relaxed text-ink">
+          <div class="motion-copy max-w-2xl text-body text-ink">
             {#if good}
               Your {money(budget.maxRent)} target covers the {rentLabel} ({money(city.r1)}) with
               {money(cushion)}/mo under the target{twoBrClause}
@@ -85,24 +82,23 @@
 
     <dl class="mt-5 grid grid-cols-2 gap-4 border-t border-line pt-4 sm:grid-cols-4">
       <div>
-        <dt class="text-xs text-muted">Monthly target</dt>
-        <dd class="mt-1 text-lg font-semibold tracking-tight tabular-nums">
+        <dt class="text-meta text-muted">Monthly target</dt>
+        <dd class="mt-1 text-data tabular-nums">
           {money(budget.maxRent)}
         </dd>
       </div>
       <div>
-        <dt class="text-xs text-muted">{rentLabel}</dt>
-        <dd class="mt-1 text-lg font-semibold tracking-tight tabular-nums">{money(city.r1)}</dd>
+        <dt class="text-meta text-muted">{rentLabel}</dt>
+        <dd class="mt-1 text-data tabular-nums">{money(city.r1)}</dd>
       </div>
       <div>
-        <dt class="text-xs text-muted">Market rent vs target</dt>
-        <dd class="mt-1 text-lg font-semibold tracking-tight tabular-nums">{cushionLabel}</dd>
+        <dt class="text-meta text-muted">Market rent vs target</dt>
+        <dd class="mt-1 text-data tabular-nums">{cushionLabel}</dd>
       </div>
       <div>
-        <dt class="text-xs text-muted">Rent share of take-home</dt>
+        <dt class="text-meta text-muted">Rent share of take-home</dt>
         <dd
-          class="mt-1 text-lg font-semibold tracking-tight tabular-nums {rentShare != null &&
-          rentShare > 30
+          class="mt-1 text-data tabular-nums {rentShare != null && rentShare > 30
             ? 'text-red'
             : 'text-green'}"
         >

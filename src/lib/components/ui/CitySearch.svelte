@@ -159,12 +159,12 @@
 </script>
 
 <div class="relative min-w-0">
-  <label for="city-input" class="mb-2 block text-sm font-medium text-muted"> City </label>
+  <label for="city-input" class="mb-2 block text-label text-muted"> City </label>
   <div class="relative">
     <input
       id="city-input"
       name="city-search"
-      class="w-full rounded-xl border border-line-strong bg-card-2 py-3 pr-10 pl-3 text-base font-semibold text-ink transition-colors duration-200 placeholder:text-faint hover:border-accent focus:border-transparent focus:outline-2 focus:outline-accent"
+      class="w-full rounded-xl border border-line-strong bg-card-2 py-3 pr-10 pl-3 text-body font-semibold text-ink transition-colors duration-200 placeholder:text-faint hover:border-accent focus:border-transparent focus:outline-2 focus:outline-accent"
       type="search"
       role="combobox"
       aria-expanded={open}
@@ -213,7 +213,7 @@
           role="option"
           aria-selected={i === activeIndex}
           style:animation-delay={`${Math.min(i * 24, 120)}ms`}
-          class="motion-option flex cursor-pointer items-baseline justify-between gap-2.5 rounded-lg px-3 py-2.5 text-base {i ===
+          class="motion-option flex cursor-pointer items-baseline justify-between gap-2.5 rounded-lg px-3 py-2.5 text-body {i ===
           activeIndex
             ? 'bg-accent-soft'
             : ''}"
@@ -229,7 +229,7 @@
               >{/if}{parts.after}
           </span>
           {#if rentFor(sug.label)}
-            <span class="text-sm whitespace-nowrap text-muted tabular-nums">
+            <span class="text-meta whitespace-nowrap text-muted tabular-nums">
               {rentFor(sug.label)}
             </span>
           {/if}
@@ -241,7 +241,7 @@
     {loading ? 'Searching cities' : open ? `${suggestions.length} city suggestions available` : ''}
   </span>
   {#if planStatus}
-    <p id="city-plan-status" aria-live="polite" class="mt-2 text-xs text-muted">
+    <p id="city-plan-status" aria-live="polite" class="mt-2 text-meta text-muted">
       {planStatus}
     </p>
   {/if}

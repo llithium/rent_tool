@@ -17,13 +17,17 @@
   {#each stats as stat (stat.label)}
     <div data-testid="fact">
       <div
-        class="font-semibold tracking-tight tabular-nums {size === 'lead'
-          ? 'text-2xl'
-          : 'text-xl'} {stat.tone === 'up' ? 'text-red' : stat.tone === 'down' ? 'text-green' : ''}"
+        class="tracking-tight tabular-nums {size === 'lead'
+          ? 'text-data text-2xl'
+          : 'text-data'} {stat.tone === 'up'
+          ? 'text-red'
+          : stat.tone === 'down'
+            ? 'text-green'
+            : ''}"
       >
         {stat.value}
       </div>
-      <div class="mt-1 text-xs text-muted">{stat.label}</div>
+      <div class="mt-1 text-meta text-muted">{stat.label}</div>
     </div>
   {/each}
 </div>

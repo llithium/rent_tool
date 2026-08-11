@@ -13,10 +13,8 @@
 
 <article aria-label="Start a rent plan" class="min-w-0">
   <section class="rounded-2xl bg-card-2 p-8 md:p-12">
-    <h1 class="max-w-2xl text-4xl font-semibold tracking-tight text-ink md:text-5xl">
-      Start with the city and the offer.
-    </h1>
-    <p class="mt-5 max-w-2xl text-base text-muted md:text-lg">
+    <h1 class="max-w-2xl text-display text-ink">Start with the city and the offer.</h1>
+    <p class="mt-5 max-w-2xl text-body text-muted">
       Choose the place you are considering and enter its annual salary. We will turn that into a
       monthly rent target and place it beside the local market.
     </p>
@@ -30,20 +28,24 @@
 
     <div class="mt-10 grid gap-4 border-t border-line pt-6 sm:grid-cols-3">
       <div>
-        <h2 class="text-base font-semibold text-ink">A focused answer</h2>
-        <p class="mt-1 text-sm text-muted">See a rent target before you browse listings.</p>
+        <h2 class="text-title text-ink">A focused answer</h2>
+        <p class="mt-1 text-sm/relaxed text-muted">See a rent target before you browse listings.</p>
       </div>
       <div>
-        <h2 class="text-base font-semibold text-ink">Local context</h2>
-        <p class="mt-1 text-sm text-muted">Check it against the city’s current rent estimate.</p>
+        <h2 class="text-title text-ink">Local context</h2>
+        <p class="mt-1 text-sm/relaxed text-muted">
+          Check it against the city’s current rent estimate.
+        </p>
       </div>
       <div>
-        <h2 class="text-base font-semibold text-ink">Your plan, saved</h2>
-        <p class="mt-1 text-sm text-muted">Return to or share the scenario from its address.</p>
+        <h2 class="text-title text-ink">Your plan, saved</h2>
+        <p class="mt-1 text-sm/relaxed text-muted">
+          Return to or share the scenario from its address.
+        </p>
       </div>
     </div>
 
-    <p class="mt-8 max-w-2xl text-sm text-muted">
+    <p class="mt-8 max-w-2xl text-sm/relaxed text-muted">
       Sources and reporting periods appear beside every result. Rent Tool is a planning aid, not tax
       advice.
     </p>
