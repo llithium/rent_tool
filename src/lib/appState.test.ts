@@ -70,6 +70,22 @@ describe('RentPlanWorkspace', () => {
     expect(plan.snapshot.compareNames).toEqual(['Nearby, ZZ']);
   });
 
+  it('resolves coordinates before looking up a coordinate-less off-list city', async () => {
+    const dependency = adapters(hudRent);
+    dependency.coordinatesForPlace = vi.fn(async () => [40.7, -74] as const);
+    const plan = new RentPlanWorkspace(dependency);
+
+    const result = await plan.addComparison({
+      label: 'Off-list, ZZ',
+      city: 'Off-list',
+      state: 'ZZ'
+    });
+
+    expect(result.status).toBe('added');
+    expect(dependency.coordinatesForPlace).toHaveBeenCalledWith('Off-list', 'ZZ');
+    expect(dependency.lookupRent).toHaveBeenCalledWith(40.7, -74, expect.any(AbortSignal));
+  });
+
   it('enforces the comparison cap before resolving another city', async () => {
     const dependency = adapters(hudRent);
     const plan = new RentPlanWorkspace(dependency);

@@ -41,13 +41,14 @@ export interface City {
   rentYear: string;
 }
 
-/** Autocomplete suggestion returned by /api/city-suggest. */
+/** Autocomplete suggestion returned by /api/city-suggest or the local seed index. */
 export interface CitySuggestion {
   label: string; // "City, ST"
   city: string;
   state: string;
-  lat: number;
-  lng: number;
+  /** Remote suggestions include coordinates; bundled seed matches may not. */
+  lat?: number;
+  lng?: number;
 }
 
 /** A nearby place returned by /api/nearby (OpenStreetMap via Overpass). */

@@ -4,8 +4,15 @@ import { expect, test, type Page } from '@playwright/test';
 async function selectCity(page: Page, query: string, label: string) {
   const city = page.getByRole('combobox', { name: 'City' });
   await city.fill(query);
-  await expect(page.getByRole('option', { name: label })).toBeVisible();
-  await city.press('Enter');
+  const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const option = page
+    .getByRole('option')
+    .filter({ hasText: new RegExp(`^${escapedLabel}(?:\\s|$)`) });
+  await expect(option).toHaveCount(1);
+  await expect(option).toBeVisible();
+  // CitySearch commits on mousedown; dispatching the same event avoids racing
+  // the list's entrance animation while the debounced response is settling.
+  await option.dispatchEvent('mousedown');
 }
 
 async function waitForHydration(page: Page) {
@@ -76,9 +83,24 @@ test('supports keyboard city selection and salary results', async ({ page }) => 
   await expect(
     page.locator('[data-testid="fact"]').getByText('Estimated median 1BR rent', { exact: true })
   ).toBeVisible();
+  await page.getByText('Explore city context', { exact: true }).click();
   await expect(page.getByRole('heading', { name: 'City snapshot' })).toBeVisible();
   await expect(page.getByText('Median household income', { exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: '2020–2024 ACS 5-year estimates ↗' })).toBeVisible();
+});
+
+test('shows bundled city suggestions before a slow API response', async ({ page }) => {
+  await page.route('**/api/city-suggest**', async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 2_000));
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({ suggestions: [] })
+    });
+  });
+
+  const city = page.getByRole('combobox', { name: 'City' });
+  await city.fill('Gastonia');
+  await expect(page.getByRole('option', { name: 'Gastonia, NC' })).toBeVisible({ timeout: 700 });
 });
 
 test('keeps the accepted city explicit while a different city is being typed', async ({ page }) => {
@@ -154,7 +176,9 @@ test('enforces the five-city comparison limit', async ({ page }) => {
     await page.getByRole('button', { name: '+ Compare' }).click();
   }
   await selectCity(page, 'Seattle', 'Seattle, WA');
-  await expect(page.getByRole('button', { name: '+ Compare' })).toBeDisabled();
+  await expect(
+    page.getByTestId('sidebar').getByRole('button', { name: 'Comparison full' })
+  ).toBeDisabled();
   await expect(page.getByText('5 / 5', { exact: true })).toBeVisible();
 });
 

@@ -355,11 +355,20 @@ export class RentPlanWorkspace {
       this.lookingValue = false;
       this.pendingNameValue = null;
       // Ensure the seed city carries coords for the map.
-      if (seed.lat == null) this.patchCity(seed.name, { lat: target.lat, lng: target.lng });
+      if (seed.lat == null && target.lat != null && target.lng != null) {
+        this.patchCity(seed.name, { lat: target.lat, lng: target.lng });
+      }
       if (!seed.pop && prefillPop) this.patchCity(seed.name, { pop: prefillPop });
       if (seed.r1 != null) {
         if (selectOnResolve) this.selectCity(seed.name);
         return seed.name;
+      }
+    }
+
+    if (!seed && (target.lat == null || target.lng == null)) {
+      const coords = await this.adapters.coordinatesForPlace(target.city, target.state);
+      if (coords) {
+        return this.resolveSuggestion({ ...target, lat: coords[0], lng: coords[1] }, options);
       }
     }
 
@@ -396,6 +405,13 @@ export class RentPlanWorkspace {
     // The clicked place shows a loading affordance via pendingName in the meantime.
     // If the city already has rent (revisited), skip the wait and select now.
     if (existing?.r1 != null) {
+      if (selectOnResolve) this.selectCity(target.label);
+      return target.label;
+    }
+
+    // Local seed suggestions can be useful before their map coordinates are
+    // hydrated. They cannot take the coordinate-based HUD lookup path yet.
+    if (target.lat == null || target.lng == null) {
       if (selectOnResolve) this.selectCity(target.label);
       return target.label;
     }

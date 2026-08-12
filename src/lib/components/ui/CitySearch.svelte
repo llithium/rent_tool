@@ -49,19 +49,17 @@
   let blurTimer: ReturnType<typeof setTimeout> | undefined;
   let controller: AbortController | undefined;
 
-  /** Local fallback: match against bundled seed cities when the API is unreachable. */
+  /** Instant local hints and fallback matches from the bundled seed cities. */
   function seedMatches(q: string): CitySuggestion[] {
     const t = q.toLowerCase();
-    return SEED_CITIES.filter(
-      (c) => c.lat != null && c.lng != null && c.name.toLowerCase().includes(t)
-    )
+    return SEED_CITIES.filter((c) => c.name.toLowerCase().includes(t))
       .slice(0, 8)
       .map((c) => ({
         label: c.name,
         city: c.city,
         state: c.state,
-        lat: c.lat!,
-        lng: c.lng!
+        lat: c.lat,
+        lng: c.lng
       }));
   }
 
