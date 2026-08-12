@@ -38,22 +38,27 @@
   let atCapacity = $derived(app.compareNames.length >= 5);
 
   async function addCity(suggestion: CitySuggestion) {
-    const name = await app.resolveSuggestion(suggestion);
-    if (app.isComparing(name)) {
-      cityMessage = `${name} is already in this comparison.`;
+    const result = await app.addComparison(suggestion);
+    if (result.status === 'already-compared') {
+      cityMessage = `${result.name} is already in this comparison.`;
       return;
     }
-    if (app.compareNames.length >= 5) {
+    if (result.status === 'full') {
       cityMessage = 'Your comparison already has five cities. Remove one to add another.';
       return;
     }
-    app.toggleCompare(name);
-    salaries.ensure(name, app.salary);
-    cityMessage = `${name} added to the comparison.`;
+    if (result.status === 'not-found') {
+      cityMessage = `Could not add ${result.name} to the comparison.`;
+      return;
+    }
+    salaries.ensure(result.name, app.salary);
+    cityMessage = result.rentAvailable
+      ? `${result.name} added to the comparison.`
+      : `${result.name} added; rent data is unavailable.`;
   }
 
   function clearComparison() {
-    app.clearCompare();
+    app.clearComparison();
     cityMessage = 'Comparison cleared. Add a city to begin a new plan.';
   }
 
@@ -61,8 +66,8 @@
     // A client-side visit from the city page already has the freshest state.
     // Restoring unconditionally here could replace it with an older localStorage
     // snapshot and make newly selected compare cities seem to disappear.
-    if (!app.selected && !app.compareCities.length && app.salary == null) app.restore();
-    if (!app.compareCities.length && app.selected) app.toggleCompare(app.selected.name);
+    if (!app.selected && !app.compareCities.length && app.salary == null) app.restoreSession();
+    if (!app.compareCities.length && app.selected) void app.addComparison(app.selected.name);
     salaries.hydrate(
       app.compareCities.map((city) => city.name),
       app.salary
@@ -133,7 +138,7 @@
           {salaries}
           sharedSalary={app.salary}
           entranceDelay={Math.min(index * 60, 180)}
-          onremove={() => app.toggleCompare(row.city.name)}
+          onremove={() => app.removeComparison(row.city.name)}
         />
       {/each}
     </section>

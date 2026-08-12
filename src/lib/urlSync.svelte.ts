@@ -62,8 +62,8 @@ export function createUrlSync() {
       const hadUrlState = app.hydrateFromSearch(initialSearch);
       if (!hadUrlState) {
         const urlSalary = app.salary;
-        app.restore();
-        if (urlSalary != null) app.salary = urlSalary;
+        app.restoreSession();
+        if (urlSalary != null) app.setSalary(urlSalary);
       }
       salaryForUrl = app.salary;
       lastWritten = app.buildSearch(salaryForUrl);

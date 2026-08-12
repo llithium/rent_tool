@@ -10,10 +10,13 @@
   let shareLabel = $state('Copy link');
   let shareTimer: ReturnType<typeof setTimeout> | undefined;
 
-  function onCompare() {
-    const adding = !app.isComparing(cityName);
-    app.toggleCompare(cityName);
-    if (adding && app.isComparing(cityName)) saveCompareSalary(cityName, app.salary);
+  async function onCompare() {
+    if (app.isComparing(cityName)) {
+      app.removeComparison(cityName);
+      return;
+    }
+    const result = await app.addComparison(cityName);
+    if (result.status === 'added') saveCompareSalary(result.name, app.salary);
   }
 
   async function onShare() {

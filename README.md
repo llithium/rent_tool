@@ -133,8 +133,10 @@ Commit the regenerated JSON together with the fiscal-year documentation update.
 
 - `src/lib/data/` — bundled rent, ACS, and place data plus coordinates and tax tables
 - `src/lib/` — city-aware estimated tax/budget math, formatting, search links, typed API client,
-  `appState.svelte.ts` (runes-based shared state), `urlSync.svelte.ts` (state ⇄ address bar),
-  `salaryField.svelte.ts` (the salary input's own state)
+  `appState.svelte.ts` (the rent-plan workspace: intent methods plus a read-only snapshot),
+  `urlSync.svelte.ts` (state ⇄ address bar), and `salaryField.svelte.ts` (the salary input's own
+  state). The workspace keeps rent lookup, browser storage, cancellation, canonicalization, and
+  comparison-cap rules behind injected adapters.
 - `src/lib/compare/` — the compare view's logic: `metrics.ts` (metric table definitions,
   value/rank accessors, deep links) and `salaries.svelte.ts` (per-city salaries + persistence)
 - `src/lib/components/ui/` — shared: Brand, CitySearch (autocomplete combobox), SalaryInput,

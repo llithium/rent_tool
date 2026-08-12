@@ -25,9 +25,8 @@
   const urlSync = createUrlSync();
 
   const salary = createSalaryField((value) => {
-    app.salary = value;
+    app.setSalary(value);
     urlSync.scheduleSalary(value);
-    app.persist();
   });
 
   let selected = $derived(app.selected);
@@ -38,11 +37,11 @@
   let mapFocusRequest = $state(0);
 
   async function onCitySelect(suggestion: CitySuggestion) {
-    await app.resolveSuggestion(suggestion);
+    await app.chooseCity(suggestion);
   }
 
   function selectComparisonCity(name: string) {
-    app.select(name);
+    app.selectCity(name);
     mapFocusRequest += 1;
   }
 
@@ -171,7 +170,7 @@
           maxRent={budget.maxRent}
           selectedName={app.selectedName}
           focusRequest={mapFocusRequest}
-          onselect={(name) => app.select(name)}
+          onselect={(name) => app.selectCity(name)}
           class="mt-7 animate-rise border-t border-line pt-7 [animation-delay:300ms]"
         />
       {:else}

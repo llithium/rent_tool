@@ -24,31 +24,29 @@
   async function toggleComparison(place: NearbyPlace) {
     const known = app.cityByName(place.label);
     if (known && app.isComparing(known.name)) {
-      app.toggleCompare(known.name);
+      app.removeComparison(known.name);
       status = `${known.name} removed from your comparison.`;
       return;
     }
 
     status = `Looking up rent for ${place.label}. Your ${city.name} plan stays open.`;
-    const name = await app.resolveSuggestion(place, { select: false });
-    const resolved = app.cityByName(name);
-    if (!resolved) return;
-
-    if (app.compareNames.length >= 5) {
-      status = `Comparison is full. Remove a city before adding ${name}.`;
+    const result = await app.addComparison(place);
+    if (result.status === 'full') {
+      status = `Comparison is full. Remove a city before adding ${result.name ?? place.label}.`;
+      return;
+    }
+    if (result.status === 'already-compared') {
+      status = `${result.name} is already in your comparison.`;
+      return;
+    }
+    if (result.status === 'not-found') {
+      status = `Could not add ${result.name} to your comparison.`;
       return;
     }
 
-    app.toggleCompare(name);
-    if (!app.isComparing(name)) {
-      status = `Comparison is full. Remove a city before adding ${name}.`;
-      return;
-    }
-
-    status =
-      resolved.r1 != null
-        ? `${name} added to comparison. Your ${city.name} plan is still selected.`
-        : `${name} added to comparison. Rent data is not available yet.`;
+    status = result.rentAvailable
+      ? `${result.name} added to comparison. Your ${city.name} plan is still selected.`
+      : `${result.name} added to comparison. Rent data is not available yet.`;
   }
 
   // Refetch whenever the selected city (or its coords) changes; abort stale requests.

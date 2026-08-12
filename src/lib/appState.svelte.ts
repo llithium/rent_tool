@@ -1,5 +1,6 @@
 import { SEED_CITIES, findSeedCity, STATE_TAX, stateOf, cityOf } from '$lib/data/cities';
 import { popText } from '$lib/format';
+import { MAX_SALARY } from '$lib/salary';
 import type { City, CitySnapshot, CitySuggestion, RentMetric } from '$lib/types';
 import { fetchPopulation, lookupRent } from '$lib/api';
 
@@ -90,16 +91,112 @@ function cloneSeed(): City[] {
   return SEED_CITIES.map((c) => ({ ...c }));
 }
 
-class AppState {
-  salary = $state<number | null>(null);
-  cities = $state<City[]>(cloneSeed());
-  selectedName = $state<string | null>(null);
-  compareNames = $state<string[]>([]);
-  looking = $state(false);
+type PlanSuggestion = CitySuggestion & { pop?: number | null };
+
+export interface RentPlanSnapshot {
+  readonly salary: number | null;
+  readonly selected: City | null;
+  readonly selectedName: string | null;
+  readonly cities: readonly City[];
+  readonly compareCities: readonly City[];
+  readonly compareNames: readonly string[];
+  readonly looking: boolean;
+  readonly pendingName: string | null;
+}
+
+export type ComparisonResult =
+  | { status: 'added'; name: string; city: City; rentAvailable: boolean }
+  | { status: 'already-compared'; name: string; city: City }
+  | { status: 'full'; name: string | null }
+  | { status: 'not-found'; name: string };
+
+export interface RentPlanAdapters {
+  /** Production uses the typed server endpoint; tests can return a local result. */
+  lookupRent: typeof lookupRent;
+  /** Production uses the population endpoint; tests can resolve immediately. */
+  fetchPopulation: typeof fetchPopulation;
+  /** Lazy place-data lookup keeps the initial bundle small. */
+  coordinatesForPlace: (
+    city: string,
+    state: string
+  ) => Promise<readonly [number, number] | undefined>;
+  /** Browser persistence is an adapter so the workflow is testable without a browser. */
+  readStorage: (key: string) => string | null;
+  writeStorage: (key: string, value: string) => void;
+}
+
+const browserAdapters: RentPlanAdapters = {
+  lookupRent,
+  fetchPopulation,
+  coordinatesForPlace: async (city, state) => {
+    const { coordinatesForPlace } = await import('$lib/data/places');
+    return coordinatesForPlace(city, state) ?? undefined;
+  },
+  readStorage: (key) => {
+    try {
+      return localStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  },
+  writeStorage: (key, value) => {
+    try {
+      localStorage.setItem(key, value);
+    } catch {
+      /* ignore unavailable browser storage */
+    }
+  }
+};
+
+const MAX_COMPARE_CITIES = 5;
+
+/**
+ * The rent-plan workspace module.
+ *
+ * Callers express intent (`chooseCity`, `addComparison`, `setSalary`) and read a
+ * snapshot. Lookup, persistence, canonicalization, cancellation, and capacity
+ * rules remain behind this seam, so the route and city modules do not need to
+ * coordinate the workflow themselves.
+ */
+export class RentPlanWorkspace {
+  private salaryValue = $state<number | null>(null);
+  private citiesValue = $state<City[]>(cloneSeed());
+  private selectedNameValue = $state<string | null>(null);
+  private compareNamesValue = $state<string[]>([]);
+  private lookingValue = $state(false);
   /** City being resolved in the background (rent still loading) — drives the
    * "loading" affordance on nearby chips while the current view stays put. */
-  pendingName = $state<string | null>(null);
+  private pendingNameValue = $state<string | null>(null);
+  private readonly adapters: RentPlanAdapters;
   private lookupController: AbortController | null = null;
+
+  constructor(adapters: RentPlanAdapters = browserAdapters) {
+    this.adapters = adapters;
+  }
+
+  get salary(): number | null {
+    return this.salaryValue;
+  }
+
+  get cities(): City[] {
+    return this.citiesValue;
+  }
+
+  get selectedName(): string | null {
+    return this.selectedNameValue;
+  }
+
+  get compareNames(): string[] {
+    return this.compareNamesValue;
+  }
+
+  get looking(): boolean {
+    return this.lookingValue;
+  }
+
+  get pendingName(): string | null {
+    return this.pendingNameValue;
+  }
 
   get selected(): City | null {
     return this.selectedName ? this.cityByName(this.selectedName) : null;
@@ -114,11 +211,41 @@ class AppState {
     return this.cities.find((c) => c.name.toLowerCase() === t) ?? null;
   }
 
-  select(name: string) {
-    this.selectedName = name;
+  get snapshot(): RentPlanSnapshot {
+    return {
+      salary: this.salary,
+      selected: this.selected,
+      selectedName: this.selectedName,
+      cities: this.cities,
+      compareCities: this.compareCities,
+      compareNames: this.compareNames,
+      looking: this.looking,
+      pendingName: this.pendingName
+    };
+  }
+
+  /** Set the offer salary and persist the new plan. Invalid input clears it. */
+  setSalary(value: number | null) {
+    this.salaryValue =
+      value != null && Number.isFinite(value) && value > 0 && value <= MAX_SALARY
+        ? Math.round(value)
+        : null;
+    this.persist();
+  }
+
+  /** Select a city after its rent record is ready (or explicitly unavailable). */
+  selectCity(name: string): boolean {
+    if (!this.cityByName(name)) return false;
+    this.selectedNameValue = name;
     this.persist();
     void this.ensureCoordinates(name);
     void this.ensurePopulation(name);
+    return true;
+  }
+
+  /** Explicit city-navigation intent. Comparison additions use addComparison instead. */
+  async chooseCity(suggestion: PlanSuggestion): Promise<string> {
+    return this.resolveSuggestion(suggestion, { select: true });
   }
 
   private coordinateLookups = new Set<string>();
@@ -132,8 +259,7 @@ class AppState {
     if (this.coordinateLookups.has(key)) return;
     this.coordinateLookups.add(key);
     try {
-      const { coordinatesForPlace } = await import('$lib/data/places');
-      const coords = coordinatesForPlace(city.city, city.state);
+      const coords = await this.adapters.coordinatesForPlace(city.city, city.state);
       if (coords) this.patchCity(name, { lat: coords[0], lng: coords[1] });
     } finally {
       this.coordinateLookups.delete(key);
@@ -151,7 +277,7 @@ class AppState {
     if (this.popLookups.has(key)) return;
     this.popLookups.add(key);
     try {
-      const pop = await fetchPopulation(city.lat, city.lng);
+      const pop = await this.adapters.fetchPopulation(city.lat, city.lng);
       if (pop != null) {
         this.patchCity(name, { pop: popText(pop) });
         this.persist();
@@ -161,17 +287,50 @@ class AppState {
     }
   }
 
-  toggleCompare(name: string) {
-    if (this.compareNames.includes(name)) {
-      this.compareNames = this.compareNames.filter((n) => n !== name);
-    } else if (this.compareNames.length < 5) {
-      this.compareNames = [...this.compareNames, name];
+  private commitComparison(name: string): ComparisonResult {
+    const city = this.cityByName(name);
+    if (!city) return { status: 'not-found', name };
+    if (this.isComparing(city.name)) {
+      return { status: 'already-compared', name: city.name, city };
     }
+    if (this.compareNames.length >= MAX_COMPARE_CITIES) {
+      return { status: 'full', name: city.name };
+    }
+    this.compareNamesValue = [...this.compareNames, city.name];
     this.persist();
+    return { status: 'added', name: city.name, city, rentAvailable: city.r1 != null };
   }
 
-  clearCompare() {
-    this.compareNames = [];
+  /** Add a city to comparison without changing the active plan. */
+  addComparison(input: string): ComparisonResult;
+  addComparison(input: PlanSuggestion): Promise<ComparisonResult>;
+  addComparison(input: PlanSuggestion | string): ComparisonResult | Promise<ComparisonResult> {
+    const requestedName = typeof input === 'string' ? input : input.label;
+    const known = this.cityByName(requestedName);
+    if (known && this.isComparing(known.name)) {
+      return { status: 'already-compared', name: known.name, city: known };
+    }
+    if (this.compareNames.length >= MAX_COMPARE_CITIES) {
+      return { status: 'full', name: known?.name ?? requestedName };
+    }
+
+    if (typeof input === 'string') return this.commitComparison(input);
+    return this.resolveSuggestion(input, { select: false }).then((name) =>
+      this.commitComparison(name)
+    );
+  }
+
+  /** Remove one comparison entry without changing the active plan. */
+  removeComparison(name: string): boolean {
+    if (!this.isComparing(name)) return false;
+    this.compareNamesValue = this.compareNames.filter((n) => n !== name);
+    this.persist();
+    return true;
+  }
+
+  clearComparison() {
+    if (!this.compareNames.length) return;
+    this.compareNamesValue = [];
     this.persist();
   }
 
@@ -182,8 +341,8 @@ class AppState {
   /** Resolve a city from an autocomplete suggestion: add it if new, then fill rent
    * from the bundled HUD table if it isn't a seed city. Returns the canonical name.
    * Nearby-place picks carry an OSM population — used as an instant prefill. */
-  async resolveSuggestion(
-    sug: CitySuggestion & { pop?: number | null },
+  private async resolveSuggestion(
+    sug: PlanSuggestion,
     options: { select?: boolean } = {}
   ): Promise<string> {
     const selectOnResolve = options.select ?? true;
@@ -193,20 +352,21 @@ class AppState {
     if (seed) {
       this.lookupController?.abort();
       this.lookupController = null;
-      this.looking = false;
+      this.lookingValue = false;
+      this.pendingNameValue = null;
       // Ensure the seed city carries coords for the map.
       if (seed.lat == null) this.patchCity(seed.name, { lat: target.lat, lng: target.lng });
       if (!seed.pop && prefillPop) this.patchCity(seed.name, { pop: prefillPop });
       if (seed.r1 != null) {
-        if (selectOnResolve) this.select(seed.name);
+        if (selectOnResolve) this.selectCity(seed.name);
         return seed.name;
       }
     }
 
     const existing = this.cityByName(target.label);
     if (!existing) {
-      this.cities = [
-        ...this.cities,
+      this.citiesValue = [
+        ...this.citiesValue,
         {
           name: target.label,
           city: target.city,
@@ -236,17 +396,17 @@ class AppState {
     // The clicked place shows a loading affordance via pendingName in the meantime.
     // If the city already has rent (revisited), skip the wait and select now.
     if (existing?.r1 != null) {
-      if (selectOnResolve) this.select(target.label);
+      if (selectOnResolve) this.selectCity(target.label);
       return target.label;
     }
 
     this.lookupController?.abort();
     const controller = new AbortController();
     this.lookupController = controller;
-    this.looking = true;
-    this.pendingName = target.label;
+    this.lookingValue = true;
+    this.pendingNameValue = target.label;
     try {
-      const r = await lookupRent(target.lat, target.lng, controller.signal);
+      const r = await this.adapters.lookupRent(target.lat, target.lng, controller.signal);
       if (controller.signal.aborted) return target.label;
       if (r.source !== 'none') {
         this.patchCity(target.label, {
@@ -261,10 +421,10 @@ class AppState {
       }
     } finally {
       if (this.lookupController === controller) {
-        this.looking = false;
-        this.pendingName = null;
+        this.lookingValue = false;
+        this.pendingNameValue = null;
         this.lookupController = null;
-        if (selectOnResolve) this.select(target.label); // atomic swap now that rent is in
+        if (selectOnResolve) this.selectCity(target.label); // atomic swap now that rent is in
         this.persist();
       }
     }
@@ -273,21 +433,23 @@ class AppState {
 
   private patchCity(name: string, patch: Partial<City>) {
     const t = name.toLowerCase();
-    this.cities = this.cities.map((c) => (c.name.toLowerCase() === t ? { ...c, ...patch } : c));
+    this.citiesValue = this.citiesValue.map((c) =>
+      c.name.toLowerCase() === t ? { ...c, ...patch } : c
+    );
   }
 
-  persist() {
+  private persist() {
     try {
       // Off-list cities added via autocomplete aren't in the seed set — store them
       // whole so selection/comparison survives a reload.
       const seedNames = new Set(SEED_CITIES.map((c) => c.name.toLowerCase()));
-      const custom = this.cities.filter((c) => !seedNames.has(c.name.toLowerCase()));
-      localStorage.setItem(
+      const custom = this.citiesValue.filter((c) => !seedNames.has(c.name.toLowerCase()));
+      this.adapters.writeStorage(
         LAST_KEY,
         JSON.stringify({
-          salary: this.salary,
-          selected: this.selectedName,
-          compare: this.compareNames,
+          salary: this.salaryValue,
+          selected: this.selectedNameValue,
+          compare: this.compareNamesValue,
           custom
         })
       );
@@ -323,20 +485,20 @@ class AppState {
   }
 
   /** Seed state from URL query params. Returns true when a city was selected, so
-   * the caller knows the URL "won" and can skip the localStorage restore.
-   * Mirrors restore()'s validation discipline. */
+   * the caller knows the URL "won" and can skip the session restore.
+   * Mirrors restoreSession()'s validation discipline. */
   hydrateFromSearch(search: URLSearchParams): boolean {
     const salaryRaw = search.get('salary');
     if (salaryRaw != null) {
       const n = parseInt(salaryRaw, 10);
-      if (Number.isFinite(n) && n > 0 && n <= 10_000_000) this.salary = n;
+      if (Number.isFinite(n) && n > 0 && n <= MAX_SALARY) this.salaryValue = n;
     }
 
     const cityName = search.get('city');
     let selectedCity = false;
     if (cityName && cityName.length <= 100) {
       if (this.cityByName(cityName)) {
-        this.selectedName = cityName;
+        this.selectedNameValue = cityName;
         void this.ensureCoordinates(cityName);
         void this.ensurePopulation(cityName);
         selectedCity = true;
@@ -348,7 +510,7 @@ class AppState {
     }
 
     const compare = search.getAll('compare').filter((n) => this.cityByName(n) != null);
-    if (compare.length) this.compareNames = [...new Set(compare)].slice(0, 5);
+    if (compare.length) this.compareNamesValue = [...new Set(compare)].slice(0, MAX_COMPARE_CITIES);
 
     return selectedCity;
   }
@@ -388,22 +550,22 @@ class AppState {
     const salaryRaw = search.get('salary');
     if (salaryRaw != null) {
       const n = parseInt(salaryRaw, 10);
-      this.salary = Number.isFinite(n) && n > 0 && n <= 10_000_000 ? n : null;
+      this.salaryValue = Number.isFinite(n) && n > 0 && n <= MAX_SALARY ? n : null;
     } else {
-      this.salary = null;
+      this.salaryValue = null;
     }
 
     const cityName = search.get('city');
     if (cityName && cityName.length <= 100) {
       if (this.cityByName(cityName)) {
-        this.selectedName = cityName;
+        this.selectedNameValue = cityName;
         void this.ensureCoordinates(cityName);
         void this.ensurePopulation(cityName);
       } else if (!this.resolveOffList(cityName, search)) {
-        this.selectedName = null;
+        this.selectedNameValue = null;
       }
     } else {
-      this.selectedName = null;
+      this.selectedNameValue = null;
     }
 
     // The compare set is persistent workspace state, not city-navigation state.
@@ -414,31 +576,31 @@ class AppState {
     this.persist();
   }
 
-  restore() {
+  restoreSession() {
     try {
-      const raw = localStorage.getItem(LAST_KEY) ?? localStorage.getItem(LEGACY_KEY);
+      const raw = this.adapters.readStorage(LAST_KEY) ?? this.adapters.readStorage(LEGACY_KEY);
       if (!raw) return;
       const s = JSON.parse(raw);
       if (
         typeof s.salary === 'number' &&
         Number.isFinite(s.salary) &&
         s.salary > 0 &&
-        s.salary <= 10_000_000
+        s.salary <= MAX_SALARY
       ) {
-        this.salary = s.salary;
+        this.salaryValue = s.salary;
       }
       if (Array.isArray(s.custom)) {
         const valid = s.custom.map(restoredCity).filter((c: City | null): c is City => c != null);
         if (valid.length) {
-          const have = new Set(this.cities.map((c) => c.name.toLowerCase()));
-          this.cities = [
-            ...this.cities,
+          const have = new Set(this.citiesValue.map((c) => c.name.toLowerCase()));
+          this.citiesValue = [
+            ...this.citiesValue,
             ...valid.filter((c: City) => !have.has(c.name.toLowerCase()))
           ];
         }
       }
       if (typeof s.selected === 'string' && this.cityByName(s.selected)) {
-        this.selectedName = s.selected;
+        this.selectedNameValue = s.selected;
         void this.ensureCoordinates(s.selected);
         void this.ensurePopulation(s.selected);
       }
@@ -446,13 +608,13 @@ class AppState {
         const compare = (s.compare as unknown[]).filter(
           (n: unknown): n is string => typeof n === 'string' && this.cityByName(n) != null
         );
-        this.compareNames = [...new Set<string>(compare)].slice(0, 5);
+        this.compareNamesValue = [...new Set<string>(compare)].slice(0, MAX_COMPARE_CITIES);
       }
-      if (!localStorage.getItem(LAST_KEY)) this.persist();
+      if (!this.adapters.readStorage(LAST_KEY)) this.persist();
     } catch {
       /* ignore */
     }
   }
 }
 
-export const app = new AppState();
+export const app = new RentPlanWorkspace();
