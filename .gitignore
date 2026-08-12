@@ -13,7 +13,6 @@
 /test-results/
 /playwright-report/
 /blob-report/
-/.impeccable/
 *.tsbuildinfo
 
 # Local environment configuration (keep an example template in Git)
