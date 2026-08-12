@@ -1,45 +1,14 @@
 <script lang="ts">
-  import { money } from '$lib/format';
-  import { cityHref, type CompareRow } from '$lib/compare/metrics';
+  import {
+    DECISION_CRITERIA,
+    type ComparisonView,
+    type DecisionCriterion
+  } from '$lib/compare/decision';
+  import { cityHref } from '$lib/compare/links';
 
-  type DecisionCriterion = 'afterRent' | 'rent' | 'takeHome';
-
-  let { rows, compareNames }: { rows: CompareRow[]; compareNames: string[] } = $props();
+  let { analysis, compareNames }: { analysis: ComparisonView; compareNames: string[] } = $props();
   let criterion = $state<DecisionCriterion>('afterRent');
-
-  let decision = $derived.by(() => {
-    const eligible = rows.filter(
-      (row) =>
-        (criterion === 'afterRent' && row.afterRent != null) ||
-        (criterion === 'rent' && row.city.r1 != null) ||
-        criterion === 'takeHome'
-    );
-    if (!eligible.length) return null;
-    return eligible.reduce((best, row) => {
-      if (criterion === 'rent')
-        return (row.city.r1 ?? Infinity) < (best.city.r1 ?? Infinity) ? row : best;
-      if (criterion === 'takeHome')
-        return row.budget.takeHomeMonthly > best.budget.takeHomeMonthly ? row : best;
-      return (row.afterRent ?? -Infinity) > (best.afterRent ?? -Infinity) ? row : best;
-    });
-  });
-
-  let title = $derived(
-    criterion === 'afterRent'
-      ? 'Most room after 1BR rent'
-      : criterion === 'rent'
-        ? 'Lowest typical 1BR rent'
-        : 'Highest estimated take-home'
-  );
-  let detail = $derived(
-    decision
-      ? criterion === 'afterRent'
-        ? `${money(decision.afterRent)} left after a typical 1BR each month.`
-        : criterion === 'rent'
-          ? `${money(decision.city.r1)}/mo for a typical 1BR.`
-          : `${money(decision.budget.takeHomeMonthly)}/mo after estimated taxes.`
-      : 'Add cities with rent estimates to identify a leading option.'
-  );
+  let decision = $derived(analysis.briefs[criterion]);
 </script>
 
 <section class="mt-8 pt-6" aria-labelledby="decision-heading">
@@ -47,64 +16,52 @@
     <div class="max-w-xl">
       <h2 id="decision-heading" class="text-title">Decision brief</h2>
       <p class="mt-1 text-sm/relaxed text-muted">
-        Choose what matters most for this move. The result uses the salaries shown in each scenario.
+        Choose what matters most for this move. The result uses the salaries shown in each
+        comparison entry.
       </p>
     </div>
     <div class="flex flex-wrap gap-2" aria-label="Decision criterion">
-      <button
-        type="button"
-        aria-pressed={criterion === 'afterRent'}
-        onclick={() => (criterion = 'afterRent')}
-        class="cursor-pointer rounded-lg border px-3 py-2 text-sm font-semibold transition-colors {criterion ===
-        'afterRent'
-          ? 'border-accent bg-accent text-accent-ink'
-          : 'border-line-strong bg-card text-ink hover:border-accent hover:text-accent'}"
-      >
-        Most left after rent
-      </button>
-      <button
-        type="button"
-        aria-pressed={criterion === 'rent'}
-        onclick={() => (criterion = 'rent')}
-        class="cursor-pointer rounded-lg border px-3 py-2 text-sm font-semibold transition-colors {criterion ===
-        'rent'
-          ? 'border-accent bg-accent text-accent-ink'
-          : 'border-line-strong bg-card text-ink hover:border-accent hover:text-accent'}"
-      >
-        Lowest 1BR rent
-      </button>
-      <button
-        type="button"
-        aria-pressed={criterion === 'takeHome'}
-        onclick={() => (criterion = 'takeHome')}
-        class="cursor-pointer rounded-lg border px-3 py-2 text-sm font-semibold transition-colors {criterion ===
-        'takeHome'
-          ? 'border-accent bg-accent text-accent-ink'
-          : 'border-line-strong bg-card text-ink hover:border-accent hover:text-accent'}"
-      >
-        Highest take-home
-      </button>
+      {#each DECISION_CRITERIA as option (option.key)}
+        <button
+          type="button"
+          aria-pressed={criterion === option.key}
+          onclick={() => (criterion = option.key)}
+          class="cursor-pointer rounded-lg border px-3 py-2 text-sm font-semibold transition-colors {criterion ===
+          option.key
+            ? 'border-accent bg-accent text-accent-ink'
+            : 'border-line-strong bg-card text-ink hover:border-accent hover:text-accent'}"
+        >
+          {option.label}
+        </button>
+      {/each}
     </div>
   </div>
 
-  {#key `${criterion}-${decision?.city.name ?? 'none'}-${detail}`}
+  {#key `${criterion}-${decision.leaders.map((leader) => leader.city.name).join('|')}-${decision.detail}`}
     <div
       class="motion-copy mt-6 flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6"
     >
       <div>
-        <span class="block text-label tracking-wide text-muted uppercase">{title}</span>
-        {#if decision}
-          <a
-            href={cityHref(decision, compareNames)}
-            class="mt-1 inline-block text-data text-ink decoration-accent underline-offset-4 hover:text-accent"
-          >
-            {decision.city.name}
-          </a>
+        <span class="block text-label tracking-wide text-muted uppercase">{decision.title}</span>
+        {#if decision.leaders.length}
+          <div class="mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+            {#each decision.leaders as leader, index (leader.city.name)}
+              {#if index > 0}<span class="text-data text-muted">and</span>{/if}
+              <a
+                href={cityHref({ city: leader.city, salary: leader.salary }, compareNames)}
+                class="inline-block text-data text-ink decoration-accent underline-offset-4 hover:text-accent"
+              >
+                {leader.city.name}
+              </a>
+            {/each}
+          </div>
         {:else}
           <strong class="mt-1 block text-data text-ink">Not enough data yet</strong>
         {/if}
       </div>
-      <p class="max-w-sm text-sm/relaxed text-muted tabular-nums sm:text-right">{detail}</p>
+      <p class="max-w-sm text-sm/relaxed text-muted tabular-nums sm:text-right">
+        {decision.detail}
+      </p>
     </div>
   {/key}
 </section>

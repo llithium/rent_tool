@@ -23,3 +23,11 @@ _Avoid_: quote, lease price
 **Comparison set**:
 The cities a person has chosen to inspect side by side against the rent plan’s decision criteria.
 _Avoid_: shortlist, scenarios
+
+**Comparison entry**:
+A city and its committed salary within a comparison set.
+_Avoid_: scenario, row
+
+**Decision brief**:
+A concise comparison result that names the leading city for a chosen criterion and explains the relevant trade-off.
+_Avoid_: winner, recommendation

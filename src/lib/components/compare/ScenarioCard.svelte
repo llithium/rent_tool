@@ -1,18 +1,17 @@
 <script lang="ts">
-  import { money, rentMetricLabel } from '$lib/format';
-  import { fitStatus, type CompareRow } from '$lib/compare/metrics';
+  import type { ComparisonEntry } from '$lib/compare/decision';
   import type { CompareSalaries } from '$lib/compare/salaries.svelte';
   import SalaryInput from '$lib/components/ui/SalaryInput.svelte';
 
   let {
-    row,
+    entry,
     href,
     salaries,
     sharedSalary,
     entranceDelay = 0,
     onremove
   }: {
-    row: CompareRow;
+    entry: ComparisonEntry;
     href: string;
     salaries: CompareSalaries;
     sharedSalary: number | null;
@@ -20,7 +19,7 @@
     onremove: () => void;
   } = $props();
 
-  let result = $derived(fitStatus(row));
+  let result = $derived(entry.fit);
 </script>
 
 <article
@@ -31,13 +30,13 @@
   <div class="flex min-h-12 items-start justify-between gap-2">
     <div>
       <h2 class="text-title">
-        <a {href} class="text-ink no-underline hover:text-inherit">{row.city.name}</a>
+        <a {href} class="text-ink no-underline hover:text-inherit">{entry.city.name}</a>
       </h2>
-      <p class="mt-0.5 text-meta text-muted">{rentMetricLabel(row.city.rentMetric)}</p>
+      <p class="mt-0.5 text-meta text-muted">{entry.rent.metricLabel}</p>
     </div>
     <button
       onclick={onremove}
-      aria-label={`Remove ${row.city.name}`}
+      aria-label={`Remove ${entry.city.name}`}
       class="cursor-pointer rounded-md border-0 bg-transparent p-2 text-muted hover:bg-card-2 hover:text-red"
     >
       <svg class="size-4" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -52,14 +51,14 @@
   </div>
 
   <SalaryInput
-    id={`salary-${row.city.name.replace(/[^a-z0-9]+/gi, '-')}`}
+    id={`salary-${entry.city.name.replace(/[^a-z0-9]+/gi, '-')}`}
     label="Salary for this city"
-    ariaLabel={`Annual salary in ${row.city.name}`}
+    ariaLabel={`Annual salary in ${entry.city.name}`}
     size="md"
-    value={salaries.displayed(row.city.name, sharedSalary)}
-    error={salaries.errors[row.city.name] ?? ''}
-    oninput={(event) => salaries.oninput(row.city.name, event)}
-    onblur={() => salaries.commit(row.city.name)}
+    value={salaries.displayed(entry.city.name, sharedSalary)}
+    error={salaries.errors[entry.city.name] ?? ''}
+    oninput={(event) => salaries.oninput(entry.city.name, event)}
+    onblur={() => salaries.commit(entry.city.name)}
     class="mt-4"
   />
 
@@ -67,14 +66,14 @@
     <div class="min-w-0">
       <span class="block text-meta text-muted">1BR rent</span>
       <strong class="mt-0.5 block text-data tabular-nums">
-        {money(row.city.r1)}<small class="text-xs font-medium text-muted">/mo</small>
+        {entry.metrics.rent1.value}
       </strong>
     </div>
     <div class="min-w-0">
       <span class="block text-meta text-muted">Rent budget</span>
-      {#key row.budget.maxRent}
+      {#key entry.rentBudget.amount}
         <strong class="motion-value mt-0.5 block text-data tabular-nums">
-          {money(row.budget.maxRent)}<small class="text-xs font-medium text-muted">/mo</small>
+          {entry.rentBudget.value}
         </strong>
       {/key}
     </div>
@@ -91,7 +90,7 @@
       <span class="motion-copy inline-block">{result.label}</span>
     {/key}
   </div>
-  {#if row.city.r1 == null}
+  {#if entry.rent.oneBedroom == null}
     <p class="mt-2 text-meta text-muted">
       We could not match a current 1BR estimate for this city. Open the city name above for
       available rent context and alternatives.

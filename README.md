@@ -137,8 +137,9 @@ Commit the regenerated JSON together with the fiscal-year documentation update.
   `urlSync.svelte.ts` (state ⇄ address bar), and `salaryField.svelte.ts` (the salary input's own
   state). The workspace keeps rent lookup, browser storage, cancellation, canonicalization, and
   comparison-cap rules behind injected adapters.
-- `src/lib/compare/` — the compare view's logic: `metrics.ts` (metric table definitions,
-  value/rank accessors, deep links) and `salaries.svelte.ts` (per-city salaries + persistence)
+- `src/lib/compare/` — the compare view's logic: `decision.ts` (comparison entries, metric view
+  model, fit status, and decision briefs), `links.ts` (city navigation links), and
+  `salaries.svelte.ts` (per-city salaries + persistence)
 - `src/lib/components/ui/` — shared: Brand, CitySearch (autocomplete combobox), SalaryInput,
   SectionHeading, StatGrid, ThemeToggle
 - `src/lib/components/city/` — the city view: CitySidebar (brand, search, salary, actions,

@@ -1,8 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { app } from '$lib/appState.svelte';
-  import { computeBudget } from '$lib/budget';
-  import { cityHref, type CompareRow } from '$lib/compare/metrics';
+  import { analyzeComparison } from '$lib/compare/decision';
+  import { cityHref } from '$lib/compare/links';
   import { createCompareSalaries } from '$lib/compare/salaries.svelte';
   import type { CitySuggestion } from '$lib/types';
   import AppHeader from '$lib/components/ui/AppHeader.svelte';
@@ -21,18 +21,13 @@
     return search ? `/?${search}` : '/';
   });
 
-  let rows = $derived.by((): CompareRow[] =>
-    app.compareCities.map((city) => {
-      const salary = salaries.parse(city.name);
-      const budget = computeBudget(salary, city);
-      return {
+  let analysis = $derived.by(() =>
+    analyzeComparison(
+      app.compareCities.map((city) => ({
         city,
-        salary,
-        budget,
-        rentGap: city.r1 == null ? null : budget.maxRent - city.r1,
-        afterRent: city.r1 == null ? null : budget.takeHomeMonthly - city.r1
-      };
-    })
+        salary: salaries.parse(city.name)
+      }))
+    )
   );
 
   let atCapacity = $derived(app.compareNames.length >= 5);
@@ -116,7 +111,7 @@
     </div>
   </section>
 
-  {#if rows.length}
+  {#if analysis.entries.length}
     <div class="mt-5 flex justify-end">
       <button
         type="button"
@@ -129,22 +124,22 @@
 
     <section
       class="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-6"
-      aria-label="Comparison scenarios"
+      aria-label="Comparison entries"
     >
-      {#each rows as row, index (row.city.name)}
+      {#each analysis.entries as entry, index (entry.city.name)}
         <ScenarioCard
-          {row}
-          href={cityHref(row, app.compareNames)}
+          {entry}
+          href={cityHref({ city: entry.city, salary: entry.salary }, app.compareNames)}
           {salaries}
           sharedSalary={app.salary}
           entranceDelay={Math.min(index * 60, 180)}
-          onremove={() => app.removeComparison(row.city.name)}
+          onremove={() => app.removeComparison(entry.city.name)}
         />
       {/each}
     </section>
 
-    {#if rows.length > 1}
-      <CompareHighlights {rows} compareNames={app.compareNames} />
+    {#if analysis.entries.length > 1}
+      <CompareHighlights {analysis} compareNames={app.compareNames} />
     {/if}
 
     <section class="mt-8 border-t border-line pt-6">
@@ -154,7 +149,7 @@
           Taxes estimate a single filer taking the standard deduction.
         </p>
       </div>
-      <CompareMetricsTable {rows} compareNames={app.compareNames} />
+      <CompareMetricsTable {analysis} compareNames={app.compareNames} />
     </section>
   {:else if hydrated}
     <section class="mt-12 border-b border-line py-16 md:py-20" aria-labelledby="empty-heading">

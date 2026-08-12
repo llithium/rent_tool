@@ -1,15 +1,8 @@
 <script lang="ts">
-  import {
-    AFFORDABILITY_METRICS,
-    CITY_CONTEXT_METRICS,
-    cityHref,
-    metricTone,
-    metricToneLabel,
-    metricValue,
-    type CompareRow
-  } from '$lib/compare/metrics';
+  import type { ComparisonView } from '$lib/compare/decision';
+  import { cityHref } from '$lib/compare/links';
 
-  let { rows, compareNames }: { rows: CompareRow[]; compareNames: string[] } = $props();
+  let { analysis, compareNames }: { analysis: ComparisonView; compareNames: string[] } = $props();
   let cityContextVisible = $state(false);
 </script>
 
@@ -27,13 +20,13 @@
         >
           <!-- The metric column stays put while the city columns scroll sideways. -->
           <th class="sticky left-0 z-10 min-w-46 bg-canvas text-left">Metric</th>
-          {#each rows as row (row.city.name)}
+          {#each analysis.entries as entry (entry.city.name)}
             <th class="text-right">
               <a
-                href={cityHref(row, compareNames)}
+                href={cityHref({ city: entry.city, salary: entry.salary }, compareNames)}
                 class="text-inherit no-underline hover:text-inherit"
               >
-                {row.city.name}
+                {entry.city.name}
               </a>
             </th>
           {/each}
@@ -42,43 +35,47 @@
       <tbody
         class="[&_td]:border-b [&_td]:border-line [&_td]:px-4 [&_td]:py-3 [&_td]:align-top [&_th]:border-b [&_th]:border-line [&_th]:px-4 [&_th]:py-3 [&_th]:align-top [&_tr:last-child>*]:border-b-0"
       >
-        {#each AFFORDABILITY_METRICS as metric (metric.key)}
+        {#each analysis.affordabilityMetrics as metric (metric.key)}
           <tr>
             <th class="sticky left-0 z-10 min-w-46 bg-canvas text-left font-semibold text-muted">
               {metric.label}
             </th>
-            {#each rows as row, index (row.city.name)}
-              {@const tone = metricTone(rows, row, metric.key, metric.direction)}
-              {@const value = metricValue(row, metric.key)}
+            {#each analysis.entries as entry, index (entry.city.name)}
+              {@const cell = entry.metrics[metric.key]}
               <td
-                data-tone={tone}
-                title={tone === 'best'
+                data-tone={cell.tone}
+                title={cell.tone === 'best'
                   ? 'Best in comparison'
-                  : tone === 'worst'
+                  : cell.tone === 'worst'
                     ? 'Worst in comparison'
                     : undefined}
-                class="relative text-right tabular-nums {tone
+                class="relative text-right tabular-nums {cell.tone
                   ? 'border-b-transparent'
-                  : ''} {tone === 'best' ? 'text-green' : tone === 'worst' ? 'text-red' : ''}"
+                  : ''} {cell.tone === 'best'
+                  ? 'text-green'
+                  : cell.tone === 'worst'
+                    ? 'text-red'
+                    : ''}"
               >
-                {#key value}<span class="motion-value">{value}</span>{/key}
-                {#if tone}
+                {#key cell.value}<span class="motion-value">{cell.value}</span>{/key}
+                {#if cell.tone}
                   <!-- Best/worst is called out with a rule under the cell rather
                      than a fill, so the number stays the loudest thing in the row.
                      It runs to the table edge on the outer columns. -->
                   <span
-                    class="absolute bottom-0 h-0.5 {tone === 'best'
+                    class="absolute bottom-0 h-0.5 {cell.tone === 'best'
                       ? 'bg-green'
-                      : 'bg-red'} {index === 0 ? 'left-0' : 'left-1.5'} {index === rows.length - 1
+                      : 'bg-red'} {index === 0 ? 'left-0' : 'left-1.5'} {index ===
+                    analysis.entries.length - 1
                       ? 'right-0'
                       : 'right-1.5'}"
                   ></span>
                   <span
-                    class="mt-1 block text-meta font-semibold {tone === 'best'
+                    class="mt-1 block text-meta font-semibold {cell.tone === 'best'
                       ? 'text-green'
                       : 'text-red'}"
                   >
-                    {metricToneLabel(metric.key, metric.direction, tone)}
+                    {cell.toneLabel}
                   </span>
                 {/if}
               </td>
@@ -89,50 +86,50 @@
           <th class="sticky left-0 z-10 min-w-46 bg-canvas text-left font-semibold text-muted">
             Income tax context
           </th>
-          {#each rows as row (row.city.name)}
-            <td class="min-w-44 text-right text-xs text-muted">{row.city.tax}</td>
+          {#each analysis.entries as entry (entry.city.name)}
+            <td class="min-w-44 text-right text-xs text-muted">{entry.taxContext}</td>
           {/each}
         </tr>
         {#if cityContextVisible}
           <tr>
             <th
-              colspan={rows.length + 1}
+              colspan={analysis.entries.length + 1}
               class="border-b border-line bg-card-2 px-4 py-3 text-left text-xs font-semibold tracking-wide text-muted uppercase"
             >
               City context
             </th>
           </tr>
-          {#each CITY_CONTEXT_METRICS as metric (metric.key)}
+          {#each analysis.cityContextMetrics as metric (metric.key)}
             <tr>
               <th class="sticky left-0 z-10 min-w-46 bg-canvas text-left font-semibold text-muted">
                 {metric.label}
               </th>
-              {#each rows as row, index (row.city.name)}
-                {@const tone = metricTone(rows, row, metric.key, metric.direction)}
-                {@const value = metricValue(row, metric.key)}
+              {#each analysis.entries as entry, index (entry.city.name)}
+                {@const cell = entry.metrics[metric.key]}
                 <td
-                  data-tone={tone}
-                  class="relative text-right tabular-nums {tone === 'best'
+                  data-tone={cell.tone}
+                  class="relative text-right tabular-nums {cell.tone === 'best'
                     ? 'text-green'
-                    : tone === 'worst'
+                    : cell.tone === 'worst'
                       ? 'text-red'
                       : ''}"
                 >
-                  {#key value}<span class="motion-value">{value}</span>{/key}
-                  {#if tone}
+                  {#key cell.value}<span class="motion-value">{cell.value}</span>{/key}
+                  {#if cell.tone}
                     <span
-                      class="absolute bottom-0 h-0.5 {tone === 'best'
+                      class="absolute bottom-0 h-0.5 {cell.tone === 'best'
                         ? 'bg-green'
-                        : 'bg-red'} {index === 0 ? 'left-0' : 'left-1.5'} {index === rows.length - 1
+                        : 'bg-red'} {index === 0 ? 'left-0' : 'left-1.5'} {index ===
+                      analysis.entries.length - 1
                         ? 'right-0'
                         : 'right-1.5'}"
                     ></span>
                     <span
-                      class="mt-1 block text-meta font-semibold {tone === 'best'
+                      class="mt-1 block text-meta font-semibold {cell.tone === 'best'
                         ? 'text-green'
                         : 'text-red'}"
                     >
-                      {metricToneLabel(metric.key, metric.direction, tone)}
+                      {cell.toneLabel}
                     </span>
                   {/if}
                 </td>
@@ -144,9 +141,9 @@
           <th class="sticky left-0 z-10 min-w-46 bg-canvas text-left font-semibold text-muted">
             Rent data
           </th>
-          {#each rows as row (row.city.name)}
+          {#each analysis.entries as entry (entry.city.name)}
             <td class="min-w-44 text-right text-xs text-muted">
-              {row.city.rentArea} · {row.city.rentYear || 'year unavailable'}
+              {entry.rentProvenance}
             </td>
           {/each}
         </tr>
@@ -161,6 +158,6 @@
   >
     {cityContextVisible
       ? 'Hide city context'
-      : `Show city context (${CITY_CONTEXT_METRICS.length} metrics)`}
+      : `Show city context (${analysis.cityContextMetrics.length} metrics)`}
   </button>
 </div>
