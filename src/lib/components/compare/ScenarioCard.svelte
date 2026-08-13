@@ -25,7 +25,7 @@
 <article
   data-testid="scenario"
   style:animation-delay={`${entranceDelay}ms`}
-  class="group min-w-0 animate-rise border-r border-b border-line-strong bg-card-2 p-6 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:bg-card hover:shadow-pop md:p-8"
+  class="group min-w-0 animate-rise border-r border-b border-line-strong bg-card p-6 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:bg-card-2 hover:shadow-pop md:p-8"
 >
   <div class="flex min-h-12 items-start justify-between gap-2">
     <div>

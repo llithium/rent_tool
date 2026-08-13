@@ -33,7 +33,7 @@
 {#if city.r1 != null && cushion != null}
   <section
     aria-labelledby="affordability-heading"
-    class="border-y border-line-strong bg-card-2 p-6 md:p-8 {className}"
+    class="border-y border-line-strong bg-card p-6 md:p-8 {className}"
   >
     <div class="flex items-start gap-4">
       <!-- No delay and no fill-mode: the status icon must be visible whether or

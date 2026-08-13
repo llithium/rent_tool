@@ -23,7 +23,7 @@
   onclick={toggleTheme}
   aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
   title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-  class="cursor-pointer rounded-lg border border-line-strong bg-card-2 px-3 py-2 text-meta text-muted transition-colors duration-200 hover:border-accent hover:text-accent active:scale-98"
+  class="cursor-pointer rounded-lg border border-line-strong bg-card px-3 py-2 text-meta text-muted transition-colors duration-200 hover:border-accent hover:text-accent active:scale-98"
 >
   {theme === 'light' ? 'Dark' : 'Light'}
 </button>
