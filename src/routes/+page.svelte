@@ -70,14 +70,14 @@
 <main
   id="main-content"
   data-hydrated={urlSync.hydrated ? 'true' : 'false'}
-  class="mx-auto max-w-7xl px-4 pt-4 pb-20 md:px-6 md:pt-6 md:pb-24"
+  class="mx-auto w-full max-w-384 overflow-x-hidden px-4 pt-4 pb-20 md:px-6 md:pt-6 md:pb-24"
 >
   <AppHeader
     actionHref="/compare"
     actionLabel={app.compareNames.length ? `Compare (${app.compareNames.length})` : 'Compare'}
   />
 
-  <div class="mt-8 grid items-start gap-8 lg:grid-cols-[22rem_minmax(0,1fr)] lg:gap-12">
+  <div class="mt-6 grid items-start gap-6 lg:grid-cols-[20rem_minmax(0,1fr)] lg:gap-8">
     <CitySidebar
       {salary}
       {selected}

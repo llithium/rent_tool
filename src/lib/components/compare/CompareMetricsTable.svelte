@@ -3,7 +3,6 @@
   import { cityHref } from '$lib/compare/links';
 
   let { analysis, compareNames }: { analysis: ComparisonView; compareNames: string[] } = $props();
-  let cityContextVisible = $state(false);
 </script>
 
 <div>
@@ -90,53 +89,43 @@
             <td class="min-w-44 text-right text-xs text-muted">{entry.taxContext}</td>
           {/each}
         </tr>
-        {#if cityContextVisible}
+        {#each analysis.cityContextMetrics as metric (metric.key)}
           <tr>
-            <th
-              colspan={analysis.entries.length + 1}
-              class="border-b border-line bg-card-2 px-4 py-3 text-left text-xs font-semibold tracking-wide text-muted uppercase"
-            >
-              City context
+            <th class="sticky left-0 z-10 min-w-46 bg-canvas text-left font-semibold text-muted">
+              {metric.label}
             </th>
+            {#each analysis.entries as entry, index (entry.city.name)}
+              {@const cell = entry.metrics[metric.key]}
+              <td
+                data-tone={cell.tone}
+                class="relative text-right tabular-nums {cell.tone === 'best'
+                  ? 'text-green'
+                  : cell.tone === 'worst'
+                    ? 'text-red'
+                    : ''}"
+              >
+                {#key cell.value}<span class="motion-value">{cell.value}</span>{/key}
+                {#if cell.tone}
+                  <span
+                    class="absolute bottom-0 h-0.5 {cell.tone === 'best'
+                      ? 'bg-green'
+                      : 'bg-red'} {index === 0 ? 'left-0' : 'left-1.5'} {index ===
+                    analysis.entries.length - 1
+                      ? 'right-0'
+                      : 'right-1.5'}"
+                  ></span>
+                  <span
+                    class="mt-1 block text-meta font-semibold {cell.tone === 'best'
+                      ? 'text-green'
+                      : 'text-red'}"
+                  >
+                    {cell.toneLabel}
+                  </span>
+                {/if}
+              </td>
+            {/each}
           </tr>
-          {#each analysis.cityContextMetrics as metric (metric.key)}
-            <tr>
-              <th class="sticky left-0 z-10 min-w-46 bg-canvas text-left font-semibold text-muted">
-                {metric.label}
-              </th>
-              {#each analysis.entries as entry, index (entry.city.name)}
-                {@const cell = entry.metrics[metric.key]}
-                <td
-                  data-tone={cell.tone}
-                  class="relative text-right tabular-nums {cell.tone === 'best'
-                    ? 'text-green'
-                    : cell.tone === 'worst'
-                      ? 'text-red'
-                      : ''}"
-                >
-                  {#key cell.value}<span class="motion-value">{cell.value}</span>{/key}
-                  {#if cell.tone}
-                    <span
-                      class="absolute bottom-0 h-0.5 {cell.tone === 'best'
-                        ? 'bg-green'
-                        : 'bg-red'} {index === 0 ? 'left-0' : 'left-1.5'} {index ===
-                      analysis.entries.length - 1
-                        ? 'right-0'
-                        : 'right-1.5'}"
-                    ></span>
-                    <span
-                      class="mt-1 block text-meta font-semibold {cell.tone === 'best'
-                        ? 'text-green'
-                        : 'text-red'}"
-                    >
-                      {cell.toneLabel}
-                    </span>
-                  {/if}
-                </td>
-              {/each}
-            </tr>
-          {/each}
-        {/if}
+        {/each}
         <tr>
           <th class="sticky left-0 z-10 min-w-46 bg-canvas text-left font-semibold text-muted">
             Rent data
@@ -150,14 +139,4 @@
       </tbody>
     </table>
   </div>
-  <button
-    type="button"
-    aria-expanded={cityContextVisible}
-    onclick={() => (cityContextVisible = !cityContextVisible)}
-    class="mt-4 cursor-pointer text-sm font-semibold text-accent underline-offset-4 hover:text-accent-deep hover:underline"
-  >
-    {cityContextVisible
-      ? 'Hide city context'
-      : `Show city context (${analysis.cityContextMetrics.length} metrics)`}
-  </button>
 </div>

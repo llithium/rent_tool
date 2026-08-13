@@ -82,18 +82,22 @@
 <main
   id="main-content"
   data-hydrated={hydrated ? 'true' : 'false'}
-  class="mx-auto max-w-7xl px-4 pt-4 pb-20 md:px-6 md:pt-6 md:pb-24"
+  class="mx-auto w-full max-w-384 overflow-x-hidden px-4 pt-4 pb-20 md:px-6 md:pt-6 md:pb-24"
 >
   <AppHeader brandHref={cityViewHref} actionHref={cityViewHref} actionLabel="City view" />
 
   <section
-    class="mt-8 grid gap-6 border-b border-line pb-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-end lg:gap-12"
+    class="mt-6 grid gap-6 border-b border-line-strong pb-6 md:pb-8 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-end lg:gap-12"
   >
     <div>
-      <h1 class="text-headline text-ink">Side by side planner</h1>
-      <p class="mt-2 max-w-2xl text-body text-muted">
-        Compare what each city leaves you after a typical one-bedroom rent, then inspect the
-        trade-offs.
+      <h1
+        class="max-w-5xl text-[clamp(3rem,6vw,6.5rem)] leading-[0.9] font-semibold tracking-[-0.06em] text-ink"
+      >
+        Compare offers.
+      </h1>
+      <p class="mt-5 max-w-2xl text-body text-muted lg:ml-[18%]">
+        Compare what each city leaves after a typical one-bedroom rent, then inspect the trade-offs
+        that matter to you.
       </p>
     </div>
     <div class="w-full lg:justify-self-end">
@@ -123,7 +127,7 @@
     </div>
 
     <section
-      class="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-6"
+      class="mt-10 grid grid-flow-dense grid-cols-1 border-t border-l border-line-strong md:grid-cols-2 xl:grid-cols-3"
       aria-label="Comparison entries"
     >
       {#each analysis.entries as entry, index (entry.city.name)}

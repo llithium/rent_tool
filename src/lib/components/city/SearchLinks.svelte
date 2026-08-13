@@ -56,25 +56,8 @@
     </div>
   </div>
 
-  <details class="mt-5 border-t border-line pt-4">
-    <summary
-      class="flex cursor-pointer list-none items-center justify-between gap-4 text-label text-ink [&::-webkit-details-marker]:hidden"
-    >
-      <span>Browse other marketplaces</span>
-      <span class="flex items-center gap-2 text-meta text-muted">
-        {alternatives.length} more options
-        <svg class="size-4" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-          <path
-            d="m4 6 4 4 4-4"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
-      </span>
-    </summary>
-    <div class="mt-4 grid border-y border-line sm:grid-cols-3">
+  {#if alternatives.length}
+    <div class="grid border-b border-line sm:grid-cols-3">
       {#each alternatives as link (link.label)}
         <a
           href={link.url}
@@ -95,15 +78,9 @@
         </a>
       {/each}
     </div>
-  </details>
+  {/if}
   <p class="mt-3 max-w-[66ch] text-sm/relaxed text-muted">
     Apartment budgets are planning estimates. Confirm the rent, fees, and availability before you
     apply.
   </p>
 </section>
-
-<style>
-  details[open] summary svg {
-    transform: rotate(180deg);
-  }
-</style>

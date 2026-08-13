@@ -15,12 +15,14 @@
   } = $props();
 </script>
 
-<header class="flex items-center justify-between gap-4 {className}">
+<header
+  class="flex items-center justify-between gap-4 border-y border-line-strong py-3 {className}"
+>
   <Brand href={brandHref} />
-  <nav aria-label="Primary" class="flex items-center gap-2">
+  <nav aria-label="Primary" class="flex items-center gap-1">
     <a
       href={actionHref}
-      class="rounded-lg px-3 py-2 text-label text-accent no-underline transition-colors duration-200 hover:bg-accent-soft hover:text-accent-deep active:scale-98"
+      class="px-4 py-2 text-label tracking-[0.08em] text-ink uppercase no-underline transition-colors duration-200 hover:bg-ink hover:text-canvas active:scale-98"
     >
       {actionLabel}
     </a>

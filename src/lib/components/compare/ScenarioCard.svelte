@@ -25,11 +25,11 @@
 <article
   data-testid="scenario"
   style:animation-delay={`${entranceDelay}ms`}
-  class="min-w-0 animate-rise rounded-xl bg-card-2 p-6 transition-all duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1 hover:shadow-card"
+  class="group min-w-0 animate-rise border-r border-b border-line-strong bg-card-2 p-6 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:bg-card hover:shadow-pop md:p-8"
 >
   <div class="flex min-h-12 items-start justify-between gap-2">
     <div>
-      <h2 class="text-title">
+      <h2 class="text-[clamp(1.75rem,3vw,3rem)] leading-none font-semibold tracking-[-0.045em]">
         <a {href} class="text-ink no-underline hover:text-inherit">{entry.city.name}</a>
       </h2>
       <p class="mt-0.5 text-meta text-muted">{entry.rent.metricLabel}</p>
@@ -37,7 +37,7 @@
     <button
       onclick={onremove}
       aria-label={`Remove ${entry.city.name}`}
-      class="cursor-pointer rounded-md border-0 bg-transparent p-2 text-muted hover:bg-card-2 hover:text-red"
+      class="cursor-pointer border border-line-strong bg-transparent p-2 text-muted hover:border-red hover:text-red"
     >
       <svg class="size-4" viewBox="0 0 16 16" fill="none" aria-hidden="true">
         <path
@@ -62,7 +62,7 @@
     class="mt-4"
   />
 
-  <div class="mt-6 grid grid-cols-2 gap-4 border-t border-line pt-4">
+  <div class="mt-8 grid grid-cols-2 gap-4 border-t border-line-strong pt-5">
     <div class="min-w-0">
       <span class="block text-meta text-muted">1BR rent</span>
       <strong class="mt-0.5 block text-data tabular-nums">

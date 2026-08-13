@@ -8,59 +8,59 @@
    user actually picked. Delete it only alongside the toggle. */
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
-/* Reference palette — burnt orange, crisp paper, and confident green.
+/* Archival editorial palette — oxide ink, warm drafting paper, and confident green.
    These raw variables are the only place a color literal appears; the @theme
    block below republishes them as Tailwind utilities. */
 :root {
   color-scheme: light;
 
-  --accent: #b25027;
+  --accent: #9f2f1d;
   --accent-ink: #ffffff;
-  --accent-soft: #f6e7df;
-  --accent-deep: #8f3e1c;
+  --accent-soft: #ead4c6;
+  --accent-deep: #762114;
   --green: #147b3b;
   --green-soft: #e4f2e8;
   --red: #b7352d;
   --red-soft: #f7e4e1;
   --amber: #ad7d22;
 
-  --canvas: #fafafa;
-  --card: #ffffff;
-  --card-2: #f8f6f4;
-  --ink: #1f1e1c;
-  --muted: #716a64;
-  --faint: #99928c;
-  --line: #ebe6e2;
-  --line-strong: #ded7d1;
+  --canvas: #e7d3b7;
+  --card: #f4ebdd;
+  --card-2: #eadcc8;
+  --ink: #17130f;
+  --muted: #645b50;
+  --faint: #8a7c6b;
+  --line: #d0bda3;
+  --line-strong: #9b8b78;
 
-  --elevation-card: 0 1px 2px rgba(42, 32, 25, 0.05), 0 6px 22px rgba(42, 32, 25, 0.06);
-  --elevation-pop: 0 2px 6px rgba(42, 32, 25, 0.08), 0 18px 50px rgba(42, 32, 25, 0.12);
+  --elevation-card: 8px 8px 0 rgba(23, 19, 15, 0.1);
+  --elevation-pop: 12px 12px 0 rgba(23, 19, 15, 0.14);
 }
 
 [data-theme='dark'] {
   color-scheme: dark;
 
-  --accent: #e27b4d;
-  --accent-ink: #1d100a;
-  --accent-soft: #40291f;
-  --accent-deep: #f09b76;
-  --green: #55c77e;
-  --green-soft: #203329;
-  --red: #e0725e;
-  --red-soft: #3a2420;
-  --amber: #e0b64a;
+  --accent: #d8744f;
+  --accent-ink: #111413;
+  --accent-soft: #3a2822;
+  --accent-deep: #f09a76;
+  --green: #7fbd8c;
+  --green-soft: #20342a;
+  --red: #e37a68;
+  --red-soft: #3b2522;
+  --amber: #d7ad63;
 
-  --canvas: #131209;
-  --card: #181818;
-  --card-2: #1f1f1f;
-  --ink: #f3f1ef;
-  --muted: #aaa39d;
-  --faint: #7d7670;
-  --line: #272727;
-  --line-strong: #313131;
+  --canvas: #121212;
+  --card: #1a1918;
+  --card-2: #242220;
+  --ink: #f1eadf;
+  --muted: #aaa49b;
+  --faint: #7b756e;
+  --line: #302e2b;
+  --line-strong: #4a4640;
 
-  --elevation-card: 0 1px 2px rgba(19, 18, 9, 0.3), 0 6px 20px rgba(19, 18, 9, 0.35);
-  --elevation-pop: 0 2px 6px rgba(19, 18, 9, 0.4), 0 18px 50px rgba(19, 18, 9, 0.5);
+  --elevation-card: 8px 8px 0 rgba(0, 0, 0, 0.2);
+  --elevation-pop: 12px 12px 0 rgba(0, 0, 0, 0.3);
 }
 
 /* `inline` matters: it makes each utility resolve straight through to the raw
@@ -260,7 +260,19 @@
 }
 
 @layer base {
+  html {
+    background: var(--canvas);
+  }
+
   body {
+    min-width: 320px;
+    margin: 0;
+    background-color: var(--canvas);
+    background-image:
+      linear-gradient(color-mix(in srgb, var(--ink) 5%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--ink) 5%, transparent) 1px, transparent 1px);
+    background-size: 5rem 5rem;
+    color: var(--ink);
     font-synthesis: none;
     text-rendering: optimizeLegibility;
   }
@@ -305,5 +317,79 @@
       transition-duration: 0.01ms !important;
       transition-delay: 0ms !important;
     }
+  }
+}
+
+@layer components {
+  [data-editorial-hero] {
+    background:
+      linear-gradient(90deg, transparent 0 68%, color-mix(in srgb, var(--ink) 4%, transparent) 68%),
+      var(--card);
+  }
+
+  [data-editorial-hero]::before,
+  [data-editorial-hero]::after {
+    position: absolute;
+    width: 1rem;
+    height: 1rem;
+    content: '';
+    border-color: var(--ink);
+    opacity: 0.7;
+  }
+
+  [data-editorial-hero]::before {
+    top: 0.75rem;
+    right: 0.75rem;
+    border-top: 1px solid;
+    border-right: 1px solid;
+  }
+
+  [data-editorial-hero]::after {
+    bottom: 0.75rem;
+    left: 0.75rem;
+    border-bottom: 1px solid;
+    border-left: 1px solid;
+  }
+
+  [data-halftone-field] {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 34%;
+    height: 42%;
+    pointer-events: none;
+    opacity: 0.55;
+    background-image: radial-gradient(circle, var(--ink) 1.2px, transparent 1.3px);
+    background-size: 8px 8px;
+    mask-image: radial-gradient(circle at 70% 40%, black, transparent 72%);
+  }
+
+  [data-halftone-orbit] {
+    position: absolute;
+    right: -4rem;
+    bottom: -4rem;
+    width: 18rem;
+    height: 18rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 50%;
+    opacity: 0.42;
+    background-image: radial-gradient(circle, var(--ink) 1px, transparent 1.15px);
+    background-size: 7px 7px;
+    transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .group:hover [data-halftone-orbit] {
+    transform: scale(1.05) rotate(7deg);
+  }
+}
+
+@media (max-width: 767px) {
+  [data-editorial-hero] {
+    min-height: 38rem;
+  }
+
+  [data-halftone-field] {
+    width: 58%;
+    height: 25%;
   }
 }

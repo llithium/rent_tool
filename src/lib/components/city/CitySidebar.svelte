@@ -27,7 +27,13 @@
      Below the large breakpoint they return to normal document flow. -->
 <aside data-testid="sidebar" class="flex min-w-0 flex-col gap-4 lg:sticky lg:top-6">
   <!-- One control surface: inputs lead directly to the resulting budget. -->
-  <section id="plan-controls" class="scroll-mt-6 rounded-2xl bg-card p-6 shadow-card">
+  <section id="plan-controls" class="scroll-mt-6 border border-line-strong bg-card p-6 md:p-7">
+    <div class="mb-6 border-b border-line-strong pb-5">
+      <p class="text-meta font-semibold tracking-[0.14em] text-accent uppercase">Your inputs</p>
+      <p class="mt-2 text-sm/relaxed text-muted">
+        Every figure begins with the city and salary you are weighing.
+      </p>
+    </div>
     <CitySearch {onselect} selectedName={app.selectedName} pendingName={app.pendingName} />
 
     <SalaryInput
