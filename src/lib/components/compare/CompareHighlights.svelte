@@ -1,14 +1,15 @@
 <script lang="ts">
   import {
     DECISION_CRITERIA,
-    type ComparisonCity,
     type ComparisonView,
     type DecisionCriterion
   } from '$lib/compare/decision';
-  import { cityHref } from '$lib/compare/links';
+  import { cityHref, type ComparisonLinkEntry } from '$lib/compare/links';
 
-  let { analysis, compareCities }: { analysis: ComparisonView; compareCities: ComparisonCity[] } =
-    $props();
+  let {
+    analysis,
+    compareCities
+  }: { analysis: ComparisonView; compareCities: readonly ComparisonLinkEntry[] } = $props();
   let criterion = $state<DecisionCriterion>('afterRent');
   let decision = $derived(analysis.briefs[criterion]);
 </script>

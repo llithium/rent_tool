@@ -11,7 +11,7 @@
   import CompareHighlights from '$lib/components/compare/CompareHighlights.svelte';
   import CompareMetricsTable from '$lib/components/compare/CompareMetricsTable.svelte';
 
-  const salaries = createCompareSalaries();
+  const salaries = createCompareSalaries((name, salary) => app.setComparisonSalary(name, salary));
 
   let hydrated = $state(false);
   let cityMessage = $state('');
@@ -21,14 +21,7 @@
     return search ? `/?${search}` : '/';
   });
 
-  let analysis = $derived.by(() =>
-    analyzeComparison(
-      app.compareCities.map((city) => ({
-        city,
-        salary: salaries.parse(city.name)
-      }))
-    )
-  );
+  let analysis = $derived.by(() => analyzeComparison(app.compareEntries));
 
   let atCapacity = $derived(app.compareNames.length >= 5);
 
@@ -46,7 +39,7 @@
       cityMessage = `Could not add ${result.name} to the comparison.`;
       return;
     }
-    salaries.ensure(result.name, app.salary);
+    salaries.sync(app.compareEntries);
     cityMessage = result.rentAvailable
       ? `${result.name} added to the comparison.`
       : `${result.name} added; rent data is unavailable.`;
@@ -54,6 +47,7 @@
 
   function clearComparison() {
     app.clearComparison();
+    salaries.sync(app.compareEntries);
     cityMessage = 'Comparison cleared. Add a city to begin a new plan.';
   }
 
@@ -63,10 +57,7 @@
     // snapshot and make newly selected compare cities seem to disappear.
     if (!app.selected && !app.compareCities.length && app.salary == null) app.restoreSession();
     if (!app.compareCities.length && app.selected) void app.addComparison(app.selected.name);
-    salaries.hydrate(
-      app.compareCities.map((city) => city.name),
-      app.salary
-    );
+    salaries.sync(app.compareEntries);
     hydrated = true;
   });
 </script>
@@ -133,17 +124,19 @@
       {#each analysis.entries as entry, index (entry.city.name)}
         <ScenarioCard
           {entry}
-          href={cityHref({ city: entry.city, salary: entry.salary }, app.compareCities)}
+          href={cityHref({ city: entry.city, salary: entry.salary }, app.compareEntries)}
           {salaries}
-          sharedSalary={app.salary}
           entranceDelay={Math.min(index * 60, 180)}
-          onremove={() => app.removeComparison(entry.city.name)}
+          onremove={() => {
+            app.removeComparison(entry.city.name);
+            salaries.sync(app.compareEntries);
+          }}
         />
       {/each}
     </section>
 
     {#if analysis.entries.length > 1}
-      <CompareHighlights {analysis} compareCities={app.compareCities} />
+      <CompareHighlights {analysis} compareCities={app.compareEntries} />
     {/if}
 
     <section class="mt-8 border-t border-line pt-6">
@@ -153,7 +146,7 @@
           Taxes estimate a single filer taking the standard deduction.
         </p>
       </div>
-      <CompareMetricsTable {analysis} compareCities={app.compareCities} />
+      <CompareMetricsTable {analysis} compareCities={app.compareEntries} />
     </section>
   {:else if hydrated}
     <section class="mt-12 border-b border-line py-16 md:py-20" aria-labelledby="empty-heading">

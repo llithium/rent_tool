@@ -1,97 +1,31 @@
 import { SEED_CITIES, findSeedCity, STATE_TAX, stateOf, cityOf } from '$lib/data/cities';
+import {
+  DEFAULT_COMPARISON_SALARY,
+  ComparisonSet,
+  LEGACY_PLAN_STORAGE_KEY,
+  LEGACY_PLAN_V2_STORAGE_KEY,
+  MAX_COMPARISON_ENTRIES,
+  isValidCommittedSalary,
+  restoreCity,
+  type ComparisonEntry
+} from '$lib/compare/comparisonSet.svelte';
+import { appendComparisonLinks, parseComparisonSalaryLink } from '$lib/compare/links';
 import { popText } from '$lib/format';
 import { MAX_SALARY } from '$lib/salary';
-import type { City, CitySnapshot, CitySuggestion, RentMetric } from '$lib/types';
+import type { City, CitySuggestion } from '$lib/types';
 import { fetchPopulation, lookupRent } from '$lib/api';
 
-const LAST_KEY = 'rentToolLast.v3';
-const LEGACY_KEY = 'rentToolLast.v2';
-
-function metricForSource(source: City['source']): RentMetric {
-  if (source === 'apartment-list') return 'estimated-median';
-  if (source === 'hud-fmr') return 'fair-market-rent';
-  return 'unknown';
-}
-
-function restoredSnapshot(value: unknown): CitySnapshot | null {
-  if (!value || typeof value !== 'object') return null;
-  const f = value as Partial<CitySnapshot>;
-  if (
-    typeof f.population !== 'number' ||
-    f.population <= 0 ||
-    typeof f.householdIncome !== 'number' ||
-    f.householdIncome <= 0 ||
-    typeof f.commuteMinutes !== 'number' ||
-    f.commuteMinutes < 0 ||
-    f.commuteMinutes > 300 ||
-    typeof f.renterShare !== 'number' ||
-    f.renterShare < 0 ||
-    f.renterShare > 100 ||
-    typeof f.rentalVacancy !== 'number' ||
-    f.rentalVacancy < 0 ||
-    f.rentalVacancy > 100
-  )
-    return null;
-  return {
-    population: f.population,
-    householdIncome: f.householdIncome,
-    commuteMinutes: f.commuteMinutes,
-    renterShare: f.renterShare,
-    rentalVacancy: f.rentalVacancy
-  };
-}
-
-function restoredCity(value: unknown): City | null {
-  if (!value || typeof value !== 'object') return null;
-  const c = value as Partial<City>;
-  if (
-    typeof c.name !== 'string' ||
-    c.name.length > 100 ||
-    typeof c.city !== 'string' ||
-    typeof c.state !== 'string' ||
-    !/^[A-Z]{2}$/.test(c.state) ||
-    !['apartment-list', 'hud-fmr', 'none'].includes(c.source ?? '')
-  )
-    return null;
-  const numberOrNull = (n: unknown) => n == null || (typeof n === 'number' && Number.isFinite(n));
-  if (!numberOrNull(c.r1) || !numberOrNull(c.r2) || !numberOrNull(c.yoy)) return null;
-  if (
-    c.lat != null &&
-    (typeof c.lat !== 'number' || !Number.isFinite(c.lat) || c.lat < -90 || c.lat > 90)
-  )
-    return null;
-  if (
-    c.lng != null &&
-    (typeof c.lng !== 'number' || !Number.isFinite(c.lng) || c.lng < -180 || c.lng > 180)
-  )
-    return null;
-  const source = c.source as City['source'];
-  return {
-    name: c.name,
-    city: c.city,
-    state: c.state,
-    r1: c.r1 ?? null,
-    r2: c.r2 ?? null,
-    yoy: c.yoy ?? null,
-    tax: typeof c.tax === 'string' ? c.tax.slice(0, 200) : STATE_TAX[c.state] || 'varies',
-    pop: typeof c.pop === 'string' ? c.pop.slice(0, 200) : '',
-    citySnapshot: restoredSnapshot(c.citySnapshot),
-    lat: c.lat,
-    lng: c.lng,
-    source,
-    rentMetric: ['estimated-median', 'fair-market-rent', 'unknown'].includes(c.rentMetric ?? '')
-      ? (c.rentMetric as RentMetric)
-      : metricForSource(source),
-    rentArea: typeof c.rentArea === 'string' ? c.rentArea.slice(0, 150) : c.name,
-    rentYear: typeof c.rentYear === 'string' ? c.rentYear.slice(0, 40) : ''
-  };
-}
+const LAST_KEY = LEGACY_PLAN_STORAGE_KEY;
+const LEGACY_KEY = LEGACY_PLAN_V2_STORAGE_KEY;
 
 function cloneSeed(): City[] {
   return SEED_CITIES.map((c) => ({ ...c }));
 }
 
-type PlanSuggestion = CitySuggestion & { pop?: number | null };
+type PlanSuggestion = CitySuggestion & {
+  pop?: number | null;
+  comparisonSalary?: number;
+};
 
 interface HydratedLookup {
   suggestion: PlanSuggestion;
@@ -135,7 +69,9 @@ function parseOffListValue(raw: string): PlanSuggestion | null {
     ) {
       return null;
     }
-    return offListSuggestion(record.name, record.lat, record.lng);
+    const suggestion = offListSuggestion(record.name, record.lat, record.lng);
+    if (!suggestion || !isValidCommittedSalary(record.salary)) return suggestion;
+    return { ...suggestion, comparisonSalary: Math.round(record.salary) };
   } catch {
     return null;
   }
@@ -148,13 +84,14 @@ export interface RentPlanSnapshot {
   readonly cities: readonly City[];
   readonly compareCities: readonly City[];
   readonly compareNames: readonly string[];
+  readonly compareEntries: readonly ComparisonEntry[];
   readonly looking: boolean;
   readonly pendingName: string | null;
 }
 
 export type ComparisonResult =
-  | { status: 'added'; name: string; city: City; rentAvailable: boolean }
-  | { status: 'already-compared'; name: string; city: City }
+  | { status: 'added'; name: string; city: City; salary: number; rentAvailable: boolean }
+  | { status: 'already-compared'; name: string; city: City; salary: number }
   | { status: 'full'; name: string | null }
   | { status: 'not-found'; name: string };
 
@@ -188,15 +125,9 @@ const browserAdapters: RentPlanAdapters = {
     }
   },
   writeStorage: (key, value) => {
-    try {
-      localStorage.setItem(key, value);
-    } catch {
-      /* ignore unavailable browser storage */
-    }
+    localStorage.setItem(key, value);
   }
 };
-
-const MAX_COMPARE_CITIES = 5;
 
 /**
  * The rent-plan workspace module.
@@ -210,12 +141,12 @@ export class RentPlanWorkspace {
   private salaryValue = $state<number | null>(null);
   private citiesValue = $state<City[]>(cloneSeed());
   private selectedNameValue = $state<string | null>(null);
-  private compareNamesValue = $state<string[]>([]);
   private lookingValue = $state(false);
   /** City being resolved in the background (rent still loading) — drives the
    * "loading" affordance on nearby chips while the current view stays put. */
   private pendingNameValue = $state<string | null>(null);
   private readonly adapters: RentPlanAdapters;
+  private readonly comparisonSet: ComparisonSet;
   private lookupController: AbortController | null = null;
   private resolutionVersion = 0;
 
@@ -234,6 +165,15 @@ export class RentPlanWorkspace {
 
   constructor(adapters: RentPlanAdapters = browserAdapters) {
     this.adapters = adapters;
+    this.comparisonSet = new ComparisonSet({
+      storage: {
+        read: (key) => adapters.readStorage(key),
+        write: (key, value) => {
+          adapters.writeStorage(key, value);
+          return true;
+        }
+      }
+    });
   }
 
   get salary(): number | null {
@@ -249,7 +189,7 @@ export class RentPlanWorkspace {
   }
 
   get compareNames(): string[] {
-    return this.compareNamesValue;
+    return [...this.comparisonSet.names];
   }
 
   get looking(): boolean {
@@ -265,7 +205,11 @@ export class RentPlanWorkspace {
   }
 
   get compareCities(): City[] {
-    return this.compareNames.map((n) => this.cityByName(n)).filter((c): c is City => c != null);
+    return [...this.comparisonSet.cities];
+  }
+
+  get compareEntries(): readonly ComparisonEntry[] {
+    return this.comparisonSet.entries;
   }
 
   cityByName(name: string): City | null {
@@ -281,6 +225,7 @@ export class RentPlanWorkspace {
       cities: this.cities,
       compareCities: this.compareCities,
       compareNames: this.compareNames,
+      compareEntries: this.compareEntries,
       looking: this.looking,
       pendingName: this.pendingName
     };
@@ -359,15 +304,7 @@ export class RentPlanWorkspace {
   private commitComparison(name: string): ComparisonResult {
     const city = this.cityByName(name);
     if (!city) return { status: 'not-found', name };
-    if (this.isComparing(city.name)) {
-      return { status: 'already-compared', name: city.name, city };
-    }
-    if (this.compareNames.length >= MAX_COMPARE_CITIES) {
-      return { status: 'full', name: city.name };
-    }
-    this.compareNamesValue = [...this.compareNames, city.name];
-    this.persist();
-    return { status: 'added', name: city.name, city, rentAvailable: city.r1 != null };
+    return this.comparisonSet.add(city, this.salary);
   }
 
   /** Add a city to comparison without changing the active plan. */
@@ -377,9 +314,9 @@ export class RentPlanWorkspace {
     const requestedName = typeof input === 'string' ? input : input.label;
     const known = this.cityByName(requestedName);
     if (known && this.isComparing(known.name)) {
-      return { status: 'already-compared', name: known.name, city: known };
+      return this.comparisonSet.add(known, this.salary);
     }
-    if (this.compareNames.length >= MAX_COMPARE_CITIES) {
+    if (this.comparisonSet.size >= MAX_COMPARISON_ENTRIES) {
       return { status: 'full', name: known?.name ?? requestedName };
     }
 
@@ -392,20 +329,19 @@ export class RentPlanWorkspace {
 
   /** Remove one comparison entry without changing the active plan. */
   removeComparison(name: string): boolean {
-    if (!this.isComparing(name)) return false;
-    this.compareNamesValue = this.compareNames.filter((n) => n !== name);
-    this.persist();
-    return true;
+    return this.comparisonSet.remove(name);
   }
 
   clearComparison() {
-    if (!this.compareNames.length) return;
-    this.compareNamesValue = [];
-    this.persist();
+    this.comparisonSet.clear();
+  }
+
+  setComparisonSalary(name: string, value: number): boolean {
+    return this.comparisonSet.setSalary(name, value);
   }
 
   isComparing(name: string): boolean {
-    return this.compareNames.includes(name);
+    return this.comparisonSet.isComparing(name);
   }
 
   /** Resolve a city from an autocomplete suggestion: add it if new, then fill rent
@@ -527,6 +463,8 @@ export class RentPlanWorkspace {
     this.citiesValue = this.citiesValue.map((c) =>
       c.name.toLowerCase() === t ? { ...c, ...patch } : c
     );
+    const updated = this.cityByName(name);
+    if (updated) this.comparisonSet.updateCity(updated);
   }
 
   private persist() {
@@ -540,7 +478,6 @@ export class RentPlanWorkspace {
         JSON.stringify({
           salary: this.salaryValue,
           selected: this.selectedNameValue,
-          compare: this.compareNamesValue,
           custom
         })
       );
@@ -569,16 +506,7 @@ export class RentPlanWorkspace {
         sp.set('lng', String(sel.lng));
       }
     }
-    for (const city of this.compareCities) {
-      if (city.source === 'apartment-list') {
-        sp.append('compare', city.name);
-      } else if (city.lat != null && city.lng != null && validCoordinates(city.lat, city.lng)) {
-        sp.append(
-          'compare-offlist',
-          JSON.stringify({ name: city.name, lat: city.lat, lng: city.lng })
-        );
-      }
-    }
+    appendComparisonLinks(sp, this.compareEntries);
     return sp.toString();
   }
 
@@ -626,45 +554,119 @@ export class RentPlanWorkspace {
     }
   }
 
-  /** Seed state from URL query params. Returns true when a city was selected, so
-   * the caller knows the URL "won" and can skip the session restore.
-   * Mirrors restoreSession()'s validation discipline. */
+  private scheduleLookup(
+    suggestion: PlanSuggestion,
+    select: boolean,
+    lookups: Map<string, HydratedLookup>
+  ): string {
+    const city = this.ensureOffListPlaceholder(suggestion);
+    if (city.source === 'apartment-list' || city.r1 != null) {
+      if (select) this.commitSelection(city.name);
+      return city.name;
+    }
+    const key = city.name.toLowerCase();
+    const existing = lookups.get(key);
+    if (existing) {
+      existing.select ||= select;
+    } else {
+      lookups.set(key, {
+        suggestion: {
+          ...suggestion,
+          label: city.name,
+          city: city.city,
+          state: city.state,
+          lat: city.lat,
+          lng: city.lng
+        },
+        select
+      });
+    }
+    return city.name;
+  }
+
+  private linkSalary(search: URLSearchParams): number | null {
+    const raw = search.get('salary');
+    if (raw == null) return null;
+    const value = parseInt(raw, 10);
+    return Number.isFinite(value) && value > 0 && value <= MAX_SALARY ? value : null;
+  }
+
+  private comparisonSalaryLinks(search: URLSearchParams): {
+    byName: Map<string, number>;
+    positional: number[];
+  } {
+    const byName = new Map<string, number>();
+    const positional: number[] = [];
+    for (const raw of search.getAll('compare-salary')) {
+      const parsed = parseComparisonSalaryLink(raw);
+      if (parsed) {
+        byName.set(parsed.name.toLowerCase(), parsed.salary);
+        continue;
+      }
+      const value = Number(raw);
+      if (Number.isFinite(value) && value > 0 && value <= MAX_SALARY) {
+        positional.push(Math.round(value));
+      }
+    }
+    return { byName, positional };
+  }
+
+  private applyComparisonSearch(
+    search: URLSearchParams,
+    fallbackSalary: number,
+    scheduleLookup: (suggestion: PlanSuggestion, select: boolean) => string
+  ): void {
+    const salaries = this.comparisonSalaryLinks(search);
+    const entries: ComparisonEntry[] = [];
+    const seen = new Set<string>();
+    let entryIndex = 0;
+
+    for (const [key, value] of search) {
+      let city: City | null = null;
+      let suggestion: PlanSuggestion | null = null;
+      if (key === 'compare') {
+        city = this.cityByName(value);
+        if (city?.source !== 'apartment-list') city = null;
+      } else if (key === 'compare-offlist') {
+        suggestion = parseOffListValue(value);
+        if (suggestion) {
+          const existing = this.cityByName(suggestion.label);
+          const candidateKey = (existing?.name ?? suggestion.label).toLowerCase();
+          if (seen.has(candidateKey) || entries.length >= MAX_COMPARISON_ENTRIES) continue;
+          city = this.ensureOffListPlaceholder(suggestion);
+        }
+      }
+      if (!city) continue;
+
+      const cityKey = city.name.toLowerCase();
+      if (seen.has(cityKey) || entries.length >= MAX_COMPARISON_ENTRIES) continue;
+      seen.add(cityKey);
+      const salary =
+        salaries.byName.get(cityKey) ??
+        suggestion?.comparisonSalary ??
+        salaries.positional[entryIndex] ??
+        fallbackSalary;
+      entries.push({ city, salary });
+      entryIndex += 1;
+      if (suggestion && city.source !== 'apartment-list' && city.r1 == null) {
+        scheduleLookup(suggestion, false);
+      }
+    }
+
+    this.comparisonSet.replace(entries);
+  }
+
+  /** Seed state from URL query params. URL comparison state is authoritative. */
   hydrateFromSearch(search: URLSearchParams): boolean {
     const version = this.beginResolution();
-    const salaryRaw = search.get('salary');
-    if (salaryRaw != null) {
-      const n = parseInt(salaryRaw, 10);
-      if (Number.isFinite(n) && n > 0 && n <= MAX_SALARY) this.salaryValue = n;
-    }
+    const linkSalary = this.linkSalary(search);
+    if (linkSalary != null) this.salaryValue = linkSalary;
 
     const cityName = search.get('city');
     let selectedCity = false;
     const lookups = new Map<string, HydratedLookup>();
-    const scheduleLookup = (suggestion: PlanSuggestion, select: boolean) => {
-      const city = this.ensureOffListPlaceholder(suggestion);
-      if (city.source === 'apartment-list' || city.r1 != null) {
-        if (select) this.commitSelection(city.name);
-        return city.name;
-      }
-      const key = city.name.toLowerCase();
-      const existing = lookups.get(key);
-      if (existing) {
-        existing.select ||= select;
-      } else {
-        lookups.set(key, {
-          suggestion: {
-            ...suggestion,
-            label: city.name,
-            city: city.city,
-            state: city.state,
-            lat: city.lat,
-            lng: city.lng
-          },
-          select
-        });
-      }
-      return city.name;
-    };
+    const scheduleLookup = (suggestion: PlanSuggestion, select: boolean) =>
+      this.scheduleLookup(suggestion, select, lookups);
 
     if (cityName && cityName.length <= 100) {
       const known = this.cityByName(cityName);
@@ -682,38 +684,16 @@ export class RentPlanWorkspace {
       }
     }
 
-    const compareNames: string[] = [];
-    const seen = new Set<string>();
-    for (const [key, value] of search) {
-      let city: City | null = null;
-      let suggestion: PlanSuggestion | null = null;
-      if (key === 'compare') {
-        city = this.cityByName(value);
-        if (city?.source !== 'apartment-list') city = null;
-      } else if (key === 'compare-offlist') {
-        suggestion = parseOffListValue(value);
-        if (suggestion) {
-          const existing = this.cityByName(suggestion.label);
-          const nameKey = (existing?.name ?? suggestion.label).toLowerCase();
-          if (seen.has(nameKey) || compareNames.length >= MAX_COMPARE_CITIES) continue;
-          city = this.ensureOffListPlaceholder(suggestion);
-        }
-      }
-      if (!city) continue;
-
-      const nameKey = city.name.toLowerCase();
-      if (seen.has(nameKey) || compareNames.length >= MAX_COMPARE_CITIES) continue;
-      seen.add(nameKey);
-      compareNames.push(city.name);
-      if (suggestion && city.source !== 'apartment-list' && city.r1 == null) {
-        scheduleLookup(suggestion, false);
-      }
+    const hasComparisonLinkState =
+      search.has('compare') || search.has('compare-offlist') || search.has('compare-salary');
+    const hasLinkState = selectedCity || hasComparisonLinkState;
+    if (hasLinkState) {
+      this.applyComparisonSearch(search, linkSalary ?? DEFAULT_COMPARISON_SALARY, scheduleLookup);
     }
-    this.compareNamesValue = compareNames;
     this.persist();
     void this.resolveHydratedLookups([...lookups.values()], version);
 
-    return selectedCity;
+    return selectedCity || hasLinkState;
   }
 
   private offListSuggestionFromSearch(
@@ -730,21 +710,18 @@ export class RentPlanWorkspace {
     return offListSuggestion(cityName, lat, lng);
   }
 
-  /** Apply URL params on browser back/forward navigation. Unlike
-   * hydrateFromSearch (initial load, which never clears so a bare ?salary= link
-   * can fall back to localStorage), here the URL is the sole source of truth:
-   * an absent param clears the corresponding state. */
+  /** Apply URL params on browser back/forward navigation. URL state is the sole
+   * source of truth, including the complete comparison set. */
   applyUrlNavigation(search: URLSearchParams) {
     const version = this.beginResolution();
-    const salaryRaw = search.get('salary');
-    if (salaryRaw != null) {
-      const n = parseInt(salaryRaw, 10);
-      this.salaryValue = Number.isFinite(n) && n > 0 && n <= MAX_SALARY ? n : null;
-    } else {
-      this.salaryValue = null;
-    }
+    const linkSalary = this.linkSalary(search);
+    this.salaryValue = linkSalary;
 
     const cityName = search.get('city');
+    const lookups = new Map<string, HydratedLookup>();
+    const scheduleLookup = (suggestion: PlanSuggestion, select: boolean) =>
+      this.scheduleLookup(suggestion, select, lookups);
+
     if (cityName && cityName.length <= 100) {
       const known = this.cityByName(cityName);
       if (known) {
@@ -754,9 +731,7 @@ export class RentPlanWorkspace {
         if (suggestion) {
           const city = this.ensureOffListPlaceholder(suggestion);
           if (city.r1 != null) this.commitSelection(city.name);
-          else {
-            void this.resolveSuggestion(suggestion, { select: true, version });
-          }
+          else scheduleLookup(suggestion, true);
         } else {
           this.selectedNameValue = null;
         }
@@ -765,49 +740,64 @@ export class RentPlanWorkspace {
       this.selectedNameValue = null;
     }
 
-    // The compare set is persistent workspace state, not city-navigation state.
-    // Older history entries often predate the user's latest compare additions;
-    // replaying their query params here made cities appear to vanish on Back.
-    // Initial deep links are still handled by hydrateFromSearch().
-
+    this.applyComparisonSearch(search, linkSalary ?? DEFAULT_COMPARISON_SALARY, scheduleLookup);
     this.persist();
+    void this.resolveHydratedLookups([...lookups.values()], version);
   }
 
   restoreSession() {
     try {
       const raw = this.adapters.readStorage(LAST_KEY) ?? this.adapters.readStorage(LEGACY_KEY);
-      if (!raw) return;
-      const s = JSON.parse(raw);
-      if (
-        typeof s.salary === 'number' &&
-        Number.isFinite(s.salary) &&
-        s.salary > 0 &&
-        s.salary <= MAX_SALARY
-      ) {
-        this.salaryValue = s.salary;
-      }
-      if (Array.isArray(s.custom)) {
-        const valid = s.custom.map(restoredCity).filter((c: City | null): c is City => c != null);
-        if (valid.length) {
-          const have = new Set(this.citiesValue.map((c) => c.name.toLowerCase()));
-          this.citiesValue = [
-            ...this.citiesValue,
-            ...valid.filter((c: City) => !have.has(c.name.toLowerCase()))
-          ];
+      let restoredPlan: Record<string, unknown> | null = null;
+      if (raw) {
+        try {
+          const parsed: unknown = JSON.parse(raw);
+          if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+            restoredPlan = parsed as Record<string, unknown>;
+          }
+        } catch {
+          // The comparison set can still restore its own representation.
         }
       }
-      if (typeof s.selected === 'string' && this.cityByName(s.selected)) {
-        this.selectedNameValue = s.selected;
-        void this.ensureCoordinates(s.selected);
-        void this.ensurePopulation(s.selected);
+
+      if (restoredPlan) {
+        if (
+          typeof restoredPlan.salary === 'number' &&
+          Number.isFinite(restoredPlan.salary) &&
+          restoredPlan.salary > 0 &&
+          restoredPlan.salary <= MAX_SALARY
+        ) {
+          this.salaryValue = restoredPlan.salary;
+        }
+        if (Array.isArray(restoredPlan.custom)) {
+          const valid = restoredPlan.custom
+            .map(restoreCity)
+            .filter((c: City | null): c is City => c != null);
+          if (valid.length) {
+            const have = new Set(this.citiesValue.map((c) => c.name.toLowerCase()));
+            this.citiesValue = [
+              ...this.citiesValue,
+              ...valid.filter((c: City) => !have.has(c.name.toLowerCase()))
+            ];
+          }
+        }
+        if (typeof restoredPlan.selected === 'string' && this.cityByName(restoredPlan.selected)) {
+          this.selectedNameValue = restoredPlan.selected;
+          void this.ensureCoordinates(restoredPlan.selected);
+          void this.ensurePopulation(restoredPlan.selected);
+        }
       }
-      if (Array.isArray(s.compare)) {
-        const compare = (s.compare as unknown[]).filter(
-          (n: unknown): n is string => typeof n === 'string' && this.cityByName(n) != null
-        );
-        this.compareNamesValue = [...new Set<string>(compare)].slice(0, MAX_COMPARE_CITIES);
+
+      this.comparisonSet.restore({ resolveCity: (name) => this.cityByName(name) });
+      const have = new Set(this.citiesValue.map((city) => city.name.toLowerCase()));
+      const restoredCities = this.comparisonSet.entries
+        .map((entry) => entry.city)
+        .filter((city) => !have.has(city.name.toLowerCase()));
+      if (restoredCities.length) {
+        this.citiesValue = [...this.citiesValue, ...restoredCities];
       }
-      if (!this.adapters.readStorage(LAST_KEY)) this.persist();
+
+      if (!this.adapters.readStorage(LAST_KEY) && raw) this.persist();
     } catch {
       /* ignore */
     }

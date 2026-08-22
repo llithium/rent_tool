@@ -1,6 +1,5 @@
 <script lang="ts">
   import { app } from '$lib/appState.svelte';
-  import { saveCompareSalary } from '$lib/compare/salaries.svelte';
 
   let { cityName, canShare }: { cityName: string; canShare: boolean } = $props();
 
@@ -15,8 +14,7 @@
       app.removeComparison(cityName);
       return;
     }
-    const result = await app.addComparison(cityName);
-    if (result.status === 'added') saveCompareSalary(result.name, app.salary);
+    await app.addComparison(cityName);
   }
 
   async function onShare() {

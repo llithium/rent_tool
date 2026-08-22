@@ -44,4 +44,23 @@ describe('comparison city links', () => {
       cityHref({ city: { name: 'Anchor, NY', source: 'apartment-list' }, salary: Number.NaN }, [])
     ).toBe('/?city=Anchor%2C+NY');
   });
+
+  it('preserves committed salaries for complete comparison entries', () => {
+    const href = cityHref(
+      { city: { name: 'Anchor, NY', source: 'apartment-list' }, salary: 80_000 },
+      [
+        {
+          city: { name: 'Anchor, NY', source: 'apartment-list' },
+          salary: 63_000
+        }
+      ]
+    );
+
+    const search = new URL(href, 'https://rent.test').searchParams;
+    expect(search.getAll('compare')).toEqual(['Anchor, NY']);
+    expect(JSON.parse(search.get('compare-salary') ?? '')).toEqual({
+      name: 'Anchor, NY',
+      salary: 63_000
+    });
+  });
 });

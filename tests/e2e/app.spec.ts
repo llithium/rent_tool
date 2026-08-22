@@ -251,7 +251,7 @@ test('enforces the five-city comparison limit', async ({ page }) => {
   await expect(page.getByText('5 / 5', { exact: true })).toBeVisible();
 });
 
-test('keeps the current comparison set when navigating back through cities', async ({ page }) => {
+test('restores the comparison set from browser history links', async ({ page }) => {
   await page.getByLabel('Annual salary', { exact: true }).fill('80000');
   await expect.poll(() => new URL(page.url()).searchParams.get('salary')).toBe('80000');
 
@@ -270,7 +270,7 @@ test('keeps the current comparison set when navigating back through cities', asy
   await page.goBack();
   await expect(page.getByRole('heading', { name: 'Tampa, FL' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Remove Tampa, FL' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Remove Austin, TX' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Remove Austin, TX' })).toHaveCount(0);
 });
 
 test('keeps each selected city with its salary when opening the detailed comparison', async ({

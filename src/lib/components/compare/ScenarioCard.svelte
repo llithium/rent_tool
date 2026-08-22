@@ -7,14 +7,12 @@
     entry,
     href,
     salaries,
-    sharedSalary,
     entranceDelay = 0,
     onremove
   }: {
     entry: ComparisonEntry;
     href: string;
     salaries: CompareSalaries;
-    sharedSalary: number | null;
     entranceDelay?: number;
     onremove: () => void;
   } = $props();
@@ -55,7 +53,7 @@
     label="Salary for this city"
     ariaLabel={`Annual salary in ${entry.city.name}`}
     size="md"
-    value={salaries.displayed(entry.city.name, sharedSalary)}
+    value={salaries.displayed(entry.city.name, entry.salary)}
     error={salaries.errors[entry.city.name] ?? ''}
     oninput={(event) => salaries.oninput(entry.city.name, event)}
     onblur={() => salaries.commit(entry.city.name)}

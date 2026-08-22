@@ -1,9 +1,11 @@
 <script lang="ts">
-  import type { ComparisonCity, ComparisonView } from '$lib/compare/decision';
-  import { cityHref } from '$lib/compare/links';
+  import type { ComparisonView } from '$lib/compare/decision';
+  import { cityHref, type ComparisonLinkEntry } from '$lib/compare/links';
 
-  let { analysis, compareCities }: { analysis: ComparisonView; compareCities: ComparisonCity[] } =
-    $props();
+  let {
+    analysis,
+    compareCities
+  }: { analysis: ComparisonView; compareCities: readonly ComparisonLinkEntry[] } = $props();
 </script>
 
 <div>

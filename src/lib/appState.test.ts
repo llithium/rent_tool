@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { RentPlanWorkspace, type RentPlanAdapters } from './appState.svelte';
+import { DEFAULT_COMPARISON_SALARY } from '$lib/compare/comparisonSet.svelte';
 import type { CitySuggestion, LookupResult } from '$lib/types';
 
 function adapters(
@@ -105,6 +106,36 @@ describe('RentPlanWorkspace', () => {
     expect(plan.snapshot.compareNames).toHaveLength(5);
   });
 
+  it('keeps comparison salaries complete and independent from the rent plan', () => {
+    const plan = new RentPlanWorkspace(adapters(unavailableRent));
+    plan.setSalary(95_000);
+
+    expect(plan.addComparison('Tampa, FL')).toMatchObject({
+      status: 'added',
+      salary: 95_000
+    });
+    expect(plan.addComparison('Austin, TX')).toMatchObject({
+      status: 'added',
+      salary: 95_000
+    });
+
+    expect(plan.setComparisonSalary('Tampa, FL', 61_000)).toBe(true);
+    expect(plan.setComparisonSalary('Tampa, FL', 0)).toBe(false);
+    expect(plan.snapshot.salary).toBe(95_000);
+    expect(plan.snapshot.compareEntries.map((entry) => entry.salary)).toEqual([61_000, 95_000]);
+
+    expect(plan.removeComparison('Tampa, FL')).toBe(true);
+    expect(plan.addComparison('Tampa, FL')).toMatchObject({
+      status: 'added',
+      salary: 95_000
+    });
+    expect(plan.snapshot.compareEntries[1]?.salary).toBe(95_000);
+
+    const noPlan = new RentPlanWorkspace(adapters(unavailableRent));
+    noPlan.addComparison('Tampa, FL');
+    expect(noPlan.snapshot.compareEntries[0]?.salary).toBe(DEFAULT_COMPARISON_SALARY);
+  });
+
   it('builds a canonical URL with rounded salary and fixed parameter ordering', async () => {
     const plan = new RentPlanWorkspace(adapters(hudRent));
 
@@ -113,7 +144,7 @@ describe('RentPlanWorkspace', () => {
     await plan.addComparison(suggestion('Nearby, ZZ'));
 
     expect(plan.buildSearch()).toBe(
-      'salary=80001&city=Current%2C+ZZ&lat=40&lng=-74&compare-offlist=%7B%22name%22%3A%22Nearby%2C+ZZ%22%2C%22lat%22%3A40%2C%22lng%22%3A-74%7D'
+      'salary=80001&city=Current%2C+ZZ&lat=40&lng=-74&compare-offlist=%7B%22name%22%3A%22Nearby%2C+ZZ%22%2C%22lat%22%3A40%2C%22lng%22%3A-74%7D&compare-salary=%7B%22name%22%3A%22Nearby%2C+ZZ%22%2C%22salary%22%3A80001%7D'
     );
   });
 
@@ -167,6 +198,37 @@ describe('RentPlanWorkspace', () => {
     ]);
   });
 
+  it('restores complete comparison salaries from a shared link over older local state', () => {
+    const plan = new RentPlanWorkspace(
+      adapters(unavailableRent, {
+        'rentToolLast.v3': JSON.stringify({
+          salary: 90_000,
+          compare: ['Tampa, FL']
+        })
+      })
+    );
+    const search = new URLSearchParams({ salary: '70000', compare: 'Austin, TX' });
+    search.append('compare-salary', JSON.stringify({ name: 'Austin, TX', salary: 66_000 }));
+
+    expect(plan.hydrateFromSearch(search)).toBe(true);
+    expect(plan.snapshot.compareEntries.map((entry) => [entry.city.name, entry.salary])).toEqual([
+      ['Austin, TX', 66_000]
+    ]);
+    expect(plan.snapshot.salary).toBe(70_000);
+  });
+
+  it('uses deterministic salaries for older shared links without entry salaries', () => {
+    const withPlanSalary = new RentPlanWorkspace(adapters(unavailableRent));
+    withPlanSalary.hydrateFromSearch(
+      new URLSearchParams({ salary: '70000', compare: 'Austin, TX' })
+    );
+    expect(withPlanSalary.snapshot.compareEntries[0]?.salary).toBe(70_000);
+
+    const withoutSalary = new RentPlanWorkspace(adapters(unavailableRent));
+    withoutSalary.hydrateFromSearch(new URLSearchParams({ compare: 'Austin, TX' }));
+    expect(withoutSalary.snapshot.compareEntries[0]?.salary).toBe(DEFAULT_COMPARISON_SALARY);
+  });
+
   it('hydrates off-list comparison placeholders, validates entries, and caps URL order', async () => {
     const plan = new RentPlanWorkspace(adapters(hudRent));
     const valid = (name: string, lat = 40, lng = -74) => JSON.stringify({ name, lat, lng });
@@ -211,7 +273,7 @@ describe('RentPlanWorkspace', () => {
     expect(plan.snapshot.compareNames).toHaveLength(5);
   });
 
-  it('clears absent salary and city on URL navigation while preserving comparisons', () => {
+  it('clears absent salary, city, and comparison state on URL navigation', () => {
     const plan = new RentPlanWorkspace(adapters(unavailableRent));
 
     plan.setSalary(80_000);
@@ -221,7 +283,7 @@ describe('RentPlanWorkspace', () => {
 
     expect(plan.snapshot.salary).toBeNull();
     expect(plan.snapshot.selectedName).toBeNull();
-    expect(plan.snapshot.compareNames).toEqual(['Austin, TX']);
+    expect(plan.snapshot.compareNames).toEqual([]);
   });
 
   it('restores a valid custom city and comparison set from adapter storage', () => {
