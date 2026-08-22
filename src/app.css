@@ -8,59 +8,59 @@
    user actually picked. Delete it only alongside the toggle. */
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
-/* Archival editorial palette — oxide ink, warm drafting paper, and confident green.
-   These raw variables are the only place a color literal appears; the @theme
-   block below republishes them as Tailwind utilities. */
+/* Monochrome editorial palette — graphite, white, and a quiet range of neutral
+   surfaces. Status tokens are the only restrained color accents, preserving the
+   existing fit / over-budget signal without bringing the warm paper palette back. */
 :root {
   color-scheme: light;
 
-  --accent: #9f2f1d;
+  --accent: #151515;
   --accent-ink: #ffffff;
-  --accent-soft: #ead4c6;
-  --accent-deep: #762114;
+  --accent-soft: #e7e7e7;
+  --accent-deep: #000000;
   --green: #147b3b;
   --green-soft: #e4f2e8;
   --red: #b7352d;
   --red-soft: #f7e4e1;
   --amber: #ad7d22;
 
-  --canvas: #e7d3b7;
-  --card: #f4ebdd;
-  --card-2: #eadcc8;
-  --ink: #17130f;
-  --muted: #645b50;
-  --faint: #8a7c6b;
-  --line: #d0bda3;
-  --line-strong: #9b8b78;
+  --canvas: #f4f4f4;
+  --card: #ffffff;
+  --card-2: #ebebeb;
+  --ink: #151515;
+  --muted: #5f5f5f;
+  --faint: #8a8a8a;
+  --line: #dedede;
+  --line-strong: #b6b6b6;
 
-  --elevation-card: 8px 8px 0 rgba(23, 19, 15, 0.1);
-  --elevation-pop: 12px 12px 0 rgba(23, 19, 15, 0.14);
+  --elevation-card: 0 14px 34px rgba(21, 21, 21, 0.08);
+  --elevation-pop: 0 18px 42px rgba(21, 21, 21, 0.14);
 }
 
 [data-theme='dark'] {
   color-scheme: dark;
 
-  --accent: #d8744f;
-  --accent-ink: #111413;
-  --accent-soft: #3a2822;
-  --accent-deep: #f09a76;
+  --accent: #f3f3f3;
+  --accent-ink: #111111;
+  --accent-soft: #2c2c2c;
+  --accent-deep: #ffffff;
   --green: #7fbd8c;
   --green-soft: #20342a;
   --red: #e37a68;
   --red-soft: #3b2522;
   --amber: #d7ad63;
 
-  --canvas: #121212;
-  --card: #1a1918;
-  --card-2: #242220;
-  --ink: #f1eadf;
-  --muted: #aaa49b;
-  --faint: #7b756e;
-  --line: #302e2b;
-  --line-strong: #4a4640;
+  --canvas: #0d0d0d;
+  --card: #151515;
+  --card-2: #222222;
+  --ink: #f4f4f4;
+  --muted: #a5a5a5;
+  --faint: #777777;
+  --line: #2d2d2d;
+  --line-strong: #4a4a4a;
 
-  --elevation-card: 8px 8px 0 rgba(0, 0, 0, 0.2);
-  --elevation-pop: 12px 12px 0 rgba(0, 0, 0, 0.3);
+  --elevation-card: 0 14px 34px rgba(0, 0, 0, 0.26);
+  --elevation-pop: 0 18px 42px rgba(0, 0, 0, 0.38);
 }
 
 /* `inline` matters: it makes each utility resolve straight through to the raw
@@ -268,13 +268,14 @@
     min-width: 320px;
     margin: 0;
     background-color: var(--canvas);
-    background-image:
-      linear-gradient(color-mix(in srgb, var(--ink) 5%, transparent) 1px, transparent 1px),
-      linear-gradient(90deg, color-mix(in srgb, var(--ink) 5%, transparent) 1px, transparent 1px);
-    background-size: 5rem 5rem;
     color: var(--ink);
     font-synthesis: none;
     text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: var(--ink);
+    color: var(--canvas);
   }
 
   button,

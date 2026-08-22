@@ -8,12 +8,12 @@
     {href}
     class="flex items-center gap-2 text-label tracking-tight text-ink no-underline transition-colors duration-200 hover:text-accent"
   >
-    <img src="/favicon.svg" alt="" width="26" height="26" class="block rounded-md" />
+    <img src="/favicon.svg" alt="" width="26" height="26" class="block rounded-lg" />
     <span>Rent Tool</span>
   </a>
 {:else}
   <div class="flex items-center gap-2 text-label tracking-tight text-ink">
-    <img src="/favicon.svg" alt="" width="26" height="26" class="block rounded-md" />
+    <img src="/favicon.svg" alt="" width="26" height="26" class="block rounded-lg" />
     <span>Rent Tool</span>
   </div>
 {/if}

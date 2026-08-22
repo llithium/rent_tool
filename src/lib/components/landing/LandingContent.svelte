@@ -70,7 +70,10 @@
 </script>
 
 <article bind:this={root} aria-label="Start a rent plan" class="min-w-0 overflow-hidden">
-  <section data-editorial-hero class="relative min-h-136 border border-line-strong p-7 md:p-10">
+  <section
+    data-editorial-hero
+    class="relative min-h-136 overflow-hidden rounded-2xl border border-line-strong p-7 shadow-card md:p-10"
+  >
     <div data-halftone-field aria-hidden="true"></div>
     <p class="max-w-md text-meta font-semibold tracking-[0.14em] text-accent uppercase">
       Plan the move before the listings
@@ -92,7 +95,7 @@
     <button
       type="button"
       onclick={focusCalculator}
-      class="group mt-8 inline-flex min-h-13 items-center gap-12 bg-ink px-5 py-3 text-base font-semibold text-canvas transition-colors duration-300 hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent md:ml-[18%]"
+      class="group mt-8 inline-flex min-h-13 items-center gap-12 rounded-full bg-ink px-5 py-3 text-base font-semibold text-canvas transition-colors duration-300 hover:bg-accent-deep hover:text-accent-ink focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent md:ml-[18%]"
     >
       Build my rent plan
       <span

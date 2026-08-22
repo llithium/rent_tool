@@ -32,9 +32,32 @@
 
   const markers = new Map<string, CircleMarker>();
 
-  function colorFor(c: City): string {
-    if (c.r1 == null || maxRent == null) return '#99928c';
-    return c.r1 <= maxRent ? '#147b3b' : '#b7352d';
+  type MarkerPalette = {
+    neutral: string;
+    fits: string;
+    over: string;
+    accent: string;
+    card: string;
+  };
+
+  function themeColor(name: string, fallback: string): string {
+    if (typeof document === 'undefined') return fallback;
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
+  }
+
+  function markerPalette(): MarkerPalette {
+    return {
+      neutral: themeColor('--faint', '#777777'),
+      fits: themeColor('--green', '#3f3f3f'),
+      over: themeColor('--red', '#707070'),
+      accent: themeColor('--accent', '#151515'),
+      card: themeColor('--card', '#ffffff')
+    };
+  }
+
+  function colorFor(c: City, palette: MarkerPalette): string {
+    if (c.r1 == null || maxRent == null) return palette.neutral;
+    return c.r1 <= maxRent ? palette.fits : palette.over;
   }
 
   function recenterOnSelectedCity(force = false) {
@@ -75,6 +98,7 @@
     map?.stop();
     group.clearLayers();
     markers.clear();
+    const palette = markerPalette();
 
     for (const c of cities) {
       if (c.lat == null || c.lng == null) continue;
@@ -82,8 +106,8 @@
       const marker = L.circleMarker([c.lat, c.lng], {
         radius: selected ? 9 : 5.5,
         weight: selected ? 3 : 1.5,
-        color: selected ? '#b25027' : '#ffffff',
-        fillColor: colorFor(c),
+        color: selected ? palette.accent : palette.card,
+        fillColor: colorFor(c, palette),
         fillOpacity: 0.9
       });
       const fit =
@@ -207,13 +231,11 @@
             {selectedName}
           </span>
         {/if}
-        <!-- The marker colours are set in JS on Leaflet's SVG layer, so the legend
-             swatches repeat those literals rather than reading a theme token. -->
         <span class="inline-flex items-center gap-1.5">
-          <i class="inline-block size-2.5 rounded-full" style="background:#147b3b"></i> fits budget
+          <i class="inline-block size-2.5 rounded-full bg-green"></i> fits budget
         </span>
         <span class="inline-flex items-center gap-1.5">
-          <i class="inline-block size-2.5 rounded-full" style="background:#b7352d"></i> over budget
+          <i class="inline-block size-2.5 rounded-full bg-red"></i> over budget
         </span>
       </div>
     </div>

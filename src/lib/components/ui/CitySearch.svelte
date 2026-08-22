@@ -162,7 +162,7 @@
     <input
       id="city-input"
       name="city-search"
-      class="w-full border border-line-strong bg-card-2 py-3 pr-10 pl-3 text-body font-semibold text-ink transition-colors duration-200 placeholder:text-faint hover:border-accent focus:border-transparent focus:outline-2 focus:outline-accent"
+      class="w-full rounded-lg border border-line-strong bg-card-2 py-3 pr-10 pl-3 text-body font-semibold text-ink transition-colors duration-200 placeholder:text-faint hover:border-ink focus:border-transparent focus:outline-2 focus:outline-accent"
       type="search"
       role="combobox"
       aria-expanded={open}
