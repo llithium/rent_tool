@@ -21,11 +21,11 @@ A sourced monthly rent statistic shown as market context, with its meaning, geog
 _Avoid_: quote, lease price
 
 **Comparison set**:
-The cities a person has chosen to inspect side by side against the rent plan’s decision criteria.
+Up to five comparison entries a person has chosen to inspect side by side against the rent plan’s decision criteria. Opening an empty comparison set from a rent plan begins with an entry for the active city. Clearing a comparison set removes every entry and its committed salary.
 _Avoid_: shortlist, scenarios
 
 **Comparison entry**:
-A city and its committed salary within a comparison set.
+A city and its committed salary within a comparison set. A new entry commits the rent plan’s salary when available, or $80,000 otherwise. Only a valid salary can become committed; an incomplete or invalid editing value does not replace the last committed salary. The committed salary belongs to that entry, remains independent of the rent plan’s salary and other comparison entries, and is preserved when the comparison set is shared. Removing an entry removes both its city and committed salary.
 _Avoid_: scenario, row
 
 **Decision brief**:
