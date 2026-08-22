@@ -1,12 +1,14 @@
 <script lang="ts">
   import {
     DECISION_CRITERIA,
+    type ComparisonCity,
     type ComparisonView,
     type DecisionCriterion
   } from '$lib/compare/decision';
   import { cityHref } from '$lib/compare/links';
 
-  let { analysis, compareNames }: { analysis: ComparisonView; compareNames: string[] } = $props();
+  let { analysis, compareCities }: { analysis: ComparisonView; compareCities: ComparisonCity[] } =
+    $props();
   let criterion = $state<DecisionCriterion>('afterRent');
   let decision = $derived(analysis.briefs[criterion]);
 </script>
@@ -50,7 +52,7 @@
             {#each decision.leaders as leader, index (leader.city.name)}
               {#if index > 0}<span class="text-data text-muted">and</span>{/if}
               <a
-                href={cityHref({ city: leader.city, salary: leader.salary }, compareNames)}
+                href={cityHref({ city: leader.city, salary: leader.salary }, compareCities)}
                 class="inline-block text-data text-ink decoration-accent underline-offset-4 hover:text-accent"
               >
                 {leader.city.name}

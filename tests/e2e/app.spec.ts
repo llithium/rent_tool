@@ -49,6 +49,60 @@ test('does not server-render the landing state before a saved city hydrates', as
   expect(html).not.toContain('Know what rent fits before you move.');
 });
 
+test('restores an off-list selected city and seed comparison from a shared URL', async ({
+  page
+}) => {
+  await page.route('**/api/geocode**', (route) =>
+    route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({
+        ok: true,
+        stateFips: '12',
+        countyFips: '057',
+        county: 'Hillsborough'
+      })
+    })
+  );
+  await page.route('**/api/fmr**', (route) =>
+    route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({
+        ok: true,
+        r1: 1_250,
+        r2: 1_600,
+        year: 'FY2026',
+        county: 'Hillsborough',
+        bundled: true
+      })
+    })
+  );
+  await page.route('**/api/population**', (route) =>
+    route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({ ok: true, pop: 250_000 })
+    })
+  );
+
+  await page.evaluate(() => localStorage.clear());
+  const search = new URLSearchParams({
+    salary: '80000',
+    city: 'Shared Town, ZZ',
+    lat: '40',
+    lng: '-74'
+  });
+  search.append('compare-offlist', JSON.stringify({ name: 'Shared Town, ZZ', lat: 40, lng: -74 }));
+  search.append('compare', 'New York, NY');
+  await page.goto(`/?${search}`);
+  await waitForHydration(page);
+
+  await expect(page.getByRole('heading', { name: 'Shared Town, ZZ', exact: true })).toBeVisible();
+  const comparison = page.locator('#comparison-section');
+  await expect(
+    comparison.getByRole('button', { name: 'Shared Town, ZZ', exact: true })
+  ).toBeVisible();
+  await expect(comparison.getByRole('button', { name: 'New York, NY', exact: true })).toBeVisible();
+});
+
 test.beforeEach(async ({ page }) => {
   await page.route('**/api/city-suggest**', (route) =>
     route.fulfill({
@@ -65,7 +119,7 @@ test('focuses a visible calculator without scrolling the landing page', async ({
   const city = page.getByRole('combobox', { name: 'City' });
   const before = await page.evaluate(() => window.scrollY);
 
-  await page.getByRole('button', { name: 'Choose a city and salary' }).click();
+  await page.getByRole('button', { name: 'Build my rent plan' }).click();
 
   await expect(city).toBeFocused();
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(before);
@@ -83,7 +137,6 @@ test('supports keyboard city selection and salary results', async ({ page }) => 
   await expect(
     page.locator('[data-testid="fact"]').getByText('Estimated median 1BR rent', { exact: true })
   ).toBeVisible();
-  await page.getByText('Explore city context', { exact: true }).click();
   await expect(page.getByRole('heading', { name: 'City snapshot' })).toBeVisible();
   await expect(page.getByText('Median household income', { exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: '2020–2024 ACS 5-year estimates ↗' })).toBeVisible();

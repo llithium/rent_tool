@@ -133,7 +133,7 @@
       {#each analysis.entries as entry, index (entry.city.name)}
         <ScenarioCard
           {entry}
-          href={cityHref({ city: entry.city, salary: entry.salary }, app.compareNames)}
+          href={cityHref({ city: entry.city, salary: entry.salary }, app.compareCities)}
           {salaries}
           sharedSalary={app.salary}
           entranceDelay={Math.min(index * 60, 180)}
@@ -143,7 +143,7 @@
     </section>
 
     {#if analysis.entries.length > 1}
-      <CompareHighlights {analysis} compareNames={app.compareNames} />
+      <CompareHighlights {analysis} compareCities={app.compareCities} />
     {/if}
 
     <section class="mt-8 border-t border-line pt-6">
@@ -153,7 +153,7 @@
           Taxes estimate a single filer taking the standard deduction.
         </p>
       </div>
-      <CompareMetricsTable {analysis} compareNames={app.compareNames} />
+      <CompareMetricsTable {analysis} compareCities={app.compareCities} />
     </section>
   {:else if hydrated}
     <section class="mt-12 border-b border-line py-16 md:py-20" aria-labelledby="empty-heading">

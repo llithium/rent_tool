@@ -113,7 +113,7 @@ describe('RentPlanWorkspace', () => {
     await plan.addComparison(suggestion('Nearby, ZZ'));
 
     expect(plan.buildSearch()).toBe(
-      'salary=80001&city=Current%2C+ZZ&lat=40&lng=-74&compare=Nearby%2C+ZZ'
+      'salary=80001&city=Current%2C+ZZ&lat=40&lng=-74&compare-offlist=%7B%22name%22%3A%22Nearby%2C+ZZ%22%2C%22lat%22%3A40%2C%22lng%22%3A-74%7D'
     );
   });
 
@@ -165,6 +165,50 @@ describe('RentPlanWorkspace', () => {
       'Miami, FL',
       'New York, NY'
     ]);
+  });
+
+  it('hydrates off-list comparison placeholders, validates entries, and caps URL order', async () => {
+    const plan = new RentPlanWorkspace(adapters(hudRent));
+    const valid = (name: string, lat = 40, lng = -74) => JSON.stringify({ name, lat, lng });
+    const search = new URLSearchParams([
+      ['city', 'Active, ZZ'],
+      ['lat', '40.1'],
+      ['lng', '-73.9'],
+      ['compare-offlist', valid('Off-list, ZZ', 40.1, -73.9)],
+      ['compare', 'Tampa, FL'],
+      ['compare-offlist', valid('off-list, zz', 40.1, -73.9)],
+      ['compare-offlist', '{not-json'],
+      ['compare-offlist', valid('Bad coordinates, ZZ', 91, -74)],
+      ['compare', 'Austin, TX'],
+      ['compare', 'Boston, MA'],
+      ['compare', 'Miami, FL'],
+      ['compare-offlist', valid('Overflow, ZZ', 41, -75)]
+    ]);
+
+    expect(plan.hydrateFromSearch(search)).toBe(true);
+    expect(plan.snapshot.compareNames).toEqual([
+      'Off-list, ZZ',
+      'Tampa, FL',
+      'Austin, TX',
+      'Boston, MA',
+      'Miami, FL'
+    ]);
+    expect(plan.cityByName('Off-list, ZZ')).toMatchObject({
+      name: 'Off-list, ZZ',
+      lat: 40.1,
+      lng: -73.9
+    });
+    expect(plan.cityByName('Bad coordinates, ZZ')).toBeNull();
+    expect(plan.cityByName('Overflow, ZZ')).toBeNull();
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(plan.snapshot.selectedName).toBe('Active, ZZ');
+    expect(plan.cityByName('Off-list, ZZ')).toMatchObject({
+      source: 'hud-fmr',
+      r1: 1_250
+    });
+    expect(plan.snapshot.compareNames).toHaveLength(5);
   });
 
   it('clears absent salary and city on URL navigation while preserving comparisons', () => {

@@ -9,11 +9,34 @@ describe('comparison city links', () => {
           city: { name: 'Off-list, ZZ', source: 'hud-fmr', lat: 40.1, lng: -73.9 },
           salary: 80_000
         },
-        ['Off-list, ZZ', 'Anchor, NY']
+        [
+          { name: 'Off-list, ZZ', source: 'hud-fmr', lat: 40.1, lng: -73.9 },
+          { name: 'Anchor, NY', source: 'apartment-list' }
+        ]
       )
     ).toBe(
-      '/?salary=80000&city=Off-list%2C+ZZ&lat=40.1&lng=-73.9&compare=Off-list%2C+ZZ&compare=Anchor%2C+NY'
+      '/?salary=80000&city=Off-list%2C+ZZ&lat=40.1&lng=-73.9&compare-offlist=%7B%22name%22%3A%22Off-list%2C+ZZ%22%2C%22lat%22%3A40.1%2C%22lng%22%3A-73.9%7D&compare=Anchor%2C+NY'
     );
+  });
+
+  it('preserves comparison order and omits an off-list city without coordinates', () => {
+    const href = cityHref(
+      { city: { name: 'Anchor, NY', source: 'apartment-list' }, salary: 80_000 },
+      [
+        { name: 'Custom, ZZ', source: 'none' },
+        { name: 'Seed, NY', source: 'apartment-list' },
+        { name: 'HUD, ZZ', source: 'hud-fmr', lat: 0, lng: 0 }
+      ]
+    );
+
+    const search = new URL(href, 'https://rent.test').searchParams;
+    expect([...search.keys()]).toEqual(['salary', 'city', 'compare', 'compare-offlist']);
+    expect(search.getAll('compare')).toEqual(['Seed, NY']);
+    expect(JSON.parse(search.get('compare-offlist') ?? '')).toEqual({
+      name: 'HUD, ZZ',
+      lat: 0,
+      lng: 0
+    });
   });
 
   it('omits an invalid salary instead of serializing NaN', () => {

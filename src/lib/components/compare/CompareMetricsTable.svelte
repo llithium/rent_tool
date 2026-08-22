@@ -1,8 +1,9 @@
 <script lang="ts">
-  import type { ComparisonView } from '$lib/compare/decision';
+  import type { ComparisonCity, ComparisonView } from '$lib/compare/decision';
   import { cityHref } from '$lib/compare/links';
 
-  let { analysis, compareNames }: { analysis: ComparisonView; compareNames: string[] } = $props();
+  let { analysis, compareCities }: { analysis: ComparisonView; compareCities: ComparisonCity[] } =
+    $props();
 </script>
 
 <div>
@@ -22,7 +23,7 @@
           {#each analysis.entries as entry (entry.city.name)}
             <th class="text-right">
               <a
-                href={cityHref({ city: entry.city, salary: entry.salary }, compareNames)}
+                href={cityHref({ city: entry.city, salary: entry.salary }, compareCities)}
                 class="text-inherit no-underline hover:text-inherit"
               >
                 {entry.city.name}
