@@ -43,6 +43,26 @@ the map without a second geocode call.
 Up to 8 de-duplicated suggestions. Any upstream failure returns `{ "suggestions": [] }`.
 Cache: `max-age=60, s-maxage=300`.
 
+**Production abuse control**
+
+The published Vercel Firewall rule `city-autocomplete-throttle` protects this public proxy
+before the request reaches the serverless handler:
+
+| Setting        | Value                                                                  |
+| -------------- | ---------------------------------------------------------------------- |
+| Match          | Request Path equals `/api/city-suggest`                                |
+| Counting key   | Client IP address only                                                 |
+| Algorithm      | Fixed Window                                                           |
+| Window / limit | 60 seconds / 100 requests per IP                                       |
+| Action         | `429 Too Many Requests`                                                |
+| Observability  | Vercel Dashboard → Firewall → overview and the rule's traffic grouping |
+
+The 100-request window accommodates normal 220 ms typeahead bursts while capping sustained
+traffic. Vercel owns the edge response and retry timing; the application does not maintain a
+process-local counter or log raw IP addresses or search terms. The client treats a throttled
+response like any unavailable remote refinement: it keeps bundled seed suggestions, does not
+retry automatically, and leaves the existing polite loading/status behavior intact.
+
 **Example**
 
 ```bash

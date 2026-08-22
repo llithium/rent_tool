@@ -156,6 +156,22 @@ test('shows bundled city suggestions before a slow API response', async ({ page 
   await expect(page.getByRole('option', { name: 'Gastonia, NC' })).toBeVisible({ timeout: 700 });
 });
 
+test('keeps bundled city suggestions when autocomplete is throttled', async ({ page }) => {
+  await page.unroute('**/api/city-suggest**');
+  await page.route('**/api/city-suggest**', (route) =>
+    route.fulfill({
+      status: 429,
+      headers: { 'Retry-After': '60' },
+      contentType: 'application/json',
+      body: JSON.stringify({ suggestions: [] })
+    })
+  );
+
+  const city = page.getByRole('combobox', { name: 'City' });
+  await city.fill('Gastonia');
+  await expect(page.getByRole('option', { name: 'Gastonia, NC' })).toBeVisible({ timeout: 700 });
+});
+
 test('keeps the accepted city explicit while a different city is being typed', async ({ page }) => {
   await selectCity(page, 'Tampa', 'Tampa, FL');
   await page.getByLabel('Annual salary', { exact: true }).fill('80000');
