@@ -22,8 +22,8 @@ Other scripts: `pnpm build` (production, adapter-vercel), `pnpm preview`,
 `pnpm lint` / `pnpm lint:fix` (ESLint flat config), `pnpm check` (type-check),
 `pnpm test` (unit tests), and `pnpm test:e2e` (browser/accessibility tests).
 `pnpm validate` runs the format check, lint, type-check, unit tests, and build in one go.
-CI runs that same set and then adds `pnpm test:e2e` and `pnpm audit --prod`, which are
-left out of `validate` because they need a browser download and network access.
+`pnpm test:e2e` and `pnpm audit --prod` are optional manual checks; the browser tests need
+a browser download, and the audit needs network access.
 
 ## Styling
 
@@ -159,5 +159,5 @@ component receives through a `class` prop rather than a `:global()` selector.
 Push to a repo and import into Vercel (adapter-vercel is already configured), or run
 `vercel`. No API keys are required for off-list HUD rent coverage.
 
-GitHub Actions run type checks, unit tests, the production build, and browser tests. The
-app targets Node 22 on Vercel.
+This repository does not currently track a GitHub Actions workflow, so run the local checks
+above as needed. The app targets Node 22 on Vercel.
