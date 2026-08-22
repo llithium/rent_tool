@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { coordinatesForPlace, nearbyPlaces, placeAt } from './data/places';
 
 const CHARLOTTE = { lat: 35.2271, lng: -80.8431 };
+const ST_PETERSBURG = { lat: 27.7931, lng: -82.6652 };
 
 const EXCLUDE_CLT = { exclude: { city: 'Charlotte', state: 'NC' } };
 
@@ -20,6 +21,14 @@ describe('nearbyPlaces', () => {
   it('excludes the origin city itself', () => {
     const hits = nearbyPlaces(CHARLOTTE.lat, CHARLOTTE.lng, EXCLUDE_CLT);
     expect(hits.map((h) => h.city)).not.toContain('Charlotte');
+  });
+
+  it('excludes punctuation aliases for the origin city', () => {
+    const hits = nearbyPlaces(ST_PETERSBURG.lat, ST_PETERSBURG.lng, {
+      exclude: { city: 'St Petersburg', state: 'FL' }
+    });
+    expect(hits.map((h) => h.city)).not.toContain('St. Petersburg');
+    expect(hits.some((h) => h.city === 'Tampa' && h.state === 'FL')).toBe(true);
   });
 
   it('labels cross-border suburbs with their own state', () => {

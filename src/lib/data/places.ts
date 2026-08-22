@@ -63,13 +63,12 @@ export function nearbyPlaces(
     exclude?: { city: string; state: string };
   } = {}
 ): Place[] {
-  const exCity = exclude?.city.toLowerCase();
-  const exState = exclude?.state.toUpperCase();
+  const excludeKey = exclude ? placeKey(exclude.city, exclude.state) : null;
   const hits: Place[] = [];
   for (const row of PLACES) {
     // Cheap bounding-box reject before the trig (1° lat ≈ 69 mi).
     if (Math.abs(row[2] - lat) * 69 > radiusMiles) continue;
-    if (exCity && row[0].toLowerCase() === exCity && row[1] === exState) continue;
+    if (excludeKey && placeKey(row[0], row[1]) === excludeKey) continue;
     const miles = haversineMiles(lat, lng, row[2], row[3]);
     if (miles < excludeMiles || miles > radiusMiles) continue;
     hits.push(toPlace(row, miles));
